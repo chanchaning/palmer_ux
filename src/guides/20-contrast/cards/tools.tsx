@@ -5,7 +5,7 @@ import { AA, contrast, fmtRatio, parseColor, toHex, VISION_LABEL, type RGB, type
 import { useTester, VisionFilters } from '../shared'
 
 /* ---------- 02 팔레트 일괄 검사 ---------- */
-const DEFAULT_PAL = '#1b1b19 #4d4d48 #63635d #9d9d95\n#ffffff #f0f0ec #1c1c1a\n#3550ee #c2410c #c92a2a'
+const DEFAULT_PAL = '#1b1b19 #4d4d48 #63635d #9d9d95\n#ffffff #f0f0ec #1c1c1a\n#3550ee #b23a0b #b42323'
 export function Palette() {
   const { load } = useTester()
   const [text, setText] = useState(DEFAULT_PAL)

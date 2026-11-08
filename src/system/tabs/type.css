@@ -1,0 +1,99 @@
+/* 타이포그래피 탭 */
+[data-sys="type"] small { font-weight: 500; color: var(--text-3); }
+[data-sys="type"] a { color: var(--accent); font-weight: 600; text-decoration: none; }
+[data-sys="type"] a:hover { text-decoration: underline; }
+[data-sys="type"] code { font-family: ui-monospace, "SF Mono", Consolas, monospace; font-size: .9em; background: var(--surface-2); padding: 1px 5px; border-radius: 5px; }
+
+/* 권장 구간 막대 */
+[data-sys="type"] .ts-zone { position: relative; height: 6px; border-radius: 3px; background: var(--surface-2); margin-top: 2px; }
+[data-sys="type"] .ts-zone i { position: absolute; top: 0; bottom: 0; border-radius: 3px; background: color-mix(in srgb, var(--ok) 40%, transparent); }
+[data-sys="type"] .ts-zone b { position: absolute; top: -3px; width: 4px; height: 12px; margin-left: -2px; border-radius: 2px; background: var(--text); transition: left .15s; }
+
+/* 1. 시뮬레이터 */
+[data-sys="type"] .ts-sim { display: grid; grid-template-columns: minmax(260px, 340px) minmax(0, 1fr); gap: 24px; align-items: start; }
+[data-sys="type"] .ts-controls { display: flex; flex-direction: column; gap: 16px; }
+[data-sys="type"] .ts-toggle { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; border-radius: 12px; background: var(--surface-2); }
+[data-sys="type"] .ts-toggle span { display: flex; flex-direction: column; font-size: 14px; }
+[data-sys="type"] .ts-toggle b { font-family: ui-monospace, "SF Mono", Consolas, monospace; font-size: 13px; }
+[data-sys="type"] .ts-more { font-size: 14px; }
+[data-sys="type"] .ts-stage { min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+[data-sys="type"] .ts-stage-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+[data-sys="type"] .ts-meter { font-size: 14px; padding: 6px 10px; border-radius: 10px; font-variant-numeric: tabular-nums; }
+[data-sys="type"] .ts-meter.ok { background: color-mix(in srgb, var(--ok) 12%, var(--surface)); color: var(--text); }
+[data-sys="type"] .ts-meter.bad { background: color-mix(in srgb, var(--danger) 10%, var(--surface)); color: var(--text); }
+[data-sys="type"] .ts-meter.ok b { color: var(--ok); }
+[data-sys="type"] .ts-meter.bad b { color: var(--danger); }
+[data-sys="type"] .ts-page { background: var(--surface-2); border-radius: 14px; padding: 24px 20px; overflow: hidden; color: var(--text); }
+[data-sys="type"] .ts-col { padding-right: 36px; box-sizing: content-box; }
+[data-sys="type"] .ts-col h4 { margin: 0 0 .6em; font-weight: 700; }
+[data-sys="type"] .ts-prose { position: relative; }
+[data-sys="type"] .ts-prose p { margin: 0; }
+[data-sys="type"] .ts-probe { position: absolute; left: 0; top: 0; visibility: hidden; white-space: nowrap; pointer-events: none; }
+[data-sys="type"] .ts-col .ts-cap { margin: 14px 0 0; color: var(--text-3); font-variant-numeric: tabular-nums; }
+[data-sys="type"] .ts-ruler { list-style: none; margin: 0; padding: 0; position: absolute; top: 0; left: 100%; width: 32px; }
+[data-sys="type"] .ts-ruler li { position: absolute; left: 6px; display: flex; align-items: center; font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: 0; line-height: 1; }
+[data-sys="type"] .ts-ruler li::before { content: ""; width: 3px; align-self: stretch; margin: 3px 4px 3px 0; border-radius: 2px; background: currentColor; opacity: .5; }
+[data-sys="type"] .ts-ruler li.ok { color: var(--ok); }
+[data-sys="type"] .ts-ruler li.bad { color: var(--danger); }
+[data-sys="type"] .ts-ruler li.last { color: var(--text-3); }
+[data-sys="type"] .ts-foot { font-size: 13px; color: var(--text-3); }
+[data-sys="type"] .ts-foot b { color: var(--text); font-variant-numeric: tabular-nums; }
+
+/* 2. 스케일 */
+[data-sys="type"] .ts-scale { display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+[data-sys="type"] .ts-row { display: grid; grid-template-columns: 380px minmax(0, 1fr); align-items: center; gap: 16px; padding: 14px 16px; border-top: 1px solid var(--line); }
+[data-sys="type"] .ts-row:first-child { border-top: 0; }
+[data-sys="type"] .ts-row-meta { display: grid; grid-template-columns: 82px 108px 72px 1fr; align-items: center; gap: 8px; }
+[data-sys="type"] .ts-tag { display: flex; flex-direction: column; font-weight: 700; font-size: 15px; line-height: 1.3; }
+[data-sys="type"] .ts-tag small { font-size: 12px; }
+[data-sys="type"] .ts-rem { font-size: 13px; color: var(--text-3); font-variant-numeric: tabular-nums; }
+[data-sys="type"] .ts-badge { justify-self: start; font-size: 12px; font-weight: 700; padding: 3px 8px; border-radius: 6px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+[data-sys="type"] .ts-badge.ok { background: color-mix(in srgb, var(--ok) 14%, var(--surface)); color: var(--ok); }
+[data-sys="type"] .ts-badge.bad { background: color-mix(in srgb, var(--danger) 12%, var(--surface)); color: var(--danger); }
+[data-sys="type"] .ts-row-sample { min-width: 0; color: var(--text); word-break: keep-all; overflow-wrap: anywhere; transition: font-size .2s; }
+[data-sys="type"] .ts-num { display: inline-flex; align-items: center; border: 1px solid var(--line); border-radius: 9px; background: var(--surface); overflow: hidden; }
+[data-sys="type"] .ts-num button { border: 0; background: var(--surface-2); width: 30px; height: 32px; font-size: 16px; color: var(--text-2); }
+[data-sys="type"] .ts-num button:hover { color: var(--text); background: var(--surface-3); }
+[data-sys="type"] .ts-num input { width: 44px; height: 32px; border: 0; text-align: center; font-size: 14px; font-weight: 700; color: var(--text); background: transparent; font-variant-numeric: tabular-nums; -moz-appearance: textfield; appearance: textfield; }
+[data-sys="type"] .ts-num input::-webkit-inner-spin-button, [data-sys="type"] .ts-num input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+[data-sys="type"] .ts-scale-sum { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 14px; color: var(--text-2); align-items: center; }
+[data-sys="type"] .ts-scale-sum b { color: var(--text); font-variant-numeric: tabular-nums; }
+[data-sys="type"] .ts-scale-sum .ok { color: var(--ok); font-weight: 600; }
+[data-sys="type"] .ts-scale-sum .bad { color: var(--danger); font-weight: 600; }
+
+/* 3. 표 */
+[data-sys="type"] .ts-spec td small { display: block; font-size: 12px; margin-top: 2px; }
+[data-sys="type"] .ts-spec td b { color: var(--text); }
+[data-sys="type"] .ts-spec .cur { background: var(--accent-soft); color: var(--text); }
+[data-sys="type"] .ts-spec thead th.cur { color: var(--accent); }
+[data-sys="type"] .ts-spec td, [data-sys="type"] .ts-spec th { transition: background .2s; white-space: nowrap; }
+
+/* 4. 기본 기준 */
+[data-sys="type"] .ts-weights { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+[data-sys="type"] .ts-weights div { background: var(--surface-2); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 2px; }
+[data-sys="type"] .ts-weights b { font-size: 22px; color: var(--text); }
+[data-sys="type"] .ts-weights span { font-size: 12px; color: var(--text-3); font-variant-numeric: tabular-nums; }
+[data-sys="type"] .ts-line { margin: 0; font-size: 14px; line-height: 1.65; color: var(--text-2); }
+[data-sys="type"] .ts-line b { color: var(--text); }
+[data-sys="type"] .ts-inks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+[data-sys="type"] .ts-ink { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 12px; background: #ffffff; border: 1px solid var(--line); }
+[data-sys="type"] .ts-ink-sw { font-size: 24px; font-weight: 700; line-height: 1; }
+[data-sys="type"] .ts-ink > span:last-child { display: flex; flex-direction: column; min-width: 0; }
+[data-sys="type"] .ts-ink code { background: none; padding: 0; color: #111111; font-weight: 700; }
+[data-sys="type"] .ts-ink small { font-size: 12px; color: #63635d; }
+[data-sys="type"] .ts-nums { background: var(--surface-2); border-radius: 12px; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; }
+[data-sys="type"] .ts-nums ul { list-style: none; margin: 0 0 0 auto; padding: 0; min-width: 160px; text-align: right; font-size: 18px; font-weight: 600; color: var(--text); line-height: 1.5; }
+
+@media (max-width: 1100px) {
+  [data-sys="type"] .ts-row { grid-template-columns: 1fr; gap: 8px; }
+}
+@media (max-width: 860px) {
+  [data-sys="type"] .ts-sim { grid-template-columns: 1fr; }
+}
+@media (max-width: 520px) {
+  [data-sys="type"] .ts-row-meta { grid-template-columns: auto auto 1fr; }
+  [data-sys="type"] .ts-row-meta .ts-tag { grid-column: 1 / -1; flex-direction: row; gap: 8px; align-items: baseline; }
+  [data-sys="type"] .ts-badge { justify-self: end; }
+  [data-sys="type"] .ts-page { padding: 18px 12px; }
+  [data-sys="type"] .ts-inks { grid-template-columns: 1fr; }
+}

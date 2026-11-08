@@ -1,0 +1,45 @@
+/* 디자인 시스템 페이지 공용 (탭 전용 스타일은 [data-sys="탭id"] 범위로 각 탭 파일 옆 css에) */
+.syspage .page-head { align-items: flex-start; }
+.sys-actions { display: flex; gap: 8px; flex-wrap: wrap; flex: none; }
+.sys-tabs button { font-weight: 600; }
+.sys-tab-desc { font-size: 14px; color: var(--text-3); margin: 6px 0 14px; }
+.sys-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 520px), 1fr)); gap: 20px; }
+.sys-grid > .wide { grid-column: 1 / -1; }
+.sys-sec { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 22px; display: flex; flex-direction: column; gap: 16px; min-width: 0; scroll-margin-top: calc(var(--top-h) + 64px); }
+.sys-sec-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+.sys-sec-head h3 { margin: 0 0 4px; font-size: 21px; letter-spacing: -.02em; }
+.sys-sec-head p { margin: 0; font-size: 15px; color: var(--text-2); max-width: 720px; line-height: 1.6; }
+.sys-sec-body { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.sys-note { font-size: 14px; line-height: 1.65; color: var(--text-2); background: var(--surface-2); border-radius: 12px; padding: 12px 14px; }
+.sys-note b { color: var(--text); }
+.sys-note.is-warn { background: color-mix(in srgb, var(--danger) 8%, var(--surface)); }
+.sys-code { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--surface-2); min-width: 0; }
+.sys-code-bar { display: flex; justify-content: space-between; align-items: center; padding: 6px 8px 6px 14px; font-size: 12px; font-weight: 700; color: var(--text-3); border-bottom: 1px solid var(--line); }
+.sys-code pre { margin: 0; padding: 12px 14px; overflow: auto; font-size: 13px; line-height: 1.6; }
+.sys-code code, .sys-export code { font-family: ui-monospace, "SF Mono", Consolas, monospace; color: var(--text); white-space: pre; }
+.sys-slider { display: flex; flex-direction: column; gap: 6px; }
+.sys-slider-top { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; color: var(--text-2); }
+.sys-slider-top b { color: var(--text); font-variant-numeric: tabular-nums; }
+.sys-slider-top b.is-ok { color: var(--ok); }
+.sys-slider-top b.is-bad { color: var(--danger); }
+.sys-slider-hint { font-size: 12px; color: var(--text-3); }
+.sys-export { width: min(860px, 100%); max-height: 82vh; display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--pop); overflow: hidden; }
+.sys-export header { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.sys-export header b { font-size: 16px; }
+.sys-export header .seg-x { margin-right: auto; }
+.sys-export pre { margin: 0; padding: 14px 16px; overflow: auto; flex: 1; font-size: 13px; line-height: 1.6; background: var(--surface-2); }
+.sys-export footer { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-top: 1px solid var(--line); flex-wrap: wrap; }
+.sys-export footer .muted { margin-right: auto; }
+/* 요약표 */
+.sys-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.sys-table th, .sys-table td { text-align: left; vertical-align: top; padding: 10px 10px; border-top: 1px solid var(--line); }
+.sys-table thead th { border-top: 0; font-size: 12px; color: var(--text-3); font-weight: 700; }
+.sys-table td a { color: var(--text); font-weight: 700; text-decoration: none; }
+.sys-table td a:hover { color: var(--accent); text-decoration: underline; }
+.sys-table td { color: var(--text-2); }
+.sys-table .m { color: var(--accent); font-weight: 600; }
+.sys-table .h { color: var(--b); font-weight: 600; }
+.sys-table-wrap { overflow-x: auto; }
+/* 본문 속 링크 (라이트·다크 모두 대비 확보) */
+.sys-sec a:not(.btn), .sys-note a { color: var(--accent); text-underline-offset: 2px; }
+.sys-table td a { color: var(--text); }

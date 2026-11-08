@@ -11,7 +11,7 @@ const PRESETS: { name: string; fg: string; bg: string }[] = [
   { name: '회색 캡션', fg: '#63635d', bg: '#ffffff' },
   { name: '회색 · 회색 바탕', fg: '#63635d', bg: '#f0f0ec' },
   { name: '파랑 버튼', fg: '#ffffff', bg: '#3550ee' },
-  { name: '주황 강조', fg: '#c2410c', bg: '#ffffff' },
+  { name: '주황 강조', fg: '#b23a0b', bg: '#ffffff' },
   { name: '다크 본문', fg: '#f1f1ec', bg: '#1c1c1a' },
   { name: '다크 캡션', fg: '#9d9d95', bg: '#1c1c1a' },
   { name: '다크 파랑', fg: '#7b93ff', bg: '#1c1c1a' },

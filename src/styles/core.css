@@ -15,11 +15,11 @@
   --accent: #3550ee;
   --accent-soft: #e8ecff;
   --accent-text: #ffffff;
-  --b: #c2410c;
+  --b: #b23a0b;
   --b-soft: #fff0e6;
-  --danger: #c92a2a;
+  --danger: #b42323;
   --on-fill: #ffffff;
-  --ok: #087f5b;
+  --ok: #06694b;
   --dim: rgba(20, 20, 18, .45);
   --bezel: #1b1b19;
   --map: #e7eee3;
@@ -631,3 +631,7 @@ kbd { font-family: inherit; font-size: 12px; font-weight: 600; color: var(--text
 .home-sign { font-weight: 700; color: var(--text); margin-top: 4px !important; }
 .home-for { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 14px; color: var(--text-2); }
 .home-for li::before { content: "✓"; color: var(--ok); font-weight: 800; margin-right: 6px; }
+.side-area { font-size: 12px; font-weight: 800; color: var(--text); padding: 18px 10px 6px; letter-spacing: .02em; border-top: 1px solid var(--line); margin-top: 10px; }
+@media (max-width: 1279px) and (min-width: 768px) { .side-area { font-size: 0; padding: 8px 0 0; margin-top: 8px; } }
+.home-area { margin: 40px 0 0; font-size: 28px; font-weight: 800; letter-spacing: -.03em; }
+.home-area + .home-group { padding-top: 16px; }

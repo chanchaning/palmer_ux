@@ -1,13 +1,19 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { guides } from '../guides/registry'
+import { SYS_TABS } from '../system/SystemPage'
+import { PLAN_TABS } from '../plan/PlanPage'
 import { IconSearch } from './icons'
 
 interface Hit { href: string; title: string; sub: string; guide: string; kind: 'guide' | 'card' }
 
-const ALL: Hit[] = guides.flatMap(g => [
+const ALL: Hit[] = [
+  ...SYS_TABS.map(t => ({ href: '#/system/' + t.id, title: t.name, sub: t.desc, guide: '디자인 시스템', kind: 'guide' as const })),
+  ...PLAN_TABS.map(t => ({ href: '#/plan/' + t.id, title: t.name, sub: t.desc, guide: '기획 노트', kind: 'guide' as const })),
+  ...guides.flatMap(g => [
   { href: '#/' + g.id, title: g.nav, sub: g.title, guide: g.num + ' ' + g.group, kind: 'guide' as const },
   ...g.cards.map(c => ({ href: `#/${g.id}/${c.id}`, title: c.title, sub: c.desc, guide: `${g.num} ${g.nav}`, kind: 'card' as const })),
-])
+  ]),
+]
 const norm = (s: string) => s.toLowerCase().replace(/[\s·・\-_/]/g, '')
 
 /** ⌘K 검색 */

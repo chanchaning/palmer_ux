@@ -1,0 +1,9 @@
+/* 기획 노트 공용 (탭 전용 스타일은 [data-plan="탭id"] 범위로 각 탭 css에) */
+.plan-tab { flex: none; color: var(--text-2); font-size: 14px; font-weight: 600; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); text-decoration: none; transition: background .2s, color .2s, border-color .2s; }
+.plan-tab:hover { color: var(--text); border-color: var(--text-3); }
+.plan-tab.on { background: var(--text); color: var(--bg); border-color: var(--text); }
+.plan-pn { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 28px; }
+.plan-pn a { display: flex; flex-direction: column; gap: 2px; padding: 16px 18px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); color: var(--text); text-decoration: none; font-weight: 700; font-size: 16px; }
+.plan-pn a:hover { border-color: var(--text-3); }
+.plan-pn a.next { text-align: right; }
+.plan-pn small { font-size: 12px; color: var(--text-3); font-weight: 600; }

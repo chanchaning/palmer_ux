@@ -2,9 +2,11 @@ import { useEffect, useRef, useState } from 'react'
 import { GuidePage } from './components/GuidePage'
 import { Home } from './components/Home'
 import { Search } from './components/Search'
+import { SystemPage } from './system/SystemPage'
+import { PLAN_TABS, PlanPage } from './plan/PlanPage'
 import { groups, guides } from './guides/registry'
 import { useSlowMotion } from './lib/motion'
-import { IconHome, IconSearch, IconSlow, IconTheme } from './components/icons'
+import { IconDoc, IconGrid, IconHome, IconSearch, IconSlow, IconTheme } from './components/icons'
 
 /* 로고: src/assets/logo.webp(+ logo-still.png)가 있으면 이미지, 없으면 'P' 글자 */
 const logoFiles = import.meta.glob<string>('./assets/logo*.{webp,png}', { eager: true, query: '?url', import: 'default' })
@@ -55,7 +57,9 @@ function useTheme() {
 
 export default function App() {
   const route = useHashRoute()
-  const guide = guides.find(g => g.id === route.g) ?? null
+  const isSystem = route.g === 'system'
+  const isPlan = route.g === 'plan'
+  const guide = isSystem || isPlan ? null : guides.find(g => g.id === route.g) ?? null
   const [search, setSearch] = useState(false)
 
   // ⌘K / Ctrl+K / '/' 로 검색 열기
@@ -80,7 +84,7 @@ export default function App() {
     setDrawer(false)
     document.title = guide ? `${guide.nav} · Palmer의 웹 도감` : 'Palmer의 웹 도감 · 경험 노하우'
     requestAnimationFrame(() => window.dispatchEvent(new Event('resize')))
-  }, [guide])
+  }, [guide, isSystem, isPlan, (isSystem || isPlan) && route.c])
 
   // 스크롤 진행 막대 · 맨 위로 버튼
   useEffect(() => {
@@ -104,7 +108,9 @@ export default function App() {
       <aside className={'side' + (drawer ? ' open' : '')}>
         <a className="brand" href="#/"><Logo /><div><b>Palmer</b><small>경험 노하우 웹 도감</small></div></a>
         <nav className="side-nav">
-          <a href="#/" title="홈" className={!guide ? 'on' : ''}><span className="ico"><IconHome /></span><span className="txt">홈</span></a>
+          <a href="#/" title="홈" className={!guide && !isSystem && !isPlan ? 'on' : ''}><span className="ico"><IconHome /></span><span className="txt">홈</span></a>
+          <div className="side-area">디자인</div>
+          <a href="#/system" title="디자인 시스템" className={isSystem ? 'on' : ''}><span className="ico"><IconGrid /></span><span className="txt">디자인 시스템</span></a>
           {groups.map(gr => (
             <div key={gr.name} style={{ display: 'contents' }}>
               <div className="side-group">{gr.name}</div>
@@ -115,6 +121,12 @@ export default function App() {
               ))}
             </div>
           ))}
+          <div className="side-area">기획</div>
+          {PLAN_TABS.map(t => (
+            <a key={t.id} href={'#/plan/' + t.id} title={t.name} className={isPlan && (route.c || 'map') === t.id ? 'on' : ''}>
+              <span className="ico">{t.id === 'map' ? <IconDoc /> : t.num}</span><span className="txt">{t.name}</span>
+            </a>
+          ))}
         </nav>
         <div className="side-foot">{guides.length}개 가이드 · 계속 추가 중</div>
       </aside>
@@ -124,7 +136,7 @@ export default function App() {
         <header className="topbar">
           <button className="menu-btn" aria-label="메뉴 열기" onClick={() => setDrawer(true)}>☰</button>
           <h1><a href="#/">Palmer의 웹 도감</a></h1>
-          {guide && <span className="crumb">{guide.nav}</span>}
+          {(guide || isSystem || isPlan) && <span className="crumb">{guide ? guide.nav : isSystem ? '디자인 시스템' : '기획 노트'}</span>}
           <div className="top-actions">
             <button className="pill-btn search-btn" onClick={() => setSearch(true)}><IconSearch /> <span className="lbl">검색</span><kbd>⌘K</kbd></button>
             {guide?.motion && (
@@ -135,9 +147,13 @@ export default function App() {
           <div className="scroll-progress" ref={bar} />
         </header>
         <div className="content">
-          {guide
-            ? <GuidePage guide={guide} focusCard={route.c} key={guide.id} />
-            : <Home onSearch={() => setSearch(true)} logo={<Logo size={72} />} />}
+          {isPlan
+            ? <PlanPage tab={route.c} />
+            : isSystem
+            ? <SystemPage tab={route.c} />
+            : guide
+              ? <GuidePage guide={guide} focusCard={route.c} key={guide.id} />
+              : <Home onSearch={() => setSearch(true)} logo={<Logo size={72} />} />}
           <footer>Palmer의 웹 도감 · 질문이 생길 때마다 채워가요</footer>
         </div>
       </div>

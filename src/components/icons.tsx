@@ -19,3 +19,9 @@ export const IconHome = () => (
 export const IconArrow = () => (
   <svg {...base}><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg>
 )
+export const IconGrid = () => (
+  <svg {...base}><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></svg>
+)
+export const IconDoc = () => (
+  <svg {...base}><path d="M6 3h8l4 4v14H6z" /><path d="M14 3v4h4" /><path d="M9 12h6M9 16h6" /></svg>
+)
