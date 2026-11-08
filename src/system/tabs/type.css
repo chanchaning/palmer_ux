@@ -5,8 +5,8 @@
 [data-sys="type"] code { font-family: ui-monospace, "SF Mono", Consolas, monospace; font-size: .9em; background: var(--surface-2); padding: 1px 5px; border-radius: 5px; }
 
 /* 권장 구간 막대 */
-[data-sys="type"] .ts-zone { position: relative; height: 6px; border-radius: 3px; background: var(--surface-2); margin-top: 2px; }
-[data-sys="type"] .ts-zone i { position: absolute; top: 0; bottom: 0; border-radius: 3px; background: color-mix(in srgb, var(--ok) 40%, transparent); }
+[data-sys="type"] .ts-zone { position: relative; height: 4px; border-radius: 2px; background: var(--surface-2); margin-top: 2px; }
+[data-sys="type"] .ts-zone i { position: absolute; top: 0; bottom: 0; border-radius: 2px; background: color-mix(in srgb, var(--ok) 40%, transparent); }
 [data-sys="type"] .ts-zone b { position: absolute; top: -3px; width: 4px; height: 12px; margin-left: -2px; border-radius: 2px; background: var(--text); transition: left .15s; }
 
 /* 1. 시뮬레이터 */
@@ -32,7 +32,7 @@
 [data-sys="type"] .ts-col .ts-cap { margin: 14px 0 0; color: var(--text-3); font-variant-numeric: tabular-nums; }
 [data-sys="type"] .ts-ruler { list-style: none; margin: 0; padding: 0; position: absolute; top: 0; left: 100%; width: 32px; }
 [data-sys="type"] .ts-ruler li { position: absolute; left: 6px; display: flex; align-items: center; font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: 0; line-height: 1; }
-[data-sys="type"] .ts-ruler li::before { content: ""; width: 3px; align-self: stretch; margin: 3px 4px 3px 0; border-radius: 2px; background: currentColor; opacity: .5; }
+[data-sys="type"] .ts-ruler li::before { content: ""; width: 1px; align-self: stretch; margin: 3px 4px 3px 0; border-radius: 2px; background: currentColor; opacity: .5; }
 [data-sys="type"] .ts-ruler li.ok { color: var(--ok); }
 [data-sys="type"] .ts-ruler li.bad { color: var(--danger); }
 [data-sys="type"] .ts-ruler li.last { color: var(--text-3); }

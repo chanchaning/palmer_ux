@@ -1,6 +1,7 @@
-import { lazy, Suspense, useEffect, type ComponentType, type LazyExoticComponent } from 'react'
+import { lazy, Suspense, useEffect, useRef, type ComponentType, type LazyExoticComponent } from 'react'
 import '../system/system.css'
 import './plan.css'
+import { useStackTables } from '../system/stackTables'
 
 /** 기획 노트 탭 — 파일: src/plan/tabs/<id>.tsx (default export) */
 export const PLAN_TABS: { id: string; num: string; name: string; desc: string; load: () => Promise<{ default: ComponentType }> }[] = [
@@ -20,9 +21,11 @@ const LAZY: Record<string, LazyExoticComponent<ComponentType>> = Object.fromEntr
 export function PlanPage({ tab }: { tab: string }) {
   const cur = PLAN_TABS.find(t => t.id === tab) ?? PLAN_TABS[0]
   const Tab = LAZY[cur.id]
+  const root = useRef<HTMLElement>(null)
+  useStackTables(root)
   useEffect(() => { document.title = `${cur.name} · 기획 노트 · Palmer의 웹 도감` }, [cur])
   return (
-    <section className="page on planpage" data-page="plan">
+    <section ref={root} className="page on planpage" data-page="plan">
       <div className="page-head">
         <div>
           <div className="kicker"><span className="kicker-num" aria-hidden="true">{cur.num}</span><span className="kicker-group">기획 노트</span></div>

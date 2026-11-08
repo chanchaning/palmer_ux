@@ -1,7 +1,8 @@
-import { lazy, Suspense, useEffect, useState, type ComponentType, type LazyExoticComponent } from 'react'
+import { lazy, Suspense, useEffect, useRef, useState, type ComponentType, type LazyExoticComponent } from 'react'
 import { download, toCSS, toJSON, toTailwind } from './export'
 import { SysProvider, useSys } from './store'
 import './system.css'
+import { useStackTables } from './stackTables'
 
 /** 탭 목록 — 파일: src/system/tabs/<id>.tsx (default export) */
 export const SYS_TABS: { id: string; name: string; desc: string; load: () => Promise<{ default: ComponentType }> }[] = [
@@ -31,6 +32,8 @@ function Inner({ cur }: { cur: (typeof SYS_TABS)[number] }) {
   const [exp, setExp] = useState(false)
   const [copied, setCopied] = useState(false)
   const Tab = LAZY[cur.id]
+  const root = useRef<HTMLElement>(null)
+  useStackTables(root)
   useEffect(() => { document.title = `${cur.name} · 디자인 시스템 · Palmer의 웹 도감` }, [cur])
   const share = async () => {
     try { await navigator.clipboard.writeText(shareUrl()) } catch { /* 복사 불가 */ }
@@ -41,7 +44,7 @@ function Inner({ cur }: { cur: (typeof SYS_TABS)[number] }) {
     location.hash = `#/system/${id}${q ? '?' + q : ''}`
   }
   return (
-    <section className="page on syspage" data-page="system">
+    <section ref={root} className="page on syspage" data-page="system">
       <div className="page-head">
         <div>
           <div className="kicker"><span className="kicker-num" aria-hidden="true">DS</span><span className="kicker-group">디자인 시스템</span></div>
