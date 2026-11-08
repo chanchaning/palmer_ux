@@ -1,0 +1,120 @@
+[data-page="gesture"] .gs-box { min-height: 270px; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+[data-page="gesture"] .gs-hint { position: absolute; z-index: 25; font-size: 27px; line-height: 1; pointer-events: none; filter: drop-shadow(0 2px 3px rgba(0,0,0,.25)); animation: gs-tap calc(1.6s * var(--slow)) ease-in-out infinite; transition: opacity .2s; }
+[data-page="gesture"] .gs-hint.hold { animation-name: gs-hold; animation-duration: calc(2s * var(--slow)); }
+[data-page="gesture"] .gs-hint.swr { animation-name: gs-swr; animation-duration: calc(1.8s * var(--slow)); }
+[data-page="gesture"] .gs-hint.swl { animation-name: gs-swl; animation-duration: calc(1.8s * var(--slow)); }
+[data-page="gesture"] .gs-hint.down { animation-name: gs-down; animation-duration: calc(1.8s * var(--slow)); }
+[data-page="gesture"] .gs-hint.pinch { animation-name: gs-pinch; }
+[data-page="gesture"] .gs-hint.dbl { animation-name: gs-dbl; animation-duration: calc(1.8s * var(--slow)); }
+[data-page="gesture"] .gs-touched .gs-hint, [data-page="gesture"] .gs-sim .gs-hint { opacity: 0; animation: none; }
+@keyframes gs-tap { 0%, 100% { transform: none; } 40%, 55% { transform: translateY(6px) scale(.88); } }
+@keyframes gs-hold { 0%, 100% { transform: none; } 18%, 75% { transform: translateY(6px) scale(.86); } }
+@keyframes gs-swr { 0% { transform: translateX(-30px); opacity: 0; } 20%, 80% { opacity: 1; } 100% { transform: translateX(46px); opacity: 0; } }
+@keyframes gs-swl { 0% { transform: translateX(30px); opacity: 0; } 20%, 80% { opacity: 1; } 100% { transform: translateX(-46px); opacity: 0; } }
+@keyframes gs-down { 0% { transform: translateY(-10px); opacity: 0; } 20%, 80% { opacity: 1; } 100% { transform: translateY(56px); opacity: 0; } }
+@keyframes gs-pinch { 0%, 100% { transform: scale(.8); } 50% { transform: scale(1.25); } }
+@keyframes gs-dbl { 0%, 52%, 100% { transform: none; } 8%, 16% { transform: translateY(5px) scale(.88); } 22% { transform: none; } 30%, 38% { transform: translateY(5px) scale(.88); } 44% { transform: none; } }
+[data-page="gesture"] .gs-finger { position: absolute; left: 0; top: 0; width: 34px; height: 34px; margin: -17px 0 0 -17px; border-radius: 50%; background: color-mix(in srgb, var(--b) 30%, transparent); border: 2px solid var(--b); z-index: 50; pointer-events: none; opacity: 0; transform: scale(1.15); transition: opacity .15s, transform .12s; }
+[data-page="gesture"] .gs-finger.on { opacity: 1; }
+[data-page="gesture"] .gs-finger.down { transform: scale(.85); background: color-mix(in srgb, var(--b) 55%, transparent); }
+
+/* 01 tap */
+[data-page="gesture"] .gs-pad { position: relative; overflow: hidden; width: 190px; max-width: 100%; height: 116px; border: 0; border-radius: 20px; background: var(--accent-soft); color: var(--accent); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; touch-action: none; transition: transform calc(120ms * var(--slow)), background calc(120ms * var(--slow)); }
+[data-page="gesture"] .gs-pad b { font-size: 18px; }
+[data-page="gesture"] .gs-pad small { font-size: 13px; color: var(--text-2); }
+[data-page="gesture"] .gs-pad.down { transform: scale(.96); background: color-mix(in srgb, var(--accent) 24%, var(--surface)); }
+[data-page="gesture"] .gs-rip { position: absolute; width: 60px; height: 60px; margin: -30px 0 0 -30px; border-radius: 50%; background: var(--accent); pointer-events: none; }
+[data-page="gesture"] .gs-count { font-size: 14px; font-weight: 700; color: var(--text-2); font-variant-numeric: tabular-nums; }
+
+/* 02 long press */
+[data-page="gesture"] .gs-chat { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; width: 100%; max-width: 250px; }
+[data-page="gesture"] .gs-bubble { background: var(--surface-2); padding: 11px 14px; border-radius: 16px 16px 16px 4px; font-size: 15px; touch-action: none; cursor: pointer; transition: transform calc(150ms * var(--slow)), background calc(150ms * var(--slow)); }
+[data-page="gesture"] .gs-bubble.press { transform: scale(.97); background: var(--surface-3); }
+[data-page="gesture"] .gs-bubble.sel { background: var(--accent-soft); }
+[data-page="gesture"] .gs-ring { position: absolute; width: 52px; height: 52px; margin: -26px 0 0 -26px; pointer-events: none; z-index: 30; transform: rotate(-90deg); opacity: 0; }
+[data-page="gesture"] .gs-ring.on { opacity: 1; }
+[data-page="gesture"] .gs-ring circle { fill: none; stroke-width: 4; }
+[data-page="gesture"] .gs-ring .bg { stroke: color-mix(in srgb, var(--b) 25%, transparent); }
+[data-page="gesture"] .gs-ring .fg { stroke: var(--b); stroke-linecap: round; stroke-dasharray: 138.2; stroke-dashoffset: 138.2; }
+[data-page="gesture"] .gs-ctx { position: absolute; z-index: 20; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--pop); padding: 4px; display: none; min-width: 120px; }
+[data-page="gesture"] .gs-ctx.on { display: block; }
+[data-page="gesture"] .gs-ctx button { display: block; width: 100%; text-align: left; border: 0; background: none; padding: 5px 10px; border-radius: 8px; font-size: 14px; }
+[data-page="gesture"] .gs-ctx button:hover { background: var(--surface-2); }
+[data-page="gesture"] .gs-ctx button.del { color: var(--danger); }
+
+/* 03 swipe stack */
+[data-page="gesture"] .gs-stack { position: relative; width: 220px; max-width: 100%; height: 160px; touch-action: pan-y; }
+[data-page="gesture"] .gs-sc { position: absolute; inset: 0; border-radius: 16px; color: #fff; display: flex; flex-direction: column; justify-content: flex-end; padding: 14px; box-shadow: 0 4px 14px rgba(0,0,0,.16); cursor: grab; transition: transform calc(250ms * var(--slow)) cubic-bezier(.2,.8,.2,1); }
+[data-page="gesture"] .gs-sc.drag { transition: none; cursor: grabbing; }
+[data-page="gesture"] .gs-sc .em { font-size: 35px; line-height: 1; margin-bottom: auto; }
+[data-page="gesture"] .gs-sc b { font-size: 17px; text-shadow: 0 1px 3px rgba(0,0,0,.25); }
+[data-page="gesture"] .gs-sc small { font-size: 12px; opacity: .9; }
+[data-page="gesture"] .gs-sc .lbl { position: absolute; top: 14px; padding: 3px 9px; border-radius: 7px; border: 2px solid #fff; font-size: 13px; font-weight: 800; opacity: 0; background: rgba(0,0,0,.15); }
+[data-page="gesture"] .gs-sc .lbl.yes { left: 14px; transform: rotate(-10deg); }
+[data-page="gesture"] .gs-sc .lbl.no { right: 14px; transform: rotate(10deg); }
+[data-page="gesture"] .gs-empty { position: absolute; inset: 0; border-radius: 16px; border: 2px dashed var(--line); display: grid; place-items: center; text-align: center; font-size: 14px; color: var(--text-3); }
+[data-page="gesture"] .gs-btns { display: flex; gap: 10px; align-items: center; }
+[data-page="gesture"] .gs-round { width: 42px; height: 42px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); font-size: 18px; display: grid; place-items: center; }
+[data-page="gesture"] .gs-round.yes { color: var(--b); }
+
+/* 04 drag reorder */
+[data-page="gesture"] .gs-list { position: relative; width: 100%; max-width: 260px; display: flex; flex-direction: column; gap: 6px; }
+[data-page="gesture"] .gs-li { display: flex; align-items: center; gap: 10px; background: var(--surface-2); border-radius: 10px; padding: 0 4px 0 10px; height: 40px; font-size: 14px; font-weight: 600; position: relative; transition: transform calc(200ms * var(--slow)) cubic-bezier(.2,.8,.2,1), box-shadow .15s; }
+[data-page="gesture"] .gs-li .no { width: 20px; height: 20px; border-radius: 6px; background: var(--surface); color: var(--text-3); font-size: 12px; display: grid; place-items: center; flex: none; }
+[data-page="gesture"] .gs-li .tx { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+[data-page="gesture"] .gs-grip { width: 38px; height: 38px; border: 0; background: none; color: var(--text-3); font-size: 17px; touch-action: none; cursor: grab; flex: none; }
+[data-page="gesture"] .gs-li.lift { z-index: 5; transition: box-shadow .15s; box-shadow: var(--pop); background: var(--surface); }
+[data-page="gesture"] .gs-li.lift .gs-grip { cursor: grabbing; color: var(--accent); }
+[data-page="gesture"] .gs-list.static .gs-li { transition: none; }
+
+/* 05 pinch */
+[data-page="gesture"] .gs-view { position: relative; width: 100%; height: 180px; border-radius: 12px; overflow: hidden; touch-action: none; background: #9fc3e8; cursor: grab; }
+[data-page="gesture"] .gs-img { position: absolute; inset: 0; transform-origin: 0 0; }
+[data-page="gesture"] .gs-img.anim { transition: transform calc(250ms * var(--slow)) cubic-bezier(.2,.8,.2,1); }
+[data-page="gesture"] .gs-img svg { display: block; width: 100%; height: 100%; }
+[data-page="gesture"] .gs-zoom { position: absolute; right: 8px; top: 8px; z-index: 5; background: rgba(0,0,0,.5); color: #fff; font-size: 13px; font-weight: 700; padding: 3px 8px; border-radius: 999px; font-variant-numeric: tabular-nums; pointer-events: none; }
+[data-page="gesture"] .gs-zctl { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+[data-page="gesture"] .gs-zctl .btn { min-width: 38px; }
+
+/* 06 swipe to delete */
+[data-page="gesture"] .gs-rows { width: 100%; display: flex; flex-direction: column; gap: 6px; }
+[data-page="gesture"] .gs-row { position: relative; border-radius: 10px; overflow: hidden; flex: none; }
+[data-page="gesture"] .gs-delbtn { position: absolute; inset: 1px; border: 0; background: var(--danger); color: #fff; font-size: 14px; font-weight: 700; display: flex; align-items: center; justify-content: flex-end; padding-right: 18px; gap: 4px; }
+[data-page="gesture"] .gs-row.full .gs-delbtn { justify-content: center; padding-right: 0; }
+[data-page="gesture"] .gs-front { position: relative; display: flex; align-items: center; gap: 10px; padding: 8px 10px; background: var(--surface-2); touch-action: pan-y; cursor: grab; }
+[data-page="gesture"] .gs-front.snap { transition: transform calc(250ms * var(--slow)) cubic-bezier(.2,.8,.2,1); }
+[data-page="gesture"] .gs-front .tx { min-width: 0; flex: 1; font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+[data-page="gesture"] .gs-front .tx small { display: block; font-size: 12px; color: var(--text-3); font-weight: 400; overflow: hidden; text-overflow: ellipsis; }
+[data-page="gesture"] .gs-undo { align-self: center; }
+
+/* 07 double tap */
+[data-page="gesture"] .gs-photo { position: relative; width: 100%; max-width: 260px; height: 170px; border-radius: 14px; overflow: hidden; touch-action: manipulation; cursor: pointer; background: linear-gradient(160deg, #ffd8a8, #f783ac 55%, #845ef7); }
+[data-page="gesture"] .gs-photo .em { position: absolute; left: 50%; top: 46%; transform: translate(-50%, -50%); font-size: 57px; pointer-events: none; }
+[data-page="gesture"] .gs-info { position: absolute; left: 0; right: 0; bottom: 0; padding: 22px 12px 10px; background: linear-gradient(transparent, rgba(0,0,0,.6)); color: #fff; font-size: 13px; opacity: 0; transform: translateY(8px); transition: all calc(200ms * var(--slow)); pointer-events: none; }
+[data-page="gesture"] .gs-info.on { opacity: 1; transform: none; }
+[data-page="gesture"] .gs-info b { display: block; font-size: 15px; }
+[data-page="gesture"] .gs-heart { position: absolute; z-index: 10; font-size: 65px; line-height: 1; width: 80px; height: 80px; margin: -40px 0 0 -40px; display: grid; place-items: center; pointer-events: none; color: #ff3b5c; filter: drop-shadow(0 3px 8px rgba(0,0,0,.3)); }
+[data-page="gesture"] .gs-mini { position: absolute; z-index: 10; font-size: 17px; color: #ff3b5c; pointer-events: none; margin: -8px 0 0 -8px; }
+[data-page="gesture"] .gs-likebar { width: 100%; max-width: 260px; display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--text-2); }
+[data-page="gesture"] .gs-likebtn { border: 0; background: none; font-size: 23px; padding: 0 2px; line-height: 1; color: var(--text-3); }
+[data-page="gesture"] .gs-likebtn.on { color: #ff3b5c; }
+
+/* 08 pull to refresh */
+[data-page="gesture"] .gs-pview { position: relative; flex: 1; overflow: hidden; touch-action: none; cursor: grab; }
+[data-page="gesture"] .gs-plist { position: relative; z-index: 1; background: var(--surface); }
+[data-page="gesture"] .gs-plist.snap, [data-page="gesture"] .gs-ptr.snap { transition: transform calc(300ms * var(--slow)) cubic-bezier(.2,.8,.2,1), opacity calc(300ms * var(--slow)); }
+[data-page="gesture"] .gs-ptr { position: absolute; left: 50%; top: 0; width: 34px; height: 34px; margin-left: -17px; border-radius: 50%; background: var(--surface); box-shadow: 0 2px 8px rgba(0,0,0,.18); display: grid; place-items: center; z-index: 0; opacity: 0; }
+[data-page="gesture"] .gs-spin { width: 18px; height: 18px; border-radius: 50%; border: 2.5px solid var(--surface-3); border-top-color: var(--accent); border-right-color: var(--accent); }
+[data-page="gesture"] .gs-spin.run { animation: spin calc(.7s * var(--slow)) linear infinite; }
+[data-page="gesture"] .gs-plist .li { cursor: grab; }
+[data-page="gesture"] .gs-plist .li.new { animation: gs-new calc(1.2s * var(--slow)) ease-out; }
+@keyframes gs-new { from { background: var(--accent-soft); } }
+
+/* 09 edge swipe */
+[data-page="gesture"] .gs-edgeb { z-index: 5; box-shadow: -8px 0 18px rgba(0,0,0,.14); touch-action: pan-y; }
+[data-page="gesture"] .gs-edgezone { position: absolute; left: 0; top: 22px; bottom: 0; width: 24px; z-index: 30; pointer-events: none; background: linear-gradient(90deg, color-mix(in srgb, var(--b) 35%, transparent), transparent); animation: gs-zone calc(1.6s * var(--slow)) ease-in-out infinite; }
+[data-page="gesture"] .gs-edgezone.off { display: none; }
+@keyframes gs-zone { 50% { opacity: .35; } }
+[data-page="gesture"] .gs-msgs { padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+[data-page="gesture"] .gs-msgs span { max-width: 78%; padding: 8px 11px; border-radius: 14px; font-size: 13px; background: var(--surface-2); align-self: flex-start; }
+[data-page="gesture"] .gs-msgs span.me { align-self: flex-end; background: var(--accent); color: var(--accent-text); }
