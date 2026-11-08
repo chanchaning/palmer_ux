@@ -2,22 +2,23 @@ import { useMemo, useState, type ReactNode } from 'react'
 import { Seg } from '../../components/ui'
 import { download } from '../../system/export'
 import { CodeBlock, Note, Section, SysGrid } from '../../system/ui'
+import { Term, TermList } from '../../components/Term'
 import './prd.css'
 
 /* =================================================================
  * 공통 — 측정할 수 없는 단어 사전
  * ================================================================= */
 const VAGUE: [RegExp, string, string][] = [
-  [/빠르게|신속하게|신속히|빨리/g, '빠르게', '“1초 안에”, “3초 안에 첫 화면”처럼 시간으로'],
-  [/쉽게|간편하게|손쉽게|편하게|편리하게/g, '쉽게', '“3번 탭 이내”, “2단계 이내”처럼 횟수·단계로'],
-  [/적절히|적절한|적당히|적당한/g, '적절히', '기준 값을 숫자로 (예: 20개씩, 6개월)'],
-  [/충분히|충분한/g, '충분히', '“최소 N개”, “N초 이상”처럼 하한을'],
-  [/원활하게|원활한|매끄럽게|자연스럽게/g, '원활하게', '실패·오류 시 어떻게 되는지를'],
-  [/직관적|사용자\s?친화적/g, '직관적', '“처음 쓰는 사람이 도움 없이 완료”처럼 관찰 가능한 행동으로'],
-  [/다양한|많은|여러\s?가지/g, '다양한', '“N개 이상” 또는 목록 전체를'],
-  [/최대한|가급적|가능한\s?한|되도록/g, '최대한', '“반드시 한다 / 하지 않는다” 중 하나로'],
-  [/개선|향상|최적화|강화/g, '개선', '무엇이 얼마에서 얼마로 (A → B) 바뀌는지로'],
-  [/\s등(?=[\s.,)]|$)/g, '등', '“등”을 지우고 목록을 끝까지'],
+  [/빠르게|신속하게|신속히|빨리/g, '빠르게', '“1초 안에”, “3초 안에 첫 화면”처럼 시간으로 바꿔요.'],
+  [/쉽게|간편하게|손쉽게|편하게|편리하게/g, '쉽게', '“3번 탭 안에”, “2단계 안에”처럼 횟수나 단계로 바꿔요.'],
+  [/적절히|적절한|적당히|적당한/g, '적절히', '기준을 숫자로 바꿔요. (예: 20개씩, 6개월)'],
+  [/충분히|충분한/g, '충분히', '“최소 N개”, “N초 이상”처럼 가장 작은 값을 적어요.'],
+  [/원활하게|원활한|매끄럽게|자연스럽게/g, '원활하게', '실패하거나 오류가 나면 어떻게 되는지를 적어요.'],
+  [/직관적|사용자\s?친화적/g, '직관적', '“처음 쓰는 사람이 도움 없이 끝까지 한다”처럼 눈으로 확인할 수 있는 행동으로 바꿔요.'],
+  [/다양한|많은|여러\s?가지/g, '다양한', '“N개 이상”이라고 쓰거나 목록을 다 적어요.'],
+  [/최대한|가급적|가능한\s?한|되도록/g, '최대한', '“반드시 한다” 또는 “하지 않는다” 중 하나로 정해요.'],
+  [/개선|향상|최적화|강화/g, '개선', '무엇이 얼마에서 얼마로 바뀌는지(A → B) 적어요.'],
+  [/\s등(?=[\s.,)]|$)/g, '등', '“등”을 지우고 목록을 끝까지 적어요.'],
 ]
 type Hit = { word: string; tip: string }
 function findVague(text: string): Hit[] {
@@ -58,17 +59,17 @@ const PROBLEMS: { bad: string; good: string; why: string }[] = [
   {
     bad: '주문 내역에 재주문 버튼을 추가하자.',
     good: '재주문하려는 구매자가 지난 메뉴를 다시 찾는 데 평균 6번 탭이 필요하고, 그 사이에 주문을 그만둔다.',
-    why: '해결책부터 말하면 다른 답(홈의 ‘최근 주문’ 카드, 메뉴 즐겨찾기)과 비교할 기회가 사라져요. 문제를 말하면 버튼은 여러 답 중 하나가 돼요.',
+    why: '해결책부터 말하면 다른 답과 비교할 기회가 사라져요. 홈의 ‘최근 주문’ 카드나 메뉴 즐겨찾기도 답이 될 수 있거든요. 문제를 먼저 말하면 버튼은 여러 답 중 하나가 돼요.',
   },
   {
     bad: '주문 경험을 개선한다.',
     good: '재주문까지 탭 수를 평균 6번에서 3번 이하로 줄인다. 출시 4주 뒤 퍼널 로그로 확인한다.',
-    why: '‘개선’은 끝났는지 알 수 없어요. 현재값, 목표값, 확인 시점이 있으면 리뷰에서 “됐다 / 안 됐다”로 말할 수 있어요.',
+    why: '‘개선’은 언제 끝났는지 알 수 없어요. 지금 값, 목표 값, 확인할 날짜가 있어야 해요. 그래야 리뷰에서 “됐다 / 안 됐다”로 말할 수 있어요.',
   },
   {
     bad: '다른 반찬 앱에 정기 배송이 있으니 우리도 만들자.',
     good: '주문 로그를 보니 같은 요일마다 같은 반찬을 시키는 구매자가 있다. 이들이 매번 직접 주문하는 수고를 줄일 방법이 필요하다.',
-    why: '경쟁사에 있다는 건 근거가 아니라 참고예요. 우리 사용자에게서 같은 문제가 보이는지 먼저 확인해요.',
+    why: '경쟁사에 있다는 건 근거가 아니라 참고예요. 우리 사용자도 같은 문제를 겪는지 먼저 확인해요.',
   },
 ]
 
@@ -86,7 +87,7 @@ function ProblemCompare() {
         ))}
       </ol>
       <Note tone="tip">
-        <b>문제 문장 공식:</b> [누가] [어떤 상황에서] [무엇 때문에] [어떤 손해를 본다]. 문장에 버튼·화면·기능 이름이 들어 있으면 해결책을 말하고 있는 거예요.
+        <b>문제 문장 공식:</b> [누가] [어떤 상황에서] [무엇 때문에] [어떤 손해를 본다]. 문장에 버튼·화면·기능 이름이 있으면, 문제가 아니라 해결책을 말하고 있는 거예요.
       </Note>
     </div>
   )
@@ -113,7 +114,7 @@ const EXAMPLE: Prd = {
   metrics: [
     { name: '재주문까지 탭 수 (핵심)', now: '평균 6번', target: '3번 이하', how: '퍼널: order_history_view → reorder_button_click → checkout_complete' },
     { name: '30일 내 같은 가게 재주문 비율', now: '18%', target: '22%', how: '주간 대시보드, 출시 전 4주와 비교' },
-    { name: '주문 취소율 (가드레일)', now: '3.0%', target: '3.0% 이하 유지', how: '다시 담기로 들어온 주문만 따로 집계' },
+    { name: '주문 취소율 (가드레일)', now: '3.0%', target: '3.0% 이하 유지', how: '다시 담기로 들어온 주문만 따로 세기' },
   ],
   scopeIn: '- 주문 내역(ORD-02-01) 카드에 ‘다시 담기’ 버튼\n- 지난 주문의 메뉴·옵션·수량을 장바구니에 한 번에 담기\n- 품절·판매 중지 메뉴가 있을 때 안내',
   scopeOut: '- 정기 배송(구독) — 다음 분기에 따로 검토\n- 여러 가게 주문을 합쳐 담기\n- 사장님 앱 변경',
@@ -129,16 +130,16 @@ const EMPTY: Prd = {
 }
 type TextKey = Exclude<keyof Prd, 'metrics'>
 const FIELDS: { k: TextKey; label: string; hint: string; rows?: number }[] = [
-  { k: 'background', label: '배경', hint: '왜 지금 이 이야기를 하나요? 근거(문의·인터뷰·로그)를 적어요.', rows: 3 },
-  { k: 'problem', label: '문제 정의', hint: '[누가] [어떤 상황에서] [무엇 때문에] [어떤 손해를]. 해결책은 쓰지 않아요.', rows: 2 },
-  { k: 'goal', label: '목표', hint: '현재값 → 목표값, 그리고 언제까지.', rows: 2 },
-  { k: 'users', label: '대상 사용자', hint: '누구이고, 누구는 아닌지.', rows: 2 },
-  { k: 'scopeIn', label: '이번에 하는 것 (Scope In)', hint: '한 줄에 하나씩.', rows: 3 },
-  { k: 'scopeOut', label: '이번에 하지 않는 것 (Scope Out)', hint: '회의에서 나온 “이것도 하면 좋겠다”를 여기에.', rows: 3 },
-  { k: 'assumptions', label: '가정', hint: '사실이라고 믿고 있지만 확인 전인 것. 확인 방법을 함께.', rows: 2 },
-  { k: 'risks', label: '리스크', hint: '잘못될 수 있는 것 → 대응.', rows: 2 },
-  { k: 'issues', label: '오픈 이슈', hint: '아직 못 정한 것 — 담당, 기한.', rows: 2 },
-  { k: 'schedule', label: '일정', hint: '날짜 + 마일스톤, 한 줄에 하나씩.', rows: 3 },
+  { k: 'background', label: '배경', hint: '왜 지금 이 이야기를 하나요? 근거(고객 문의, 인터뷰, 사용 기록)를 적어요.', rows: 3 },
+  { k: 'problem', label: '문제 정의', hint: '[누가] [어떤 상황에서] [무엇 때문에] [어떤 손해를 보나]. 해결책은 쓰지 않아요.', rows: 2 },
+  { k: 'goal', label: '목표', hint: '지금 값 → 목표 값, 그리고 언제까지.', rows: 2 },
+  { k: 'users', label: '대상 사용자', hint: '누구를 위한 것인지, 누구는 아닌지 적어요.', rows: 2 },
+  { k: 'scopeIn', label: '이번에 하는 것 (Scope In)', hint: '한 줄에 하나씩 적어요.', rows: 3 },
+  { k: 'scopeOut', label: '이번에 하지 않는 것 (Scope Out)', hint: '회의에서 나온 “이것도 하면 좋겠다”를 여기에 적어요.', rows: 3 },
+  { k: 'assumptions', label: '가정', hint: '맞다고 믿지만 아직 확인 안 한 것이에요. 어떻게 확인할지도 적어요.', rows: 2 },
+  { k: 'risks', label: '리스크', hint: '잘못될 수 있는 일 → 그때 할 대응.', rows: 2 },
+  { k: 'issues', label: '오픈 이슈', hint: '아직 정하지 못한 것이에요. 누가, 언제까지 정할지 적어요.', rows: 2 },
+  { k: 'schedule', label: '일정', hint: '날짜와 중요한 단계(마일스톤)를 한 줄에 하나씩 적어요.', rows: 3 },
 ]
 
 type Lint = { level: 'err' | 'warn' | 'info'; field: string; msg: ReactNode }
@@ -148,21 +149,21 @@ const hasDate = (s: string) => /\d{1,2}\s*[/.월]\s*\d{1,2}|\d{4}-\d{2}|\d+\s*(�
 function lintPrd(p: Prd): Lint[] {
   const L: Lint[] = []
   if (!p.title.trim()) L.push({ level: 'err', field: 'title', msg: '제목이 비어 있어요.' })
-  for (const f of FIELDS) if (!p[f.k].trim()) L.push({ level: f.k === 'risks' || f.k === 'assumptions' ? 'warn' : 'err', field: f.k, msg: <><b>{f.label}</b>이(가) 비어 있어요.</> })
-  if (/(추가|도입|만들|개발|구현|넣|붙이)/.test(p.problem)) L.push({ level: 'warn', field: 'problem', msg: <>문제 정의에 해결책 동사(추가·도입·만들기)가 보여요. 해결책이 아니라 사용자가 겪는 손해를 적어요.</> })
+  for (const f of FIELDS) if (!p[f.k].trim()) L.push({ level: f.k === 'risks' || f.k === 'assumptions' ? 'warn' : 'err', field: f.k, msg: <><b>{f.label}</b> 칸이 비어 있어요.</> })
+  if (/(추가|도입|만들|개발|구현|넣|붙이)/.test(p.problem)) L.push({ level: 'warn', field: 'problem', msg: <>문제 정의에 해결책을 뜻하는 말(추가·도입·만들기)이 있어요. 해결책 대신 사용자가 겪는 손해를 적어요.</> })
   if (p.goal.trim() && !hasNum(p.goal)) L.push({ level: 'err', field: 'goal', msg: <>목표에 숫자가 없어요. “A에서 B로, 언제까지”로 써요.</> })
   if (p.goal.trim() && hasNum(p.goal) && !hasDate(p.goal)) L.push({ level: 'info', field: 'goal', msg: <>목표에 기한이 없어요. 언제 확인할지 적어요.</> })
   for (const k of ['problem', 'goal', 'users', 'scopeIn'] as const)
-    for (const h of findVague(p[k])) L.push({ level: 'warn', field: k, msg: <><b>{FIELDS.find(f => f.k === k)!.label}</b>의 “{h.word}”는 측정할 수 없어요 → {h.tip}</> })
+    for (const h of findVague(p[k])) L.push({ level: 'warn', field: k, msg: <><b>{FIELDS.find(f => f.k === k)!.label}</b>의 “{h.word}”는 잴 수 없는 말이에요 → {h.tip}</> })
   const filled = p.metrics.filter(m => m.name.trim())
   if (!filled.length) L.push({ level: 'err', field: 'metrics', msg: '핵심 지표가 하나도 없어요.' })
   p.metrics.forEach((m, i) => {
     if (!m.name.trim()) return
     if (!hasNum(m.target)) L.push({ level: 'err', field: 'metrics', msg: <>지표 {i + 1} “{m.name}”의 목표값에 숫자가 없어요.</> })
-    if (!m.now.trim()) L.push({ level: 'warn', field: 'metrics', msg: <>지표 {i + 1}의 현재값이 비었어요. 기준값이 없으면 얼마나 좋아졌는지 알 수 없어요. 모르면 “출시 전 측정”이라고 적어요.</> })
-    if (!m.how.trim()) L.push({ level: 'warn', field: 'metrics', msg: <>지표 {i + 1}의 측정 방법이 비었어요. 어떤 로그·대시보드로 볼지 적어요.</> })
+    if (!m.now.trim()) L.push({ level: 'warn', field: 'metrics', msg: <>지표 {i + 1}의 현재값이 비었어요. 시작 값을 모르면 얼마나 좋아졌는지 알 수 없어요. 아직 모르면 “출시 전 측정”이라고 적어요.</> })
+    if (!m.how.trim()) L.push({ level: 'warn', field: 'metrics', msg: <>지표 {i + 1}의 측정 방법이 비었어요. 어떤 기록이나 대시보드로 볼지 적어요.</> })
   })
-  if (filled.length && !p.metrics.some(m => /가드레일|유지|이하로 유지/.test(m.name + m.target))) L.push({ level: 'info', field: 'metrics', msg: '가드레일 지표(나빠지면 안 되는 것, 예: 취소율)를 하나 두면 좋아요.' })
+  if (filled.length && !p.metrics.some(m => /가드레일|유지|이하로 유지/.test(m.name + m.target))) L.push({ level: 'info', field: 'metrics', msg: '가드레일 지표를 하나 두면 좋아요. 나빠지면 안 되는 숫자예요(예: 취소율).' })
   lines(p.issues).forEach(l => { if (!hasDate(l)) L.push({ level: 'warn', field: 'issues', msg: <>오픈 이슈 “{l.slice(0, 18)}…”에 기한이 없어요.</> }) })
   lines(p.schedule).forEach(l => { if (!hasDate(l)) L.push({ level: 'warn', field: 'schedule', msg: <>일정 “{l.slice(0, 18)}”에 날짜가 없어요.</> }) })
   return L
@@ -270,13 +271,13 @@ function PrdBuilder() {
                 <input className="pr-input" aria-label={`지표 ${i + 1} 이름`} value={m.name} placeholder="지표 이름" onChange={e => setMetric(i, 'name', e.target.value)} />
                 <input className="pr-input" aria-label={`지표 ${i + 1} 현재값`} value={m.now} placeholder="현재" onChange={e => setMetric(i, 'now', e.target.value)} />
                 <input className="pr-input" aria-label={`지표 ${i + 1} 목표값`} data-metric-target={i} value={m.target} placeholder="목표" onChange={e => setMetric(i, 'target', e.target.value)} />
-                <input className="pr-input" aria-label={`지표 ${i + 1} 측정 방법`} value={m.how} placeholder="어떤 로그로" onChange={e => setMetric(i, 'how', e.target.value)} />
+                <input className="pr-input" aria-label={`지표 ${i + 1} 측정 방법`} value={m.how} placeholder="어떤 기록으로" onChange={e => setMetric(i, 'how', e.target.value)} />
                 <button type="button" className="pr-x" aria-label={`지표 ${i + 1} 삭제`} disabled={p.metrics.length < 2} onClick={() => set('metrics', p.metrics.filter((_, j) => j !== i))}>×</button>
               </div>
             ))}
             <button type="button" className="btn ghost sm pr-add" onClick={() => set('metrics', [...p.metrics, { name: '', now: '', target: '', how: '' }])}>+ 지표 추가</button>
           </div>
-          <small>핵심 지표 1개 + 보조 지표 + 가드레일(나빠지면 안 되는 것)으로 나눠요.</small>
+          <small>핵심 지표 1개, 보조 지표, 가드레일(나빠지면 안 되는 숫자)로 나눠요.</small>
         </div>
         <div className="pr-row2">
           {FIELDS.slice(4).map(f => (
@@ -295,7 +296,7 @@ function PrdBuilder() {
           <span>필수 {errN} · 경고 {warnN} · 제안 {lint.length - errN - warnN}</span>
         </div>
         <ul className="pr-lint" aria-live="polite">
-          {lint.length === 0 && <li className="ok">빈칸도, 측정할 수 없는 표현도 없어요.</li>}
+          {lint.length === 0 && <li className="ok">빈칸도, 잴 수 없는 표현도 없어요.</li>}
           {lint.map((l, i) => (
             <li key={i} className={l.level}>
               <button type="button" onClick={() => focus(l.field)}><i aria-hidden="true">{l.level === 'err' ? '!' : l.level === 'warn' ? '△' : 'i'}</i><span>{l.msg}</span></button>
@@ -305,7 +306,7 @@ function PrdBuilder() {
         <CodeBlock code={md} label="PRD.md" maxHeight={340} />
         <div className="pr-actions">
           <button type="button" className="btn sm" data-act="prd-download" onClick={() => download(`PRD-${(p.title || '제목없음').replace(/[\\/:*?"<>|\s]+/g, '_')}.md`, md, 'text/markdown')}>.md 다운로드</button>
-          <span className="muted">경고를 눌러 해당 칸으로 이동해요.</span>
+          <span className="muted">경고를 누르면 그 칸으로 이동해요.</span>
         </div>
       </aside>
     </div>
@@ -345,17 +346,17 @@ function StoryWriter() {
 
   const lint = useMemo(() => {
     const L: Lint[] = []
-    if (!who.trim()) L.push({ level: 'err', field: 'who', msg: '누구인지 비어 있어요. ‘사용자’보다 역할(구매자·사장님·운영자)로 써요.' })
-    else if (/^(사용자|유저|고객|회원)$/.test(who.trim())) L.push({ level: 'warn', field: 'who', msg: `“${who}”는 너무 넓어요. 오늘반찬이라면 구매자·사장님·운영자 중 누구인가요?` })
-    if (!why.trim()) L.push({ level: 'err', field: 'why', msg: '목적이 비어 있어요. 목적이 없으면 더 나은 해결책을 고를 수 없어요.' })
+    if (!who.trim()) L.push({ level: 'err', field: 'who', msg: '‘누구’ 칸이 비어 있어요. ‘사용자’보다 역할(구매자·사장님·운영자)로 써요.' })
+    else if (/^(사용자|유저|고객|회원)$/.test(who.trim())) L.push({ level: 'warn', field: 'who', msg: `“${who}”는 너무 넓어요. 오늘반찬이라면 구매자, 사장님, 운영자 중 누구인가요?` })
+    if (!why.trim()) L.push({ level: 'err', field: 'why', msg: '목적이 비어 있어요. 목적을 알아야 더 나은 해결책을 고를 수 있어요.' })
     if (!what.trim()) L.push({ level: 'err', field: 'what', msg: '원하는 기능이 비어 있어요.' })
-    for (const h of findVague(why)) L.push({ level: 'info', field: 'why', msg: <>목적의 “{h.word}”는 동기라서 괜찮아요. 대신 아래 인수 조건에서는 숫자로 바꿔야 해요.</> })
+    for (const h of findVague(why)) L.push({ level: 'info', field: 'why', msg: <>목적의 “{h.word}”는 하고 싶은 이유라서 괜찮아요. 대신 아래 인수 조건에서는 숫자로 바꿔야 해요.</> })
     for (const h of findVague(what)) L.push({ level: 'warn', field: 'what', msg: <>기능의 “{h.word}” → {h.tip}</> })
-    if (/(및|그리고|와\s|과\s)/.test(what)) L.push({ level: 'info', field: 'what', msg: '기능에 ‘및·그리고’가 있어요. 스토리 하나에 기능 하나가 되게 쪼갤 수 있는지 봐요.' })
+    if (/(및|그리고|와\s|과\s)/.test(what)) L.push({ level: 'info', field: 'what', msg: '기능에 ‘및·그리고’가 있어요. 스토리 하나에 기능 하나만 담도록 나눌 수 있는지 봐요.' })
     const n = acTexts.filter(s => s.trim()).length
     if (n === 0) L.push({ level: 'err', field: 'ac', msg: '인수 조건이 없어요. 언제 ‘완료’인지 아무도 몰라요.' })
-    else if (n < 3) L.push({ level: 'info', field: 'ac', msg: '인수 조건이 적어요. 0건·실패·권한 없음 같은 예외를 넣었나요?' })
-    if (n > 8) L.push({ level: 'info', field: 'ac', msg: '인수 조건이 8개를 넘으면 스토리를 쪼갤 신호예요.' })
+    else if (n < 3) L.push({ level: 'info', field: 'ac', msg: '인수 조건이 적어요. 0건, 실패, 권한 없음 같은 예외도 넣었나요?' })
+    if (n > 8) L.push({ level: 'info', field: 'ac', msg: '인수 조건이 8개를 넘으면 스토리를 나눌 때가 됐다는 신호예요.' })
     acTexts.forEach((s, i) => findVague(s).forEach(h => L.push({ level: 'warn', field: 'ac', msg: <>AC {i + 1}의 “{h.word}” → {h.tip}</> })))
     if (mode === 'gwt') gwt.forEach((x, i) => { if (!x.g.trim() || !x.w.trim() || !x.t.trim()) L.push({ level: 'err', field: 'ac', msg: `시나리오 ${i + 1}에 Given/When/Then 중 빈 칸이 있어요.` }) })
     return L
@@ -431,7 +432,7 @@ function StoryWriter() {
           )}
         </article>
         <ul className="pr-lint" aria-live="polite">
-          {lint.length === 0 && <li className="ok">측정할 수 없는 단어가 없어요. QA가 그대로 테스트할 수 있어요.</li>}
+          {lint.length === 0 && <li className="ok">잴 수 없는 단어가 없어요. QA가 그대로 테스트할 수 있어요.</li>}
           {lint.map((l, i) => <li key={i} className={l.level}><div><i aria-hidden="true">{l.level === 'err' ? '!' : l.level === 'warn' ? '△' : 'i'}</i><span>{l.msg}</span></div></li>)}
         </ul>
         <CodeBlock code={md} label="user-story.md" maxHeight={240} />
@@ -450,12 +451,12 @@ function StoryWriter() {
 type Size = 'epic' | 'story' | 'task'
 const SIZE_NAME: Record<Size, string> = { epic: '에픽', story: '스토리', task: '태스크' }
 const QUIZ: { text: string; a: Size; why: string }[] = [
-  { text: '재주문 경험 개선', a: 'epic', why: '여러 스토리(조회, 다시 담기, 품절 안내)로 나뉘고 여러 스프린트에 걸쳐요.' },
-  { text: '구매자로서, 지난 주문을 한 번에 장바구니에 담기 위해 ‘다시 담기’를 원한다.', a: 'story', why: '사용자 가치가 하나 있고, 한 스프린트 안에 끝낼 수 있어요.' },
-  { text: '주문 내역 API에 조회 기간 파라미터 추가', a: 'task', why: '스토리를 만들기 위한 개발 작업이에요. 혼자서는 사용자에게 가치가 보이지 않아요.' },
+  { text: '재주문 경험 개선', a: 'epic', why: '여러 스토리(조회, 다시 담기, 품절 안내)로 나뉘어요. 여러 스프린트에 걸쳐 만들어요.' },
+  { text: '구매자로서, 지난 주문을 한 번에 장바구니에 담기 위해 ‘다시 담기’를 원한다.', a: 'story', why: '사용자가 얻는 가치가 하나 있고, 한 스프린트 안에 끝낼 수 있어요.' },
+  { text: '주문 내역 API에 조회 기간 파라미터 추가', a: 'task', why: '스토리를 만들기 위한 개발 작업이에요. 이것만으로는 사용자가 달라진 걸 느끼지 못해요.' },
   { text: '빈 화면 EMP-01 문구와 일러스트 확정', a: 'task', why: '스토리(주문 내역 조회)에 딸린 디자인 작업이에요.' },
-  { text: '사장님 정산 화면 전면 개편', a: 'epic', why: '목록·상세·엑셀·세금계산서 등 여러 스토리로 쪼개야 해요.' },
-  { text: '구매자로서, 지난 주문 중 취소된 것을 구분하기 위해 취소 주문이 회색으로 보이길 원한다.', a: 'story', why: '역할·목적·기능이 있는 작은 사용자 가치예요. 앞 스토리의 AC 한 줄로 합쳐도 돼요.' },
+  { text: '사장님 정산 화면 전면 개편', a: 'epic', why: '목록, 상세, 엑셀, 세금계산서처럼 여러 스토리로 나눠야 해요.' },
+  { text: '구매자로서, 지난 주문 중 취소된 것을 구분하기 위해 취소 주문이 회색으로 보이길 원한다.', a: 'story', why: '역할, 목적, 기능이 다 있는 작은 사용자 가치예요. 앞 스토리의 인수 조건 한 줄로 합쳐도 돼요.' },
 ]
 
 function SizeQuiz() {
@@ -465,13 +466,13 @@ function SizeQuiz() {
   return (
     <div className="pr-size">
       <div className="pr-tree" aria-label="에픽 아래 스토리, 스토리 아래 태스크">
-        <div className="pr-node epic"><b>에픽</b> 재주문 경험 개선 <small>여러 스프린트 · 목표 단위</small></div>
+        <div className="pr-node epic"><b>에픽</b> 재주문 경험 개선 <small>여러 스프린트 · 큰 목표</small></div>
         <div className="pr-tree-kids">
           <div className="pr-node story"><b>스토리</b> 최근 주문 내역 조회 <small>한 스프린트 안 · 사용자 가치 하나</small></div>
           <div className="pr-tree-kids">
-            <div className="pr-node task"><b>태스크</b> 조회 기간 파라미터 (개발)</div>
+            <div className="pr-node task"><b>태스크</b> 조회 기간 값 추가 (개발)</div>
             <div className="pr-node task"><b>태스크</b> EMP-01 빈 화면 (디자인)</div>
-            <div className="pr-node task"><b>태스크</b> order_history_view 로그 (개발)</div>
+            <div className="pr-node task"><b>태스크</b> order_history_view 기록 넣기 (개발)</div>
           </div>
           <div className="pr-node story"><b>스토리</b> 다시 담기</div>
           <div className="pr-node story"><b>스토리</b> 품절 메뉴 안내</div>
@@ -503,9 +504,9 @@ function SizeQuiz() {
  * 5) 좋은 AC vs 나쁜 AC
  * ================================================================= */
 const AC_PAIRS: [string, string][] = [
-  ['목록이 빠르게 뜬다.', '주문 내역 첫 20개가 3초 안에 보이고, 3초가 넘으면 스켈레톤을 보여준다.'],
-  ['취소 주문은 적절히 표시한다.', '취소된 주문은 카드 전체를 회색(비활성)으로 바꾸고, 상태 라벨 ‘주문 취소’를 붙이고, ‘다시 담기’ 버튼은 숨긴다.'],
-  ['다양한 예외 상황을 처리한다.', '네트워크 오류 시 “주문 내역을 불러오지 못했어요” + ‘다시 시도’ 버튼, 0건이면 EMP-01, 로그인 만료 시 로그인 화면으로 이동 후 돌아온다.'],
+  ['목록이 빠르게 뜬다.', '주문 내역 첫 20개가 3초 안에 보인다. 3초가 넘으면 회색 뼈대 화면(스켈레톤)을 보여준다.'],
+  ['취소 주문은 적절히 표시한다.', '취소된 주문은 카드 전체를 회색(비활성)으로 바꾼다. ‘주문 취소’ 라벨을 붙이고, ‘다시 담기’ 버튼은 숨긴다.'],
+  ['다양한 예외 상황을 처리한다.', '네트워크 오류면 “주문 내역을 불러오지 못했어요”와 ‘다시 시도’ 버튼을 보여준다. 0건이면 EMP-01을 보여준다. 로그인이 만료되면 로그인 화면에 갔다가 다시 돌아온다.'],
 ]
 function AcCompare() {
   const [mode, setMode] = useState<'bad' | 'good'>('bad')
@@ -515,7 +516,7 @@ function AcCompare() {
       <ol className="pr-gb-list">
         {AC_PAIRS.map(([b, g], i) => <li key={i} className={'is-' + mode}><p className="pr-quote">{mode === 'bad' ? <Marked text={b} /> : g}</p></li>)}
       </ol>
-      <Note>좋은 AC의 기준은 하나예요. <b>QA가 읽고 통과/실패를 판단할 수 있는가.</b> 이 문장이 그대로 테스트 시나리오가 돼요. <a href="#/plan/qa">09 QA · 출시에서 AC → TC 보기 →</a></Note>
+      <Note>좋은 <Term k="AC" />인지 보는 기준은 하나예요. <b>QA가 읽고 통과인지 실패인지 판단할 수 있나요?</b> 그렇다면 이 문장이 그대로 테스트 시나리오(<Term k="TC" />)가 돼요. <a href="#/plan/qa">09 QA · 출시에서 AC → TC 보기 →</a></Note>
     </div>
   )
 }
@@ -525,13 +526,13 @@ function AcCompare() {
  * ================================================================= */
 const CHECKS = [
   '문제 문장에 버튼·화면·기능 이름(해결책)이 들어 있지 않나요?',
-  '목표에 현재값, 목표값, 확인 시점이 모두 있나요?',
-  '나빠지면 안 되는 가드레일 지표를 정했나요?',
-  '‘이번에 하지 않을 것’이 적혀 있나요? 회의에서 나온 “이것도 하면 좋겠다”가 여기 있어야 해요.',
+  '목표에 지금 값, 목표 값, 확인할 날짜가 모두 있나요?',
+  '나빠지면 안 되는 숫자(가드레일 지표)를 정했나요?',
+  '‘이번에 하지 않을 것’을 적었나요? 회의에서 나온 “이것도 하면 좋겠다”는 여기에 적어요.',
   '가정마다 어떻게 확인할지 적었나요?',
   '오픈 이슈마다 담당자와 기한이 있나요?',
-  '모든 AC를 QA가 그대로 테스트할 수 있나요? (빠르게·적절히·편하게 0개)',
-  '디자이너와 개발 리드가 확정 전에 리뷰했나요?',
+  '모든 AC를 QA가 그대로 테스트할 수 있나요? (빠르게·적절히·편하게 같은 말이 0개)',
+  '확정하기 전에 디자이너와 개발 리드가 리뷰했나요?',
 ]
 function Checklist() {
   const [on, setOn] = useState<boolean[]>(() => CHECKS.map(() => false))
@@ -557,56 +558,82 @@ const OPP: [string, string][] = [
 export default function PrdTab() {
   return (
     <div data-plan="prd">
+      <TermList keys={['PRD', '유저 스토리', 'AC', '에픽', '태스크', '스프린트', 'KPI', '가드레일 지표', '범위(Scope)', '오픈 이슈', '퍼널', 'QA', 'TC', 'Given/When/Then']}
+        extra={{
+          '태스크': '스토리 하나를 만들기 위해 하는 실제 작업이에요. 예: API 수정, 빈 화면 그리기. 이것만으로는 사용자가 달라진 걸 못 느껴요.',
+          '가드레일 지표': '목표를 쫓다가 망가지면 안 되는 숫자예요. 도로의 가드레일처럼 선 밖으로 나가지 않게 지켜요. 예: 주문 취소율.',
+          '범위(Scope)': '이번에 하는 것과 하지 않는 것의 경계예요. 하지 않는 것을 적어 두어야 “이것도 해 주세요”에 흔들리지 않아요.',
+          '오픈 이슈': '아직 정하지 못한 문제예요. 누가 언제까지 정할지 함께 적어요.',
+          'Given/When/Then': '인수 조건을 ‘어떤 상황에서(Given) – 무엇을 하면(When) – 이렇게 된다(Then)’ 세 칸으로 쓰는 방식이에요.',
+        }} />
       <SysGrid>
-        <Section id="plan-prd-intro" wide title="한 줄 요약: 기획의 시작은 화면이 아니라 문제와 목표예요"
+        <Section id="plan-prd-intro" wide title="기획은 화면이 아니라 문제와 목표에서 시작해요"
+          gist="“무엇을 만들까”보다 “누가 왜 불편한가”를 먼저 적어요."
           desc="“재주문 버튼 하나 추가해 주세요.” 이런 요청을 받으면 주니어는 바로 와이어프레임을 열어요. 저는 먼저 “왜요? 지금 뭐가 불편한데요?”를 물어요.">
           <div className="pr-intro">
-            <p>
-              PRD(제품 요구사항 문서)는 <b>무엇을 왜 만들고, 무엇이 되면 성공인지</b>를 팀 전체가 같은 문장으로 기억하게 하는 문서예요.
-              화면설계서·디자인·QA가 모두 이 문서에서 출발해요. 그래서 PRD에서 문제가 흐리면, 그 뒤 모든 산출물이 흔들려요.
-            </p>
+            <div className="pr-intro-text">
+              <p>
+                <Term k="PRD" />(제품 요구사항 문서)는 여행 전에 쓰는 계획표와 같아요. 어디로 가는지(목표), 왜 가는지(문제), 누구와 가는지(대상 사용자)를 적어 두면 가는 길에 헤매지 않아요.
+              </p>
+              <p>
+                PRD는 <b>무엇을 왜 만들고, 무엇이 되면 성공인지</b>를 팀 전체가 같은 문장으로 기억하게 해요.
+                화면설계서, 디자인, QA가 모두 이 문서에서 출발해요. 그래서 PRD의 문제가 흐리면 그 뒤 문서가 모두 흔들려요.
+              </p>
+            </div>
             <div className="pr-opp">
-              <b>『인스파이어드』의 기회 평가 4가지 질문 → PRD 칸</b>
+              <b>“만들 가치가 있나?”를 따지는 4가지 질문과, 답을 적는 PRD 칸 (『인스파이어드』)</b>
               <ul>{OPP.map(([q, f]) => <li key={q}><span>{q}</span><i aria-hidden="true">→</i><em>{f}</em></li>)}</ul>
             </div>
           </div>
         </Section>
 
-        <Section id="plan-prd-problem" wide title="좋은 문제 정의 vs 해결책부터 말하기" desc="토글로 같은 상황을 두 방식으로 써 봤어요.">
+        <Section id="plan-prd-problem" wide title="해결책 말고 문제부터 말하기"
+          gist="“버튼 추가하자” 말고 “누가 무엇 때문에 손해 본다”로 써요."
+          desc="같은 상황을 두 가지 방식으로 써 봤어요. 위 버튼으로 바꿔 보세요.">
           <ProblemCompare />
         </Section>
 
-        <Section id="plan-prd-builder" wide title="PRD 빌더 · 표준 템플릿" desc="오늘반찬 ‘재주문’ 예시가 채워져 있어요. 칸을 지우거나 고치면 오른쪽에서 빈칸과 측정할 수 없는 표현을 바로 알려줘요. 다 쓰면 마크다운으로 내보내요.">
+        <Section id="plan-prd-builder" wide title="PRD 직접 써 보기 (표준 양식)"
+          gist="빈칸 없이 채우고, 목표와 지표는 꼭 숫자로 써요."
+          desc={<>오늘반찬 ‘재주문’ 예시가 채워져 있어요. 칸을 지우거나 고쳐 보세요. 빈칸과 잴 수 없는 표현을 옆에서 바로 알려줘요. 특히 <Term k="가드레일 지표" d="목표를 쫓다가 망가지면 안 되는 숫자예요. 도로의 가드레일처럼 선 밖으로 나가지 않게 지켜요. 예: 주문 취소율." />와 <Term k="오픈 이슈" d="아직 정하지 못한 문제예요. 누가 언제까지 정할지 함께 적어요." /> 칸을 눈여겨보세요. 다 쓰면 .md 파일로 내려받아요.</>}>
           <PrdBuilder />
         </Section>
 
-        <Section id="plan-prd-story" wide title="유저 스토리 + 인수 조건(AC) 작성기"
-          desc="“[누구]로서, [목적]을 위해 [기능]을 원한다.” 스토리는 대화를 시작하는 짧은 문장이고, 언제 ‘완료’인지는 인수 조건이 정해요. 예시에 일부러 나쁜 줄을 넣어 뒀어요. 찾아서 고쳐 보세요.">
+        <Section id="plan-prd-story" wide title="유저 스토리와 인수 조건(AC) 써 보기"
+          gist="스토리는 누가 왜 원하는지, 인수 조건은 언제 ‘완료’인지 정해요."
+          desc={<>식당 주문으로 치면 <Term k="유저 스토리" />는 “아이가 먹을 거라 안 맵게 해 주세요”예요. <Term k="인수 조건" />은 “고춧가루 없이, 간장은 반 숟가락”처럼 확인할 수 있는 약속이에요. 스토리는 “[누구]로서, [목적]을 위해 [기능]을 원한다” 한 문장으로 써요. 예시에 일부러 나쁜 줄을 넣어 뒀어요. 찾아서 고쳐 보세요.</>}>
           <StoryWriter />
         </Section>
 
-        <Section id="plan-prd-size" wide title="에픽 · 스토리 · 태스크 크기 감각" desc="에픽은 큰 목표 덩어리, 스토리는 한 스프린트 안에 끝나는 사용자 가치 하나, 태스크는 스토리를 만들기 위한 작업이에요. 오른쪽 문장들의 크기를 맞혀 보세요.">
+        <Section id="plan-prd-size" wide title="에픽 · 스토리 · 태스크, 크기 구분하기"
+          gist="한 스프린트에 못 끝나면 에픽, 사용자가 못 느끼면 태스크예요."
+          desc={<>이사로 치면 <Term k="에픽" />은 “이사하기”, 스토리는 “부엌 짐 옮기기”, <Term k="태스크" d="스토리 하나를 만들기 위해 하는 실제 작업이에요. 예: API 수정, 빈 화면 그리기." />는 “그릇 상자 포장하기”예요. 에픽은 큰 목표 덩어리예요. 스토리는 한 <Term k="스프린트" /> 안에 끝나는 사용자 가치 하나예요. 태스크는 스토리를 만들기 위한 작업이에요. 퀴즈 문장의 크기를 맞혀 보세요.</>}>
           <SizeQuiz />
           <Note tone="tip">
-            <b>스토리가 너무 큰지 볼 때는 INVEST를 떠올려요.</b> 독립적이고(Independent), 협상 가능하고(Negotiable), 가치가 있고(Valuable), 추정할 수 있고(Estimable), 작고(Small), 테스트할 수 있어야(Testable) 해요.
-            개발자가 “이건 추정이 안 돼요”라고 하면 대부분 쪼갤 때가 된 거예요.
+            <b>스토리가 너무 큰지 볼 때는 INVEST 여섯 가지를 확인해요.</b> 다른 스토리 없이 만들 수 있고(Independent), 내용을 조정할 수 있고(Negotiable), 사용자에게 가치가 있어야 해요(Valuable).
+            또 기간을 짐작할 수 있고(Estimable), 작고(Small), 테스트할 수 있어야(Testable) 해요.
+            개발자가 “이건 얼마나 걸릴지 모르겠어요”라고 하면 대부분 나눌 때가 된 거예요.
           </Note>
         </Section>
 
-        <Section id="plan-prd-ac" title="좋은 AC vs 나쁜 AC" desc="같은 요구를 측정할 수 있게 바꾸면 이렇게 돼요.">
+        <Section id="plan-prd-ac" title="좋은 AC vs 나쁜 AC"
+          gist="‘빠르게’ 대신 ‘3초 안에’처럼 숫자와 동작으로 써요."
+          desc="같은 요구를 잴 수 있게 바꾸면 이렇게 돼요.">
           <AcCompare />
         </Section>
 
-        <Section id="plan-prd-check" title="사수의 체크리스트" desc="PRD 리뷰에서 제가 실제로 묻는 질문이에요.">
+        <Section id="plan-prd-check" title="사수의 체크리스트"
+          gist="문제, 숫자 목표, 안 할 것, 기한이 다 있는지 봐요."
+          desc="PRD 리뷰에서 제가 실제로 묻는 질문이에요.">
           <Checklist />
         </Section>
 
-        <Section id="plan-prd-ref" wide title="참고">
+        <Section id="plan-prd-ref" wide title="참고" gist="PRD와 스토리 쓰는 법을 더 깊이 볼 때 읽을 자료예요.">
           <ul className="pr-ref">
-            <li>Marty Cagan, 『인스파이어드(Inspired)』, SVPG — 기회 평가(Opportunity Assessment), 문제 공간과 해결 공간의 구분</li>
+            <li>Marty Cagan, 『인스파이어드(Inspired)』, SVPG — 기회 평가(Opportunity Assessment), 문제와 해결책을 나눠서 생각하기</li>
             <li>Atlassian Agile Coach — User stories, Epics, Acceptance criteria</li>
             <li>Bill Wake, “INVEST in Good Stories, and SMART Tasks” — 좋은 스토리의 6가지 조건</li>
-            <li>Given/When/Then — 행동 주도 개발(BDD)에서 쓰는 시나리오 형식</li>
+            <li>Given/When/Then — 행동 주도 개발(BDD)에서 쓰는 ‘상황 – 행동 – 결과’ 시나리오 형식</li>
           </ul>
           <p className="muted">이어서 보기: <a href="#/plan/flow">02 구조 · 동선</a> · <a href="#/plan/priority">05 우선순위</a> · <a href="#/plan/metrics">06 지표 · 데이터</a></p>
         </Section>

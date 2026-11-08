@@ -1,7 +1,8 @@
 /* 01 문제 정의 · PRD */
 [data-plan="prd"] mark { background: color-mix(in srgb, var(--b) 22%, transparent); color: inherit; border-radius: 3px; padding: 0 2px; box-shadow: inset 0 -2px 0 var(--b); }
 [data-plan="prd"] .pr-intro { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 20px; align-items: start; }
-[data-plan="prd"] .pr-intro > p { margin: 0; font-size: 16px; line-height: 1.75; color: var(--text-2); }
+[data-plan="prd"] .pr-intro > p, [data-plan="prd"] .pr-intro-text > p { margin: 0; font-size: 16px; line-height: 1.75; color: var(--text-2); }
+[data-plan="prd"] .pr-intro-text { display: flex; flex-direction: column; gap: 12px; }
 [data-plan="prd"] .pr-intro b { color: var(--text); }
 [data-plan="prd"] .pr-opp { background: var(--surface-2); border-radius: 12px; padding: 14px 16px; font-size: 14px; }
 [data-plan="prd"] .pr-opp > b { display: block; margin-bottom: 8px; }

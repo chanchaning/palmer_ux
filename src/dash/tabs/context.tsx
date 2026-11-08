@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Range, Seg } from '../../components/ui'
 import { CodeBlock, Note, Section, SliderRow, SysGrid } from '../../system/ui'
+import { Term, TermList } from '../../components/Term'
 import { RANGES, SUBSTATIONS, rng, series } from '../data'
 import { AnalogBar, Cite, Finding, Hmi, Refs, Sparkline, useVisibleInterval } from '../ui'
 import './context.css'
@@ -12,6 +13,19 @@ const mean = (a: number[]) => (a.length ? a.reduce((s, v) => s + v, 0) / a.lengt
 type MK = 'load' | 'kv' | 'temp'
 const fmt = (k: MK, v: number) => (k === 'kv' ? v.toFixed(1) : String(Math.round(v)))
 const isOut = (k: MK, v: number) => v < RANGES[k].normal[0] || v > RANGES[k].normal[1]
+
+/* 공용 사전(glossary.ts)에 없는 말 — 이 탭에서만 쓰는 쉬운 뜻 */
+const EXTRA: Record<string, string> = {
+  '맥락': '숫자를 이해하는 데 필요한 주변 정보예요. 단위, 정상 범위, 추세, 비교 기준 같은 것이에요.',
+  '고성능 HMI': '평소엔 회색으로 조용하고, 이상이 생긴 곳에만 색을 쓰는 관제 화면 설계 방식이에요. 국제 표준 ISA-101이 정리한 원칙이에요.',
+  '아날로그 막대': '가로 막대에 정상 범위와 경보 범위를 칠해 두고, 지금 값을 화살표로 찍는 표시예요. 온도계 눈금처럼 값이 범위의 어디쯤인지 한눈에 보여요.',
+  '기울기': '값이 일정 시간 동안 얼마나 오르거나 내리는지예요. 언덕길 경사처럼 가파를수록 빨리 변하는 거예요.',
+  '%p': '퍼센트포인트예요. 퍼센트끼리 뺀 차이를 말해요. 74%가 83%가 되면 9%p 오른 거예요(9% 오른 게 아니에요).',
+  '고정폭 숫자': '0부터 9까지 모든 숫자의 너비를 똑같이 맞춘 글꼴 설정이에요. 값이 바뀌어도 자릿수가 옆으로 흔들리지 않아요. CSS로는 tabular-nums 라고 써요.',
+  '게이지': '자동차 속도계처럼 반원 눈금 위에서 바늘이 움직이는 표시예요.',
+  'Cleveland & McGill': '사람이 그래프에서 위치, 길이, 각도, 면적 등을 얼마나 정확히 읽는지 1984년에 실험으로 비교한 두 연구자예요.',
+}
+const T = ({ k, children }: { k: string; children?: ReactNode }) => <Term k={k} d={EXTRA[k]}>{children}</Term>
 
 /* ================= 0. 맥락 쌓기 ================= */
 const R1_SPARK = [70, 71, 70.5, 71.5, 71, 70, 70.5, 71, 72, 71.5, 71, 71.5, 72.5, 73.5, 74.5, 75.5, 76.5, 77.5, 78.5, 79.5, 80.5, 81.5, 82, 83]
@@ -208,7 +222,7 @@ function ThreeViews() {
 
 /* ================= 2. Cleveland & McGill ================= */
 type Enc = 'pos' | 'len' | 'angle' | 'area' | 'shade'
-const ENCS: [Enc, string][] = [['pos', '공통 축 위치'], ['len', '길이'], ['angle', '각도'], ['area', '면적'], ['shade', '색 농도']]
+const ENCS: [Enc, string][] = [['pos', '같은 축 위 위치'], ['len', '길이'], ['angle', '각도'], ['area', '면적'], ['shade', '색 농도']]
 interface Prob { a: number; p: number; rot: number; off: number }
 const newProb = (): Prob => ({ a: 60 + Math.round(Math.random() * 40), p: 10 + Math.round(Math.random() * 80), rot: Math.random() * 360, off: 8 + Math.random() * 17 })
 
@@ -305,7 +319,7 @@ function CMDemo() {
               </div>
             )
           })}
-          <p className="muted">왼쪽 숫자는 Cleveland & McGill이 정리한 정확도 순서예요. 몇 문제씩 풀고 내 오차와 비교해 보세요.</p>
+          <p className="muted">왼쪽 숫자는 Cleveland & McGill이 정리한 정확도 순서예요. 1이 가장 정확해요. 몇 문제씩 풀고 내 오차와 비교해 보세요.</p>
         </div>
       </div>
     </div>
@@ -342,8 +356,8 @@ function TrendDemo() {
   return (
     <div className="cx-trend">
       <div className="cx-trend-ctl">
-        <SliderRow label="상승 속도 (가정)" value={rate.toFixed(1)} unit="℃/시간">
-          <Range value={rate} min={0} max={10} step={0.5} onChange={setRate} label="상승 속도" />
+        <SliderRow label="오르는 속도 (가정)" value={rate.toFixed(1)} unit="℃/시간">
+          <Range value={rate} min={0} max={10} step={0.5} onChange={setRate} label="오르는 속도" />
         </SliderRow>
         <div className="cx-chips">
           {([['band', '정상 범위 띠'], ['alarm', '경보선 90℃'], ['fc', '예측선'], ['arrow', '기울기 화살표']] as const).map(([k, n]) => (
@@ -367,7 +381,7 @@ function TrendDemo() {
           <div className="cx-mini">
             <span className="muted">숫자만</span>
             <b className="cx-mini-v">72<small>℃</small></b>
-            <span className="cx-mini-s">정상 범위 안. 아무 일 없어 보여요.</span>
+            <span className="cx-mini-s">정상 범위 안이에요. 아무 일 없어 보여요.</span>
           </div>
           <div className="cx-mini">
             <span className="muted">숫자 + 추세</span>
@@ -440,7 +454,7 @@ function TabularDemo() {
     <div className="cx-tab" ref={ref}>
       <div className="cx-tab-ctl">
         <Seg value={tab ? 'y' : 'n'} onChange={v => setTab(v === 'y')} options={[['n', '기본 숫자'], ['y', '고정폭 숫자']] as const} />
-        <button type="button" className="btn sm ghost" onClick={() => setRun(r => !r)}>{run ? '갱신 멈추기' : '갱신 다시 시작'}</button>
+        <button type="button" className="btn sm ghost" onClick={() => setRun(r => !r)}>{run ? '값 변화 멈추기' : '값 변화 다시 켜기'}</button>
       </div>
       <ul className={'cx-tab-list' + (tab ? ' tnum' : '')}>
         {FEEDERS.map((f, i) => <li key={f.id}><span>{f.name}</span><b>{vals[i].toFixed(1)}<small>%</small></b></li>)}
@@ -451,10 +465,10 @@ function TabularDemo() {
 
 type FK = 'load' | 'kv' | 'temp' | 'kw'
 const FMT: Record<FK, { name: string; unit: string; dig: number; why: string }> = {
-  load: { name: '부하율', unit: '%', dig: 0, why: '1% 차이로 판단이 바뀌지 않아요. 정수면 충분해요.' },
-  kv: { name: '전압', unit: 'kV', dig: 1, why: '정상 범위 폭이 1kV 정도라 소수 첫째 자리까지 의미가 있어요.' },
-  temp: { name: '변압기 유온', unit: '℃', dig: 0, why: '1℃ 아래는 센서 오차 수준이에요.' },
-  kw: { name: '유효전력', unit: 'kW', dig: 0, why: '큰 수는 천 단위 쉼표로 끊어 읽게 해요.' },
+  load: { name: '부하율', unit: '%', dig: 0, why: '1% 차이로 판단이 바뀌지 않아요. 그래서 정수면 충분해요.' },
+  kv: { name: '전압', unit: 'kV', dig: 1, why: '정상 범위 폭이 1kV 정도로 좁아요. 그래서 소수 첫째 자리까지 봐야 해요.' },
+  temp: { name: '변압기 유온', unit: '℃', dig: 0, why: '1℃보다 작은 차이는 센서 오차 수준이에요. 그래서 정수로 충분해요.' },
+  kw: { name: '유효전력', unit: 'kW', dig: 0, why: '큰 수는 천 단위마다 쉼표를 넣어 끊어 읽게 해요.' },
 }
 function Formatter() {
   const [k, setK] = useState<FK>('kv')
@@ -512,7 +526,7 @@ function GaugeVsBar() {
       <div className="cx-gvb-col">
         <h4>게이지 9개 <small className="muted">{gA ? `${k(gA)}만 px² 차지` : ''}</small></h4>
         <div ref={gRef} className="cx-gauges">{FEEDERS.map(f => <Gauge key={f.id} v={f.load} name={f.name} />)}</div>
-        <p className="muted">현재 값 하나만 보여줘요. 초록·노랑·빨강 구역이 정상 상태까지 색으로 칠해요.</p>
+        <p className="muted">지금 값 하나만 보여줘요. 초록·노랑·빨강 구역을 칠해 두어서, 정상일 때도 화면에 색이 가득해요.</p>
       </div>
       <div className="cx-gvb-col">
         <h4>아날로그 막대 + 추세 9줄 <small className="muted">{bA ? `${k(bA)}만 px² 차지` : ''}</small></h4>
@@ -526,7 +540,7 @@ function GaugeVsBar() {
             </div>
           ))}
         </div>
-        <p className="muted">정상 범위, 범위 밖 여부, 최근 추세까지 보여주는데 면적은 {gA && bA ? <b>{(gA / bA).toFixed(1)}분의 1</b> : '훨씬 작아요'}이에요.</p>
+        <p className="muted">정상 범위, 범위를 벗어났는지, 최근 추세까지 보여줘요. 그런데 차지하는 면적은 {gA && bA ? <>게이지의 <b>{(gA / bA).toFixed(1)}분의 1</b>이에요</> : '게이지보다 훨씬 작아요'}.</p>
       </div>
     </div>
   )
@@ -561,7 +575,7 @@ export function describe(kind: keyof typeof SPEC, value: number | null, history:
   const status: Status =
     value < s.alarm[0] || value > s.alarm[1] ? 'alarm'
     : value < s.normal[0] || value > s.normal[1] ? 'out' : 'normal'
-  // 최근 n개 점의 기울기(단위/점) — 화살표 방향과 '이대로면' 예측에 써요
+  // 최근 n개 점의 기울기(점 하나당 얼마나 변했나) — 화살표 방향과 '이대로면' 예측에 써요
   const n = history.length
   const mx = (n - 1) / 2, my = history.reduce((a, b) => a + b, 0) / n
   const slope = history.reduce((a, y, i) => a + (i - mx) * (y - my), 0) /
@@ -569,7 +583,7 @@ export function describe(kind: keyof typeof SPEC, value: number | null, history:
   return { text: nf.format(value) + s.unit, status, trend: slope }
 }
 
-/* CSS: 숫자 열은 고정폭 + 오른쪽 정렬
+/* CSS: 숫자 열은 고정폭 숫자로, 오른쪽 정렬해요
 .value { font-variant-numeric: tabular-nums; text-align: right; } */`
 
 /* ================= 탭 ================= */
@@ -580,87 +594,109 @@ function Rule({ a, b, c }: { a: ReactNode; b: ReactNode; c: ReactNode }) {
 export default function Tab() {
   return (
     <div data-dash="context">
+      <TermList
+        keys={['맥락', '상황 인식', '선로', '부하율', '전압', '유온', '주변압기', '정상 범위', '경보 범위', '추세', '스파크라인', '아날로그 막대', '%p', '고정폭 숫자']}
+        extra={EXTRA}
+      />
       <SysGrid>
-        <Section id="dash-context-why" wide title="83이라는 숫자만으로는 아무것도 알 수 없어요" desc="숫자는 질문을 하나도 답해 주지 않아요. 무엇을 잰 값인지, 괜찮은 건지, 어디로 가고 있는지는 맥락이 붙어야 읽혀요. 맥락을 하나씩 켜 보세요.">
+        <Section id="dash-context-why" wide title="83이라는 숫자만으로는 아무것도 알 수 없어요"
+          gist="숫자 옆에 단위, 정상 범위, 추세, 비교 기준을 붙여야 읽혀요."
+          desc={<>체온계에 ‘38’만 떠 있으면, 단위가 ℃이고 정상 체온이 36~37.5℃라는 걸 알아야 ‘열이 난다’고 판단할 수 있어요. 관제 화면의 숫자도 같아요. 무엇을 잰 값인지, 괜찮은지, 어디로 가는지는 숫자 옆에 정보(<T k="맥락" />)가 붙어야 알 수 있어요. 버튼을 하나씩 켜 보세요.</>}>
           <ContextBuilder />
           <Finding src={<>Few, Information Dashboard Design (2006) 요약 <Cite n={1} /> · Endsley (1995) 상황 인식 3단계 요약 <Cite n={3} /></>}>
-            값은 비교 대상이 있을 때 의미가 생겨요. 운영자는 값을 보고(지각) → 뜻을 알고(이해) → 앞을 내다봐요(예측). 화면이 이 세 단계를 대신 해 줄수록 판단이 빨라져요.
+            값은 비교할 대상이 있어야 의미가 생겨요. 운영자는 값을 보고(지각), 그 뜻을 알고(이해), 앞일을 내다봐요(예측). 화면이 이 세 단계를 많이 대신해 줄수록 판단이 빨라져요.
           </Finding>
-          <Note>칩 옆의 작은 글자는 Endsley의 상황 인식 단계예요. 이 탭의 선로 이름과 수치는 설명을 위한 가상 예시예요.</Note>
+          <Note>버튼 옆 작은 글자(지각·이해·예측)는 Endsley가 말한 <Term k="상황 인식" /> 3단계예요. 운전에 빗대면 “앞차 브레이크등이 켜졌다(지각) → 앞차가 선다(이해) → 이대로면 부딪힌다(예측)”예요. 이 탭의 선로 이름과 수치는 설명을 위해 만든 가상 예시예요.</Note>
         </Section>
 
-        <Section id="dash-context-three" wide title="같은 27개 값, 세 가지 표시" desc="9개 선로 × 부하율·전압·유온이에요. 표시 방식을 고르고 시작을 누르면 정상 범위를 벗어난 값의 개수를 세는 문제가 나와요. 세 방식으로 몇 번씩 풀어 보세요.">
+        <Section id="dash-context-three" wide title="같은 값 27개를 세 가지 방식으로 보여주기"
+          gist="색은 ‘범위 밖’만 알려줘요. 막대와 추세는 ‘곧 나빠질 곳’까지 알려줘요."
+          desc={<>9개 <Term k="선로" />마다 <Term k="부하율" />, <Term k="전압" />, <Term k="유온" />이 있어서 값이 모두 27개예요. 표시 방식을 고르고 시작을 누르세요. <Term k="정상 범위" />를 벗어난 값이 몇 개인지 세는 문제가 나와요. 세 방식으로 몇 번씩 풀어 보세요.</>}>
           <ThreeViews />
-          <Note tone="tip"><b>색은 '범위 밖인지'만 알려줘요.</b> 얼마나 벗어났는지, 경계 바로 안쪽에 있는 값은 무엇인지, 어느 쪽으로 움직이는지는 아날로그 막대와 추세선이 알려줘요. 고성능 HMI 기법에서 숫자 대신 정상·경보 범위가 그려진 막대 위에 현재 값 화살표를 두는 이유예요 <Cite n={4} /><Cite n={5} />.</Note>
+          <Note tone="tip"><b>색은 ‘범위 밖인지 아닌지’만 알려줘요.</b> 얼마나 벗어났는지, 경계 바로 안쪽에 있는 값이 무엇인지, 어느 쪽으로 움직이는지는 알려주지 못해요. 이건 <T k="아날로그 막대" />와 추세선이 알려줘요. 그래서 <T k="고성능 HMI" />에서는 숫자만 쓰지 않아요. 정상·경보 범위를 그린 막대 위에 지금 값을 화살표로 찍어요 <Cite n={4} /><Cite n={5} />.</Note>
         </Section>
 
-        <Section id="dash-context-cm" wide title="눈은 무엇을 가장 정확하게 읽을까" desc="두 값 A와 B를 다섯 가지 방식으로 그렸어요. B가 A의 몇 %인지 맞혀 보세요. 오차가 방식마다 어떻게 다른지 쌓여요.">
+        <Section id="dash-context-cm" wide title="눈은 무엇을 가장 정확하게 읽을까"
+          gist="위치로 그린 값이 가장 정확하게 읽혀요. 면적과 색 농도는 대충만 읽혀요."
+          desc="두 값 A와 B를 다섯 가지 방식으로 그렸어요. B가 A의 몇 %인지 맞혀 보세요. 문제를 풀수록 방식별 오차가 쌓여서 비교돼요.">
           <CMDemo />
           <Finding src={<>Cleveland & McGill (1984) Graphical Perception 요약 <Cite n={2} /></>}>
-            사람은 공통 축 위의 위치를 가장 정확하게 읽고, 그다음 길이, 각도·기울기, 면적, 부피·색 농도 순으로 부정확해져요.
+            사람은 같은 축 위의 위치를 가장 정확하게 읽어요. 그다음은 길이예요. 각도·기울기, 면적, 부피·색 농도 순으로 점점 부정확해져요.
           </Finding>
-          <Note>관제 화면에 옮기면 이렇게 돼요. 같은 축 위의 위치(아날로그 막대의 화살표, 추세선)는 정확하게 비교되고, 원 크기나 색 진하기로 부하를 표현하면 대충만 읽혀요. 정확한 비교가 필요한 값은 위치로 그려요.</Note>
+          <Note>관제 화면에 옮기면 이래요. 같은 축 위의 위치(아날로그 막대의 화살표, 추세선)는 정확하게 비교돼요. 원 크기나 색 진하기로 <Term k="부하" />를 그리면 대충만 읽혀요. 그래서 정확히 비교해야 하는 값은 위치로 그려요.</Note>
         </Section>
 
-        <Section id="dash-context-trend" wide title="지금 값보다 방향과 속도" desc="강변 변전소 주변압기 유온이 72℃예요. 정상 범위(30~75℃) 안이라 숫자만 보면 아무 일 없어요. 그런데 천천히 오르는 중이라면요? 상승 속도를 바꿔 보세요.">
+        <Section id="dash-context-trend" wide title="지금 값보다 어디로, 얼마나 빨리 가는지"
+          gist="정상 범위 안이라도 빠르게 오르는 값은 먼저 챙겨야 해요."
+          desc={<>주전자 물이 지금 70℃라는 것보다, 빠르게 끓어오르는 중인지가 더 중요할 때가 있어요. 강변 <Term k="변전소" />의 <Term k="주변압기" /> <Term k="유온" />이 72℃예요. 정상 범위(30~75℃) 안이라 숫자만 보면 괜찮아 보여요. 그런데 계속 오르는 중이라면 어떨까요? 오르는 속도를 바꿔 보세요.</>}>
           <TrendDemo />
-          <Note>예측선은 최근 30분 값으로 그은 직선이에요. 실제 유온은 부하와 바깥 기온에 따라 달라져서, 예측에는 꼭 <b>"이대로면"</b>이라는 조건을 붙여 보여줘요. Endsley의 3단계 중 '예측'을 화면이 도와주는 방법이에요 <Cite n={3} />. 화살표를 몇 단계로 나눌지(거의 그대로 · 천천히 · 빠르게)와 그 기준값은 운영 부서와 함께 정해요.</Note>
+          <Note>예측선은 최근 30분 값으로 그은 직선이에요. 실제 유온은 부하와 바깥 기온에 따라 달라져요. 그래서 예측에는 꼭 <b>“이대로면”</b>이라는 조건을 붙여 보여줘요. <Term k="상황 인식" /> 3단계 중 ‘예측’을 화면이 도와주는 방법이에요 <Cite n={3} />. 화살표를 몇 단계(거의 그대로 · 천천히 · 빠르게)로 나눌지, 기준값을 얼마로 할지는 운영 부서와 함께 정해요.</Note>
         </Section>
 
-        <Section id="dash-context-compare" title="무엇과 비교할까 — 기준선과 비교 기준" desc="83%가 높은지는 무엇과 비교하느냐에 달려 있어요. 비교 기준을 바꿔 보세요.">
+        <Section id="dash-context-compare" title="무엇과 비교할까: 어제, 계절 평균, 정상 상한"
+          gist="비교 기준을 함께 보여줘야 ‘높다, 낮다’를 말할 수 있어요."
+          desc={<>시험 점수 83점도 반 평균이 60점인지 90점인지에 따라 뜻이 달라져요. <Term k="부하율" /> 83%가 높은지도 무엇과 비교하느냐에 달려 있어요. 비교 기준을 바꿔 보세요.</>}>
           <CompareDemo />
           <div className="sys-table-wrap">
             <table className="sys-table">
-              <thead><tr><th>비교 기준</th><th>언제 쓰나</th><th>주의할 점</th></tr></thead>
+              <thead><tr><th>비교 기준</th><th>언제 쓰나요</th><th>주의할 점</th></tr></thead>
               <tbody>
-                <tr><td>정상 범위 · 경보값</td><td>항상. 가장 기본이에요.</td><td>기준값이 바뀌면 화면도 같이 바뀌게 한 곳에서 관리해요.</td></tr>
-                <tr><td>어제 같은 시각</td><td>하루 주기로 출렁이는 부하</td><td>어제가 휴일이면 비교가 틀어져요. 같은 요일과 비교하기도 해요.</td></tr>
-                <tr><td>계절 평균</td><td>여름·겨울 피크처럼 계절 영향이 큰 값</td><td>평균은 들쭉날쭉함을 지워요. 범위(최소~최대)를 같이 보여주면 좋아요.</td></tr>
-                <tr><td>계획값 · 목표</td><td>운전 계획이 있는 설비</td><td>계획을 누가 언제 바꿨는지 기록이 있어야 해요.</td></tr>
+                <tr><td>정상 범위 · 경보값</td><td>항상 써요. 가장 기본이에요.</td><td>기준값은 한 곳에서 관리해요. 그래야 기준이 바뀔 때 모든 화면이 같이 바뀌어요.</td></tr>
+                <tr><td>어제 같은 시각</td><td>하루를 주기로 오르내리는 부하</td><td>어제가 휴일이었다면 비교가 맞지 않아요. 그럴 땐 같은 요일과 비교하기도 해요.</td></tr>
+                <tr><td>계절 평균</td><td>여름·겨울 피크처럼 계절 영향이 큰 값</td><td>평균만 보면 날마다 다른 차이가 가려져요. 최소~최대 범위를 같이 보여주면 좋아요.</td></tr>
+                <tr><td>계획값 · 목표</td><td>운전 계획이 있는 설비</td><td>누가 언제 계획을 바꿨는지 기록이 남아 있어야 해요.</td></tr>
               </tbody>
             </table>
           </div>
         </Section>
 
-        <Section id="dash-context-num" title="단위와 자릿수 — 숫자를 읽기 쉽게" desc="관제 화면의 숫자는 한 번 보고 바로 읽혀야 해요. 계속 바뀌는 숫자는 특히 그래요.">
+        <Section id="dash-context-num" title="단위와 자릿수: 숫자를 한눈에 읽히게"
+          gist="단위는 붙이고, 자릿수는 필요한 만큼만, 숫자 폭은 고정해요."
+          desc={<>관제 화면의 숫자는 한 번 보고 바로 읽혀야 해요. 1초마다 바뀌는 숫자라면 더 그래요. 아래 목록에서 ‘기본 숫자’와 <T k="고정폭 숫자" />를 번갈아 눌러 보며, 값이 바뀔 때 숫자가 옆으로 흔들리는지 보세요.</>}>
           <TabularDemo />
           <Formatter />
           <div className="sys-table-wrap">
             <table className="sys-table cx-rules">
               <thead><tr><th>규칙</th><th>이렇게 말고</th><th>이렇게</th></tr></thead>
               <tbody>
-                <Rule a="단위는 숫자에 붙여 함께 읽혀요" b="22.9 (단위는 열 제목에만)" c="22.9kV" />
-                <Rule a="의미 있는 자릿수만" b="83.2941%" c="83%" />
+                <Rule a="단위는 숫자 바로 뒤에 붙여요" b="22.9 (단위는 열 제목에만)" c="22.9kV" />
+                <Rule a="필요한 자릿수까지만 보여줘요" b="83.2941%" c="83%" />
                 <Rule a="같은 열은 소수 자리를 맞춰요" b="22.5 / 22.75 / 23" c="22.5 / 22.8 / 23.0" />
-                <Rule a="큰 수는 천 단위 쉼표" b="12345kW" c="12,345kW" />
-                <Rule a="비율의 차이는 %p(퍼센트포인트)" b="부하율 9% 증가 (74%→83%)" c="+9%p (74% → 83%)" />
-                <Rule a="시각은 24시간제" b="오후 2:00" c="14:00" />
-                <Rule a="값이 없으면 0이 아니라 –" b="0.0kV (통신 두절)" c="– 통신 두절" />
+                <Rule a="큰 수는 천 단위마다 쉼표" b="12345kW" c="12,345kW" />
+                <Rule a={<>퍼센트끼리의 차이는 <T k="%p" />로 써요</>} b="부하율 9% 증가 (74%→83%)" c="+9%p (74% → 83%)" />
+                <Rule a="시각은 24시간제로 써요" b="오후 2:00" c="14:00" />
+                <Rule a="값이 없으면 0 대신 – 와 이유" b="0.0kV (통신 두절)" c="– 통신 두절" />
               </tbody>
             </table>
           </div>
         </Section>
 
-        <Section id="dash-context-gauge" wide title="나쁜 예 — 속도계 모양 게이지" desc="게이지는 계기판처럼 보여서 관제 화면에 자주 쓰여요. 그런데 화면을 많이 차지하는 데 비해 알려주는 것이 적어요. 아래 면적은 이 화면에서 실제로 잰 값이에요.">
+        <Section id="dash-context-gauge" wide title="나쁜 예: 자동차 속도계 모양 게이지"
+          gist="게이지는 자리만 크게 차지하고, 알려주는 건 값 하나뿐이에요."
+          desc={<><T k="게이지" />는 계기판처럼 보여서 관제 화면에 자주 쓰여요. 하지만 차지하는 자리에 비해 알려주는 정보가 적어요. 아래 면적(px²)은 이 화면에서 실제로 잰 값이에요.</>}>
           <GaugeVsBar />
           <Finding src={<>Few, Information Dashboard Design 요약 <Cite n={1} /></>}>
-            게이지는 공간을 많이 쓰면서 값 하나만 보여줘요. 한 화면에서 한눈에 봐야 하는 대시보드에서는 막대처럼 작고 비교하기 쉬운 표시가 나아요.
+            게이지는 자리를 많이 쓰면서 값 하나만 보여줘요. 대시보드는 한 화면에서 한눈에 봐야 해요. 그래서 막대처럼 작고 서로 비교하기 쉬운 표시가 더 나아요.
           </Finding>
         </Section>
 
-        <Section id="dash-context-check" title="맥락 점검표" desc="기획서나 화면 리뷰에서 값 하나마다 물어봐요.">
+        <Section id="dash-context-check" title="값에 맥락이 붙었는지 점검표"
+          gist="값 하나를 화면에 올릴 때마다 이 일곱 가지를 물어봐요."
+          desc="기획서를 쓸 때나 화면을 리뷰할 때, 값 하나마다 물어봐요.">
           <CheckList items={[
-            '이름과 단위가 값 바로 옆에 붙어 있나요?',
-            '정상 범위와 경보값이 화면에 그려져 있나요(숫자로 외우게 하지 않나요)?',
-            '방향과 속도가 중요한 값에는 추세나 기울기가 있나요?',
-            '비교 기준(어제, 계절, 계획)이 무엇인지 적혀 있나요?',
-            '자릿수가 측정 정밀도에 맞고, 같은 열에서 소수 자리가 같나요?',
-            '값이 없을 때 0이 아니라 – 와 이유가 보이나요?',
+            '이름과 단위가 값 바로 옆에 있나요?',
+            '정상 범위와 경보값이 화면에 그려져 있나요? (숫자로 외우게 하지 않나요?)',
+            '방향과 속도가 중요한 값에는 추세나 기울기가 보이나요?',
+            '무엇과 비교했는지(어제, 계절, 계획) 적혀 있나요?',
+            '자릿수가 측정 정밀도에 맞나요? 같은 열은 소수 자리가 같나요?',
+            '값이 없을 때 0 대신 – 와 그 이유가 보이나요?',
             '게이지 대신 더 작은 막대로 같은 정보를 줄 수 있지 않나요?',
           ]} />
         </Section>
 
-        <Section id="dash-context-code" title="FE · 값에 맥락 붙이기" desc="상태 판정, 자릿수, 기울기를 한 함수에 모아 두면 화면마다 기준이 어긋나지 않아요.">
+        <Section id="dash-context-code" title="FE · 값에 맥락을 붙이는 함수 하나"
+          gist="판정, 자릿수, 기울기를 한 함수에 모아 모든 화면이 같은 기준을 써요."
+          desc={<>상태 판정(정상·범위 밖·경보), 자릿수, <T k="기울기" /> 계산을 한 함수에 모아 두세요. 그러면 화면마다 기준이 달라지는 일이 없어요.</>}>
           <CodeBlock code={CODE} label="TypeScript" maxHeight={420} />
         </Section>
 
@@ -669,7 +705,7 @@ export default function Tab() {
           { kind: 'paper', text: 'Cleveland, W. S. & McGill, R. (1984), Graphical Perception: Theory, Experimentation, and Application to the Development of Graphical Methods, JASA 79(387)' },
           { kind: 'paper', text: 'Endsley, M. R. (1995), Toward a Theory of Situation Awareness in Dynamic Systems, Human Factors 37(1)', url: 'https://en.wikipedia.org/wiki/Situation_awareness' },
           { kind: 'standard', text: 'ANSI/ISA-101.01-2015, Human Machine Interfaces for Process Automation Systems — 고성능 HMI', url: 'https://blog.isa.org/the-high-performance-hmi' },
-          { kind: 'practice', text: 'Inductive Automation, High Performance HMI Techniques — 아날로그 표시(정상·경보 범위 막대 위 현재 값 화살표), 정상 범위 띠 스파크라인 (업체 문서)', url: 'https://docs.inductiveautomation.com/docs/8.1/ignition-modules/vision/common-tasks-in-vision/high-performance-hmitechniques' },
+          { kind: 'practice', text: 'Inductive Automation, High Performance HMI Techniques — 아날로그 막대(정상·경보 범위를 그린 막대 위에 지금 값을 화살표로 표시), 정상 범위 띠를 깐 스파크라인 (업체 문서)', url: 'https://docs.inductiveautomation.com/docs/8.1/ignition-modules/vision/common-tasks-in-vision/high-performance-hmitechniques' },
         ]} />
       </SysGrid>
     </div>

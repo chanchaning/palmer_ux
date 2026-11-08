@@ -2,7 +2,18 @@ import { useEffect, useMemo, useRef, useState, type DragEvent, type KeyboardEven
 import { Note, Section, SysGrid } from '../../system/ui'
 import { Seg } from '../../components/ui'
 import { download } from '../../system/export'
+import { Term, TermList } from '../../components/Term'
 import './priority.css'
+
+/* 사전(glossary.ts)에 없는 말 — 이 탭에서만 쓰는 쉬운 뜻 */
+const EXTRA: Record<string, string> = {
+  '인월': '한 사람이 한 달 동안 일하는 양이에요. 두 사람이 2주 일하면 1인월이에요.',
+  '공수': '일을 끝내는 데 드는 사람과 시간이에요. 이 탭에서는 인월로 세요.',
+  'MVP': '꼭 필요한 기능만 넣어 가장 작게 만든 첫 버전이에요. 반응을 보고 더 키울지 정해요.',
+  '이해관계자': '이 결정에 영향을 받거나 의견을 낼 사람들이에요. 대표님, 영업팀, 개발팀 같은 사람들이에요.',
+  '출시 범위': '이번 출시에 넣기로 한 기능의 목록이에요. 여기 없는 건 다음으로 미뤄요.',
+  '재구매율': '한 번 산 사람 중에 다시 산 사람의 비율이에요.',
+}
 
 /* ---------- 공용 작은 도구 ---------- */
 const cell = (v: string | number) => { const s = String(v); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s }
@@ -67,10 +78,10 @@ const score = (r: Row) => (r.effort > 0 ? (r.reach * r.impact * (r.conf / 100)) 
 function lintRow(r: Row): string[] {
   const w: string[] = []
   if (!r.name.trim()) w.push('이름이 비어 있어요.')
-  if (!(r.effort > 0)) w.push('Effort가 0이면 나눌 수 없어요. 아주 작아도 0.5인월로 적어요.')
-  if (!(r.reach > 0)) w.push('Reach가 0이에요. “분기 동안 이 기능을 만나는 사람 수”를 숫자로 적어요.')
-  if (r.conf === 50 && r.impact >= 2) w.push('기대는 큰데 확신은 50%예요. 크게 만들기 전에 작은 실험으로 근거부터 모아요.')
-  if (!r.why.trim()) w.push('근거 칸이 비었어요. 숫자의 출처가 없으면 회의에서 바로 깨져요.')
+  if (!(r.effort > 0)) w.push('Effort가 0이면 나눗셈을 할 수 없어요. 아주 작은 일이어도 0.5인월로 적어요.')
+  if (!(r.reach > 0)) w.push('Reach가 0이에요. “3개월(분기) 동안 이 기능을 쓰게 될 사람 수”를 숫자로 적어요.')
+  if (r.conf === 50 && r.impact >= 2) w.push('기대는 큰데 확신은 50%뿐이에요. 크게 만들기 전에 작은 실험으로 근거부터 모아요.')
+  if (!r.why.trim()) w.push('근거 칸이 비었어요. 숫자가 어디서 나왔는지 없으면, 회의에서 “근거가 뭐예요?” 한마디에 무너져요.')
   return w
 }
 
@@ -150,7 +161,7 @@ function Rice({ rows, setRows }: { rows: Row[]; setRows: (f: (r: Row[]) => Row[]
       </div>
 
       <div className="pr-ranked" aria-label="점수순 결과">
-        <div className="pr-sub">점수순 결과 <span className="muted">입력하면 바로 다시 줄 세워요</span></div>
+        <div className="pr-sub">점수순 결과 <span className="muted">값을 바꾸면 바로 다시 줄을 세워요</span></div>
         <ol>
           {ranked.map((r, i) => (
             <li key={r.id}>
@@ -170,7 +181,7 @@ function Rice({ rows, setRows }: { rows: Row[]; setRows: (f: (r: Row[]) => Row[]
       )}
       {top && (
         <Note tone="tip">
-          <b>1위는 “{top.name}”({fmt(score(top))}점)이에요.</b> 그래도 점수는 회의의 <b>출발점</b>이지 결론이 아니에요. 2위와 점수 차가 작으면 둘 다 근거를 다시 보고, 점수가 낮은데 꼭 해야 하는 일(법 규정, 장애 대응)은 RICE 밖에서 따로 다뤄요.
+          <b>1위는 “{top.name}”({fmt(score(top))}점)이에요.</b> 하지만 점수는 회의를 <b>시작하는 재료</b>일 뿐, 결론이 아니에요. 2위와 점수 차이가 작으면 둘 다 근거를 다시 봐요. 법 규정이나 장애 대응처럼 점수가 낮아도 꼭 해야 하는 일은 RICE와 상관없이 따로 다뤄요.
         </Note>
       )}
     </>
@@ -181,8 +192,8 @@ function Rice({ rows, setRows }: { rows: Row[]; setRows: (f: (r: Row[]) => Row[]
 type Col = 'M' | 'S' | 'C' | 'W'
 const COLS: { id: Col; name: string; ko: string; q: string }[] = [
   { id: 'M', name: 'Must', ko: '꼭 있어야 함', q: '없으면 이번 출시를 미루나요?' },
-  { id: 'S', name: 'Should', ko: '중요하지만 미룰 수 있음', q: '빠지면 아프지만 우회로가 있나요?' },
-  { id: 'C', name: 'Could', ko: '여유 있으면', q: '일정이 남을 때만 하나요?' },
+  { id: 'S', name: 'Should', ko: '중요하지만 미룰 수 있음', q: '빠지면 아쉽지만 다른 방법으로 버틸 수 있나요?' },
+  { id: 'C', name: 'Could', ko: '여유 있으면', q: '일정에 여유가 남을 때만 하나요?' },
   { id: 'W', name: "Won't", ko: '이번엔 안 함', q: '“영원히 안 함”이 아니라 “이번엔 안 함”이에요.' },
 ]
 type Card = { id: number; text: string; col: Col; sure?: boolean }
@@ -201,7 +212,7 @@ const ORDER: Col[] = ['M', 'S', 'C', 'W']
 function Moscow() {
   const [cards, setCards] = useState<Card[]>(MSEED)
   const [over, setOver] = useState<Col | null>(null)
-  const [msg, setMsg] = useState('카드를 끌어다 놓거나, 카드에 포커스를 두고 ← → 키(또는 1~4)로 옮겨요.')
+  const [msg, setMsg] = useState('카드를 끌어다 놓거나, 카드를 고른 뒤 ← → 키(또는 숫자 1~4)로 옮겨요.')
   const [draft, setDraft] = useState('')
   const focusId = useRef<number | null>(null)
   const nextId = useRef(100)
@@ -216,7 +227,7 @@ function Moscow() {
     if (!c || c.col === col) return
     setCards(cs => cs.map(x => (x.id === id ? { ...x, col, sure: col === 'M' ? x.sure : undefined } : x)))
     const name = COLS.find(k => k.id === col)!.name
-    setMsg(`“${c.text}”을(를) ${name}(으)로 옮겼어요.` + (col === 'M' ? ' 없으면 출시 불가인지 확인해 주세요.' : ''))
+    setMsg(`“${c.text}”을(를) ${name}(으)로 옮겼어요.` + (col === 'M' ? ' 이게 없으면 정말 출시를 못 하는지 확인해 주세요.' : ''))
     if (keepFocus) focusId.current = id
   }
   const onKey = (e: KeyboardEvent, c: Card) => {
@@ -234,11 +245,11 @@ function Moscow() {
   const add = () => {
     const t = draft.trim(); if (!t) return
     setCards(cs => [...cs, { id: nextId.current++, text: t, col: 'S' }]); setDraft('')
-    setMsg(`“${t}”을(를) Should에 추가했어요. 알맞은 칸으로 옮겨 주세요.`)
+    setMsg(`“${t}”을(를) Should 칸에 추가했어요. 알맞은 칸으로 옮겨 주세요.`)
   }
   const unsure = cards.filter(c => c.col === 'M' && !c.sure)
   const md = '# 재주문 기능 v1 출시 범위 (MoSCoW)\n\n' + COLS.map(k => `## ${k.name} — ${k.ko}\n` + (cards.filter(c => c.col === k.id).map(c => `- ${c.text}`).join('\n') || '- (없음)')).join('\n\n') +
-    '\n\n> Won\'t는 “이번 출시에서는 안 함”이에요. 다음 분기 백로그에서 다시 봐요.\n'
+    '\n\n> Won\'t는 “영원히 안 함”이 아니라 “이번 출시에서는 안 함”이에요. 다음 분기 백로그에서 다시 봐요.\n'
 
   return (
     <>
@@ -260,7 +271,7 @@ function Moscow() {
                     {c.col === 'M' && (
                       <label className="pr-sure">
                         <input type="checkbox" checked={!!c.sure} onChange={e => setCards(cs => cs.map(x => (x.id === c.id ? { ...x, sure: e.target.checked } : x)))} />
-                        없으면 출시 불가 확인
+                        없으면 출시 못 함 (확인)
                       </label>
                     )}
                     <span className="pr-card-move">
@@ -286,18 +297,18 @@ function Moscow() {
         </div>
       </div>
       {unsure.length > 0
-        ? <Note tone="warn"><b>Must인데 아직 확인 안 한 카드 {unsure.length}개:</b> {unsure.map(c => '“' + c.text + '”').join(', ')}. 회의에서 “이게 없으면 출시를 미룰 건가요?”라고 한 번 더 물어요. 아니라는 답이 나오면 Should로 내려요.</Note>
-        : <Note tone="tip"><b>Must 카드 모두 확인했어요.</b> 이제 Must만으로 일정 안에 들어가는지 개발 공수를 다시 물어봐요.</Note>}
+        ? <Note tone="warn"><b>Must인데 아직 확인하지 않은 카드 {unsure.length}개:</b> {unsure.map(c => '“' + c.text + '”').join(', ')}. 회의에서 “이게 없으면 출시를 미룰 건가요?”라고 한 번 더 물어요. “아니요”라는 답이 나오면 Should로 내려요.</Note>
+        : <Note tone="tip"><b>Must 카드를 모두 확인했어요.</b> 이제 Must만으로 일정 안에 끝낼 수 있는지 개발팀에 다시 물어봐요.</Note>}
     </>
   )
 }
 
 /* ---------- 가치 vs 노력 2×2 ---------- */
 const QUAD = {
-  qw: ['빨리 하기', 'Quick win', '가치는 크고 노력은 적어요. 이번 스프린트 후보 1순위예요.'],
-  bb: ['크게 걸기', 'Big bet', '가치도 노력도 커요. 쪼개서 MVP부터 검증해요.'],
-  fi: ['틈틈이', 'Fill-in', '작고 쉬워요. 여유 있을 때 끼워 넣어요.'],
-  mp: ['다시 보기', 'Money pit', '노력은 큰데 가치가 작아요. 정말 해야 하는지 먼저 물어요.'],
+  qw: ['빨리 하기', 'Quick win', '가치는 크고 노력은 적어요. 이번 스프린트에 넣을 1순위 후보예요.'],
+  bb: ['크게 걸기', 'Big bet', '가치도 노력도 커요. 잘게 쪼개서 가장 작은 첫 버전(MVP)부터 확인해요.'],
+  fi: ['틈틈이', 'Fill-in', '가치도 노력도 작아요. 여유 있을 때 끼워 넣어요.'],
+  mp: ['다시 보기', 'Money pit', '노력은 큰데 가치가 작아요. 정말 해야 하는지부터 물어요.'],
 } as const
 type QK = keyof typeof QUAD
 
@@ -332,12 +343,11 @@ function Matrix({ rows }: { rows: Row[] }) {
         </ol>
         {cur && (
           <div className={'pr-mx-pick q-' + quad(cur)} aria-live="polite">
-            <small>{QUAD[quad(cur)][1]}</small>
             <b>{cur.name} → {QUAD[quad(cur)][0]}</b>
             <p>{QUAD[quad(cur)][2]}</p>
           </div>
         )}
-        <p className="muted">가치 = Reach × Impact × Confidence, 노력 = Effort예요. 위 RICE 표를 고치면 점도 움직여요. 위치는 이 목록 안에서의 <b>상대 비교</b>예요.</p>
+        <p className="muted">가치 = Reach × Impact × Confidence, 노력 = Effort예요. 위 RICE 표를 고치면 점도 같이 움직여요. 점의 위치는 절대 점수가 아니라 <b>이 목록 안에서 서로 비교한 자리</b>예요.</p>
       </div>
     </div>
   )
@@ -345,11 +355,11 @@ function Matrix({ rows }: { rows: Row[] }) {
 
 /* ---------- 회의 ---------- */
 const STEPS: [string, string][] = [
-  ['하루 전', '후보 목록과 RICE 초안을 미리 공유해요. “숫자가 틀렸으면 회의 전에 알려 주세요.”'],
+  ['하루 전', '후보 목록과 RICE 점수 초안을 미리 보내요. “숫자가 틀렸으면 회의 전에 알려 주세요”라고 덧붙여요.'],
   ['5분', '이번 분기 목표(예: 재구매율)부터 다시 읽어요. 기준이 같아야 싸우지 않아요.'],
-  ['15분', '점수가 크게 갈리는 항목만 토론해요. 근거가 약한 칸(Confidence 50%)을 먼저 봐요.'],
-  ['10분', 'MoSCoW로 이번 출시 범위를 합의해요. Must 카드마다 “없으면 출시 불가?”를 물어요.'],
-  ['5분', '결정, 빠진 항목, 다음에 다시 볼 날짜를 회의록에 남겨요.'],
+  ['15분', '사람마다 점수가 크게 다른 항목만 토론해요. 근거가 약한 칸(Confidence 50%)부터 봐요.'],
+  ['10분', 'MoSCoW로 이번 출시 범위를 합의해요. Must 카드마다 “이게 없으면 출시를 못 하나요?”라고 물어요.'],
+  ['5분', '정한 것, 빠진 항목, 다시 볼 날짜를 회의록에 남겨요.'],
 ]
 const SAY: { who: string; bad: string; good: string }[] = [
   { who: '대표님이 새 아이디어를 바로 넣자고 할 때', bad: '“네, 바로 넣을게요.”', good: '“좋은 아이디어예요. 같은 기준으로 RICE에 넣어 보면 지금 2위와 비교할 수 있어요. 금요일까지 Reach 숫자를 뽑아서 다시 말씀드릴게요.”' },
@@ -363,62 +373,75 @@ export default function Tab() {
   const [sayIdx, setSayIdx] = useState(0)
   return (
     <div data-plan="priority">
+      <TermList keys={['백로그', 'RICE', '인월', 'MoSCoW', '출시 범위', '스프린트', 'MVP', '공수', '이해관계자', '재구매율']} extra={EXTRA} />
       <SysGrid>
-        <Section id="plan-priority-why" wide title="무엇을 먼저 만들까" desc="우선순위는 “무엇을 할까”보다 “무엇을 안 할까”를 정하는 일이에요.">
+        <Section id="plan-priority-why" wide title="무엇을 먼저 만들까"
+          gist="모든 후보를 같은 기준으로 재고, 근거를 적고, 범위를 합의해요."
+          desc="우선순위는 “무엇을 할까”보다 “무엇을 안 할까”를 정하는 일이에요.">
           <div className="pr-intro">
             <div className="pr-quote">
               <b>주니어가 자주 하는 실수</b>
-              <p>목소리 큰 사람의 요청부터 넣고, 나머지는 전부 “Must”라고 적어요. 그러면 회의 때마다 순서가 바뀌고, 왜 그 순서인지 아무도 설명하지 못해요.</p>
+              <p>목소리 큰 사람의 요청부터 넣고, 나머지는 전부 “Must(꼭 해야 함)”라고 적어요. 그러면 회의 때마다 순서가 바뀌어요. 왜 그 순서인지 아무도 설명하지 못해요.</p>
             </div>
             <ul className="pr-points">
-              <li><b>같은 자로 재요.</b> 모든 후보를 같은 기준(도달·효과·확신·공수)으로 숫자를 매겨야 비교가 돼요.</li>
-              <li><b>근거를 적어요.</b> 숫자 옆에 출처를 써 두면 “왜 이게 1위예요?”에 바로 답할 수 있어요.</li>
+              <li><b>같은 자로 재요.</b> 모든 후보에 같은 기준으로 숫자를 매겨야 비교가 돼요. 기준은 몇 명이 쓰나, 얼마나 좋아지나, 얼마나 확실한가, 얼마나 힘든가예요.</li>
+              <li><b>근거를 적어요.</b> 숫자 옆에 어디서 나온 숫자인지 써 두세요. 그러면 “왜 이게 1위예요?”에 바로 답할 수 있어요.</li>
               <li><b>범위를 합의해요.</b> 순위가 정해져도 “이번 출시에 어디까지 넣을까”는 따로 합의해야 해요.</li>
             </ul>
           </div>
         </Section>
 
-        <Section id="plan-priority-rice" wide title="RICE 계산기" desc="Intercom이 공개한 방식이에요. 오늘반찬 다음 분기 백로그 5개를 채워 두었어요. 값을 바꾸면 점수와 순위가 바로 바뀌어요.">
+        <Section id="plan-priority-rice" wide title="RICE 계산기"
+          gist="점수 = 사람 수 × 효과 × 확신 ÷ 노력. 점수가 높을수록 먼저 해요."
+          desc={<>식당을 고를 때 거리, 맛, 후기 믿음직함, 가격을 한꺼번에 따지는 것과 비슷해요. <Term k="RICE" />는 Intercom이 공개한 방식이에요. 오늘반찬 다음 분기 <Term k="백로그" /> 5개를 미리 채워 뒀어요. 값을 바꾸면 점수와 순위가 바로 바뀌어요.</>}>
           <Rice rows={rows} setRows={setRows} />
           <div className="pr-scales">
-            <div><b>Reach</b><p>정한 기간(보통 분기) 동안 이 기능을 만나는 사람 수예요. “많음” 대신 “4,000명”처럼 적어요.</p></div>
-            <div><b>Impact</b><p>한 사람에게 주는 효과예요. 3 엄청 큼 · 2 큼 · 1 보통 · 0.5 작음 · 0.25 아주 작음, 다섯 단계만 써요.</p></div>
-            <div><b>Confidence</b><p>위 숫자를 얼마나 믿는지예요. 100% 데이터 있음 · 80% 근거 일부 · 50% 감. 50% 아래는 아이디어 단계로 따로 둬요.</p></div>
-            <div><b>Effort</b><p>기획·디자인·개발·QA 모두 합친 인월(한 사람이 한 달 일하는 양)이에요. 아주 작으면 0.5로 적어요.</p></div>
+            <div><b>Reach (몇 명)</b><p>정한 기간(보통 3개월인 분기) 동안 이 기능을 쓰게 될 사람 수예요. “많음” 대신 “4,000명”처럼 숫자로 적어요.</p></div>
+            <div><b>Impact (효과)</b><p>한 사람에게 얼마나 큰 효과가 있는지예요. 3 엄청 큼, 2 큼, 1 보통, 0.5 작음, 0.25 아주 작음. 이 다섯 단계만 써요.</p></div>
+            <div><b>Confidence (확신)</b><p>위 숫자를 얼마나 믿을 수 있는지예요. 데이터가 있으면 100%, 근거가 일부면 80%, 감이면 50%. 50%보다 낮으면 아직 아이디어 단계라 따로 모아 둬요.</p></div>
+            <div><b>Effort (노력)</b><p>기획·디자인·개발·QA를 모두 합친 일의 양이에요. 단위는 <Term k="인월" d={EXTRA['인월']} />(한 사람이 한 달 일하는 양)이에요. 아주 작으면 0.5로 적어요.</p></div>
           </div>
           <GoodBad
-            bad={<div className="pr-ex"><code>재주문 버튼 | Reach: 많음 | Impact: 3 | Confidence: 100% | Effort: ?</code><p>모든 칸이 감이에요. “많음”은 계산할 수 없고, 데이터 없이 100%를 주면 Confidence가 의미를 잃어요.</p></div>}
-            good={<div className="pr-ex"><code>재주문 버튼 | Reach: 4,000명/분기 | Impact: 2 | Confidence: 80% | Effort: 1인월</code><p>Reach는 “지난 분기 2회 이상 주문한 구매자 수”, Impact는 “재주문까지 탭 6번 → 2번 예상”, Effort는 “FE 2주 + BE 1주 + QA 1주”로 근거를 함께 적었어요.</p></div>}
+            bad={<div className="pr-ex"><code>재주문 버튼 | Reach: 많음 | Impact: 3 | Confidence: 100% | Effort: ?</code><p>모든 칸이 감이에요. “많음”으로는 계산할 수 없어요. 데이터 없이 100%를 주면 Confidence 칸이 아무 의미가 없어져요.</p></div>}
+            good={<div className="pr-ex"><code>재주문 버튼 | Reach: 4,000명/분기 | Impact: 2 | Confidence: 80% | Effort: 1인월</code><p>칸마다 근거를 함께 적었어요. Reach는 “지난 분기 2회 이상 주문한 구매자 수”, Impact는 “재주문까지 탭 6번 → 2번 예상”, Effort는 “FE 2주 + BE 1주 + QA 1주”예요.</p></div>}
           />
         </Section>
 
-        <Section id="plan-priority-moscow" wide title="MoSCoW 보드 — 이번 출시 범위 합의" desc="오늘반찬 ‘재주문 기능 v1’에 넣을 것을 네 칸으로 나눠요. 카드를 끌어다 놓거나, 키보드(← → 또는 1~4)로 옮겨요. 모바일에서는 ‹ › 버튼을 눌러요.">
+        <Section id="plan-priority-moscow" wide title="MoSCoW 보드: 이번 출시에 무엇을 넣을까"
+          gist="Must는 “없으면 출시를 미룰 것”만 넣어요. 나머지는 아래 칸으로 내려요."
+          desc={<>여행 가방 싸기와 비슷해요. 여권(꼭), 충전기(중요), 책(여유 되면), 캠핑 의자(이번엔 안 가져감)로 나눠요. <Term k="MoSCoW" />도 이렇게 네 칸으로 나눠요. 오늘반찬 ‘재주문 기능 v1’의 <Term k="출시 범위" d={EXTRA['출시 범위']} />를 나눠 보세요. 카드를 끌어다 놓거나, 키보드(← → 또는 1~4)로 옮겨요. 모바일에서는 ‹ › 버튼을 눌러요.</>}>
           <Moscow />
         </Section>
 
-        <Section id="plan-priority-when" wide title="언제 무엇을 쓸까" desc="세 도구는 경쟁 관계가 아니에요. 질문이 다를 뿐이에요.">
+        <Section id="plan-priority-when" wide title="세 도구, 언제 무엇을 쓸까"
+          gist="2×2로 감 잡고, RICE로 순위를 설명하고, MoSCoW로 범위를 정해요."
+          desc="세 도구는 서로 경쟁하지 않아요. 답하는 질문이 다를 뿐이에요.">
           <div className="pr-table-wrap">
             <table className="sys-table pr-cmp">
               <thead><tr><th style={{ width: '16%' }}>도구</th><th>답하는 질문</th><th>잘 맞을 때</th><th>함정</th></tr></thead>
               <tbody>
-                <tr><td><b>RICE</b></td><td>여러 후보 중 무엇이 더 가치 있나요? <span className="m">비교·설득용 숫자</span></td><td>후보가 5개 이상이고, 이해관계자에게 순서를 설명해야 할 때</td><td>숫자가 정확해 보여서 감으로 넣은 값도 믿게 돼요. 근거 칸을 꼭 채워요.</td></tr>
-                <tr><td><b>MoSCoW</b></td><td>이번 출시에 어디까지 넣나요? <span className="m">범위 합의</span></td><td>마감이 정해진 출시에서 팀이 같은 그림을 볼 때</td><td>모두 Must가 되기 쉬워요. Must마다 “없으면 출시 불가?”를 물어요.</td></tr>
-                <tr><td><b>가치 vs 노력 2×2</b></td><td>대충 어디부터 손댈까요? <span className="m">빠른 감 잡기</span></td><td>워크숍이나 첫 회의에서 10분 안에 정리할 때</td><td>칸 경계가 주관적이에요. 결정 근거로 쓰기엔 거칠어요.</td></tr>
+                <tr><td><b>RICE</b></td><td>여러 후보 중 무엇이 더 가치 있나요? <span className="m">비교·설득용 숫자</span></td><td>후보가 5개 이상이고, 다른 팀에 순서를 설명해야 할 때</td><td>숫자가 정확해 보여서, 감으로 넣은 값까지 믿게 돼요. 근거 칸을 꼭 채워요.</td></tr>
+                <tr><td><b>MoSCoW</b></td><td>이번 출시에 어디까지 넣나요? <span className="m">범위 합의</span></td><td>마감이 정해진 출시에서 팀이 같은 그림을 봐야 할 때</td><td>모두 Must가 되기 쉬워요. Must마다 “없으면 출시를 못 하나요?”라고 물어요.</td></tr>
+                <tr><td><b>가치 vs 노력 2×2</b></td><td>대충 어디부터 손댈까요? <span className="m">빠르게 감 잡기</span></td><td>워크숍이나 첫 회의에서 10분 안에 정리할 때</td><td>칸의 경계를 사람마다 다르게 봐요. 최종 결정의 근거로 쓰기엔 거칠어요.</td></tr>
               </tbody>
             </table>
           </div>
           <Matrix rows={rows} />
-          <Note>이 순서로 많이 써요: <b>2×2로 감을 잡고</b> → 후보가 좁혀지면 <b>RICE로 순위를 설명</b>하고 → 출시 직전에 <b>MoSCoW로 범위를 합의</b>해요.</Note>
+          <Note>보통 이 순서로 써요. <b>2×2로 감을 잡고</b> → 후보가 좁혀지면 <b>RICE로 순위를 설명</b>하고 → 출시 직전에 <b>MoSCoW로 범위를 합의</b>해요. 왼쪽 위 ‘빨리 하기’ 칸(가치는 크고 노력은 적음)은 다음 <Term k="스프린트" />의 1순위 후보예요.</Note>
         </Section>
 
-        <Section id="plan-priority-meeting" title="우선순위 회의 진행법" desc="40분 회의 기준이에요. 회의 전에 이미 절반이 끝나 있어야 해요.">
+        <Section id="plan-priority-meeting" title="우선순위 회의 진행법"
+          gist="숫자는 회의 전에 미리 돌리고, 회의에서는 의견이 갈리는 것만 다뤄요."
+          desc="40분 회의 기준이에요. 회의 전에 이미 절반이 끝나 있어야 해요.">
           <ol className="pr-steps">
             {STEPS.map(([t, d], i) => <li key={i}><span>{t}</span><p>{d}</p></li>)}
           </ol>
           <Note tone="tip">회의 결과는 <a href="#/plan/collab">협업 · 소통</a> 탭의 회의록 템플릿에 “결정 / 빠진 항목 / 다시 볼 날짜”로 남겨요.</Note>
         </Section>
 
-        <Section id="plan-priority-say" title="이해관계자 설득 문장" desc="“안 돼요” 대신 기준과 다음 행동을 함께 말해요.">
+        <Section id="plan-priority-say" title="다른 의견에 답하는 말"
+          gist="“안 돼요” 대신 기준과 다음에 할 일을 함께 말해요."
+          desc={<>대표님, 영업팀, 개발팀 같은 <Term k="이해관계자" d={EXTRA['이해관계자']} />가 다른 의견을 낼 때 쓸 수 있는 말이에요. 버튼으로 막는 말과 설득하는 말을 비교해 보세요.</>}>
           <Seg value={sayIdx} onChange={setSayIdx} options={SAY.map((_s, i) => [i, ['대표님', '영업팀', '개발', '빠진 팀'][i]] as const)} />
           <p className="pr-say-who">{SAY[sayIdx].who}</p>
           <GoodBad key={sayIdx} badLabel="막는 말" goodLabel="설득하는 말"
@@ -426,25 +449,29 @@ export default function Tab() {
             good={<p className="pr-say">{SAY[sayIdx].good}</p>} />
         </Section>
 
-        <Section id="plan-priority-check" title="사수의 체크리스트" desc="우선순위 문서를 리뷰할 때 제가 실제로 묻는 질문이에요.">
+        <Section id="plan-priority-check" title="사수의 체크리스트"
+          gist="검토 전에 이 7가지를 스스로 확인해요."
+          desc="우선순위 문서를 검토할 때 제가 실제로 묻는 질문이에요.">
           <Checklist name="우선순위 리뷰 체크리스트" items={[
-            ['이번 분기 목표와 연결되나요?', '목표가 재구매율이면, 신규 가입 기능이 1위인 이유를 설명할 수 있어야 해요.'],
-            ['Reach가 숫자이고 기간이 같나요?', '어떤 건 월, 어떤 건 분기면 비교가 틀어져요.'],
-            ['Confidence 100%에 데이터가 있나요?', '데이터 없이 100%면 80%로 내려요.'],
-            ['Effort를 개발·디자인에게 직접 물었나요?', '기획자가 혼자 추정한 공수는 거의 항상 작아요.'],
-            ['Must 카드마다 “없으면 출시 불가”인가요?', '아니라면 Should예요.'],
-            ['Won’t를 기록했나요?', '빠진 항목과 다시 볼 날짜를 남겨야 같은 요청이 반복되지 않아요.'],
-            ['점수 밖에서 해야 할 일을 따로 뒀나요?', '법 규정, 보안, 장애 대응은 점수와 상관없이 먼저 해요.'],
+            ['이번 분기 목표와 이어지나요?', '목표가 재구매율이라면, 신규 가입 기능이 1위인 이유를 설명할 수 있어야 해요.'],
+            ['Reach가 숫자이고, 기간이 모두 같나요?', '어떤 건 한 달, 어떤 건 분기(3개월)로 세면 비교가 틀어져요.'],
+            ['Confidence 100%에 데이터가 있나요?', '데이터 없이 100%라면 80%로 내려요.'],
+            ['Effort를 개발·디자인 담당에게 직접 물었나요?', '기획자가 혼자 짐작한 공수는 거의 항상 실제보다 작아요.'],
+            ['Must 카드마다 정말 “없으면 출시를 못 하나요”?', '아니라면 Should예요.'],
+            ['Won’t(이번엔 안 함)를 기록했나요?', '빠진 항목과 다시 볼 날짜를 남겨야 같은 요청이 반복되지 않아요.'],
+            ['점수와 상관없이 해야 할 일을 따로 뒀나요?', '법 규정, 보안, 장애 대응은 점수와 상관없이 먼저 해요.'],
           ]} />
         </Section>
 
-        <Section id="plan-priority-ref" title="참고" desc="확인된 자료만 적었어요.">
+        <Section id="plan-priority-ref" title="참고"
+          gist="RICE와 MoSCoW가 처음 나온 곳, 더 읽을거리예요."
+          desc="확인된 자료만 적었어요.">
           <ul className="pr-ref">
-            <li><b>Intercom</b> — Sean McBride, “RICE: Simple prioritization for product managers”. Impact·Confidence 단계와 인월 Effort가 여기서 왔어요.</li>
-            <li><b>MoSCoW</b> — Dai Clegg가 만들고 DSDM(애자일 방법론)에서 널리 쓰인 분류예요.</li>
-            <li><b>Atlassian Agile Coach</b> — 백로그 관리와 우선순위 정하기 글.</li>
-            <li><b>Marty Cagan, 『인스파이어드』(SVPG)</b> — 로드맵보다 문제와 결과(outcome)를 먼저 보라는 관점.</li>
-            <li>함께 보기: <a href="#/laws/laws-hick">힉의 법칙</a> — 한 번에 보여주는 선택지를 줄이는 것도 우선순위의 결과예요.</li>
+            <li><b>Intercom</b> — Sean McBride, “RICE: Simple prioritization for product managers”. Impact·Confidence의 단계와 인월 단위 Effort가 여기서 왔어요.</li>
+            <li><b>MoSCoW</b> — Dai Clegg가 만들고, DSDM(애자일 개발 방법 중 하나)에서 널리 쓰인 분류예요.</li>
+            <li><b>Atlassian Agile Coach</b> — 백로그 관리와 우선순위 정하기에 관한 글.</li>
+            <li><b>Marty Cagan, 『인스파이어드』(SVPG)</b> — 기능 목록(로드맵)보다 풀 문제와 얻을 결과(outcome)를 먼저 보라는 관점.</li>
+            <li>함께 보기: <a href="#/laws/laws-hick">힉의 법칙</a> — 한 번에 보여주는 선택지를 줄이는 것도 우선순위를 정한 결과예요.</li>
           </ul>
         </Section>
       </SysGrid>

@@ -1,6 +1,7 @@
 /* 09 FE · 구현 — 데이터 전송, 재연결, 대량 시계열 그리기(실측), 업데이트 묶기, 오래 켜 두는 화면, 시간, 접근성 */
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { flushSync } from 'react-dom'
+import { Term, TermList } from '../../components/Term'
 import { Range, Seg } from '../../components/ui'
 import { download } from '../../system/export'
 import { CodeBlock, Note, Section, SysGrid } from '../../system/ui'
@@ -47,10 +48,10 @@ function simulate(m: Method): Lane {
   return { arrows, got, reqs: 1, conn: true }
 }
 const METHODS: { id: Method; n: string; d: string }[] = [
-  { id: 'poll', n: '폴링 (5초마다)', d: '정해진 간격으로 “새 거 있어요?”' },
+  { id: 'poll', n: '폴링 (5초마다)', d: '정해진 간격마다 “새 거 있어요?” 하고 물어봐요' },
   { id: 'long', n: '롱폴링', d: '서버가 새 소식이 생길 때까지 답을 미뤄요' },
-  { id: 'sse', n: 'SSE', d: '연결 하나로 서버 → 브라우저 한 방향' },
-  { id: 'ws', n: '웹소켓', d: '연결 하나로 양방향' },
+  { id: 'sse', n: 'SSE', d: '연결 하나를 열어 두고, 서버가 브라우저로 한 방향으로 보내요' },
+  { id: 'ws', n: '웹소켓', d: '연결 하나를 열어 두고, 양쪽이 언제든 주고받아요' },
 ]
 function Transport() {
   const sims = useMemo(() => Object.fromEntries(METHODS.map(m => [m.id, simulate(m.id)])) as Record<Method, Lane>, [])
@@ -92,7 +93,7 @@ function Transport() {
                     {done && <line className="lat" x1={x(e)} x2={x(g!.at)} y1={sy + 9} y2={sy + 9} />}
                   </g> : null
                 })}
-                {m.id === 'ws' && now > 16.2 && <text className="ln-s" x={x(16.2) + 6} y={cy + 30}>확인(ack)도 같은 연결로</text>}
+                {m.id === 'ws' && now > 16.2 && <text className="ln-s" x={x(16.2) + 6} y={cy + 30}>확인 신호(ack)도 같은 연결로</text>}
               </g>
             )
           })}
@@ -163,9 +164,9 @@ function Herd() {
         <span>가장 붐빈 1초 <b>{h.peak}번</b></span>
         <span>모두 다시 붙은 시각 <b>{h.lastOk.toFixed(1)}초</b></span>
       </div>
-      <p className="fe-p">{st === 'fixed' ? '고정 간격은 장애 내내 서버를 두드려요. 화면이 수백 대면 복구 직후 서버가 다시 넘어질 수 있어요.'
-        : st === 'exp' ? '간격을 두 배씩 늘리면 시도 수는 줄지만, 같은 시각에 끊긴 화면들이 같은 시각에 다시 몰려요(세로 줄무늬).'
-        : '간격에 무작위(지터)를 섞으면 몰림이 흩어져요. 시도 수도 적고, 가장 붐빈 1초도 낮아요.'}</p>
+      <p className="fe-p">{st === 'fixed' ? '1초마다 다시 접속하면 장애 내내 서버를 두드려요. 화면이 수백 대라면 서버가 살아나자마자 다시 쓰러질 수 있어요.'
+        : st === 'exp' ? '기다리는 간격을 1초, 2초, 4초…처럼 두 배씩 늘리면 시도 수는 줄어요. 하지만 같은 순간에 끊긴 화면들은 같은 순간에 다시 몰려요(그래프의 세로 줄무늬).'
+        : '기다리는 시간에 무작위 값(지터)을 섞으면 몰림이 흩어져요. 시도 수도 적고, 가장 붐빈 1초의 시도 수도 낮아요.'}</p>
     </div>
   )
 }
@@ -191,8 +192,8 @@ function LiveReconnect() {
         const missed = seqNow - c.lastSeq - 1
         if (resync && missed > 0) {
           for (let q = c.lastSeq + 1; q < seqNow; q++) c.data.push({ seq: q, v: valAt(q), late: true })
-          log(`연결됨 · since=${c.lastSeq} 요청 → 놓친 ${missed}개 받음`)
-        } else log(missed > 0 ? `연결됨 · 놓친 ${missed}개는 비어 있음` : '연결됨')
+          log(`연결됨 · ${c.lastSeq}번 이후 요청(since) → 놓친 ${missed}개 받음`)
+        } else log(missed > 0 ? `연결됨 · 놓친 ${missed}개는 빈칸으로 남음` : '연결됨')
         c.data.push({ seq: seqNow, v: valAt(seqNow) }); c.lastSeq = seqNow; c.conn = true
       } else { c.attempt++; c.nextAt = c.t + delay(c.attempt); log(`재시도 #${c.attempt} 실패 · 다음 ${(c.nextAt - c.t).toFixed(1)}초 뒤`) }
     }
@@ -211,7 +212,7 @@ function LiveReconnect() {
         <button type="button" className="chip" aria-pressed={resync} onClick={() => setResync(v => !v)}>재연결 후 놓친 구간 다시 받기</button>
         <button type="button" className="btn sm ghost" onClick={() => setOn(v => !v)}>{on ? '시뮬레이션 멈춤' : '다시 시작'}</button>
       </div>
-      <Hmi title="강변 1선 부하율 · 최근 60초" right={c.conn ? <>연결됨 · 마지막 seq {c.lastSeq}</> : <b className="fe-bad">끊김 · 재시도 #{c.attempt + 1} {Math.max(0, c.nextAt - c.t).toFixed(1)}초 뒤</b>}>
+      <Hmi title="강변 1선 부하율 · 최근 60초" right={c.conn ? <>연결됨 · 마지막 번호(seq) {c.lastSeq}</> : <b className="fe-bad">끊김 · 재시도 #{c.attempt + 1} {Math.max(0, c.nextAt - c.t).toFixed(1)}초 뒤</b>}>
         <div className="fe-live-grid">
           <svg viewBox={`0 0 ${W} ${H}`} className={'fe-live-svg' + (c.conn ? '' : ' stale')} role="img" aria-label="최근 60초 부하율 추세. 빈 곳은 받지 못한 구간, 속이 빈 점은 재연결 후 다시 받은 값.">
             {!c.conn && <rect className="hatch" x={x(c.lastSeq)} y={0} width={W - x(c.lastSeq)} height={H} />}
@@ -370,7 +371,7 @@ function Bench() {
         <button type="button" className="btn sm" disabled={!!busy} onClick={measure}>이 설정으로 그리고 재기</button>
         <button type="button" className="btn sm ghost" disabled={!!busy} onClick={all}>전체 비교 (12가지)</button>
         <button type="button" className="btn sm ghost" disabled={!!busy || !runs.length} onClick={() => setRuns([])}>기록 지우기</button>
-        <span className="muted" aria-live="polite">{busy ?? (n === 100_000 && ds === 'none' ? '10만 개 원본은 기기에 따라 잠깐 멈칫할 수 있어요.' : '누를 때만 그려요.')}</span>
+        <span className="muted" aria-live="polite">{busy ?? (n === 100_000 && ds === 'none' ? '10만 개 원본은 기기에 따라 잠깐 멈칫할 수 있어요.' : '버튼을 누를 때만 그려요.')}</span>
       </div>
       <Hmi title={`강변 1선 부하율 · ${last ? fmtN(last.n) : fmtN(n)}개 측정값 (가상)`} right={last ? <>그린 점 {fmtN(last.pts)}개 · {last.rend === 'svg' ? 'SVG' : 'Canvas'} · {DS_N[last.ds]}</> : '아직 그리지 않았어요'}>
         <div className="fe-bench-stage">
@@ -382,21 +383,21 @@ function Bench() {
       {runs.length > 0 && (
         <div className="sys-table-wrap">
           <table className="sys-table fe-runs">
-            <thead><tr><th>측정값 수</th><th>방식</th><th>다운샘플링</th><th>그린 점</th><th>줄이기</th><th>그리기</th><th>다음 화면까지</th><th>최댓값</th></tr></thead>
+            <thead><tr><th>측정값 수</th><th>방식</th><th>다운샘플링</th><th>그린 점</th><th>점 줄이기</th><th>그리기</th><th>다음 화면까지</th><th>최댓값</th></tr></thead>
             <tbody>
               {runs.map((r, i) => (
                 <tr key={i}>
                   <td>{fmtN(r.n)}</td><td>{r.rend === 'svg' ? 'SVG' : 'Canvas'}</td><td>{DS_N[r.ds]}</td><td>{fmtN(r.pts)}</td>
                   <td className="num">{r.tDs.toFixed(1)}ms</td><td className="num">{r.tDraw.toFixed(1)}ms</td>
                   <td><span className="fe-bar"><i style={{ width: Math.max(2, (r.tFrame / maxT) * 100) + '%' }} className={r.tFrame > 50 ? 'slow' : ''} /><b>{r.tFrame.toFixed(1)}ms</b></span></td>
-                  <td>{r.spike ? '보존' : <b className="fe-bad">잃음</b>}</td>
+                  <td>{r.spike ? '남음' : <b className="fe-bad">사라짐</b>}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
       )}
-      <p className="fe-p">‘다음 화면까지’는 줄이기 + 그리기 + 브라우저가 화면에 반영할 때까지 걸린 시간이에요. 이 브라우저에서 <b>지금 실제로 잰 값</b>이라 기기·브라우저마다 달라요. 50ms를 넘으면 막대가 진해져요.</p>
+      <p className="fe-p">‘다음 화면까지’는 점 줄이기, 그리기, 브라우저가 화면에 실제로 보여 주기까지 모두 더한 시간이에요. 이 브라우저에서 <b>지금 실제로 잰 값</b>이라 기기·브라우저마다 달라요. 50ms(0.05초)를 넘으면 막대가 진해져요.</p>
     </div>
   )
 }
@@ -452,9 +453,9 @@ function Batching() {
         <div className="fe-meter" aria-live="off">
           <div><small>받은 메시지 / 초</small><b>{on ? rate.msgs : '—'}</b></div>
           <div><small>React 렌더 / 초</small><b className={on && rate.renders > 90 ? 'fe-bad' : ''}>{on ? rate.renders : '—'}</b></div>
-          <p>{mode === 'each' ? '메시지가 올 때마다 바로 그리게(flushSync) 했어요. 렌더 수가 메시지 수를 따라가요. 모니터는 보통 1초에 60번쯤 화면을 바꾸니, 나머지는 아무도 못 보는 일이에요.'
-            : mode === 'raf' ? '메시지는 버퍼에 모아 두고, requestAnimationFrame으로 다음 화면 그리기 직전에 한 번만 반영해요. 렌더 수가 화면 주사율 근처로 떨어져요.'
-            : '화면에 보이는 값(정수 %)이 안 바뀌었으면 상태를 그대로 둬서 렌더 자체를 건너뛰어요.'}</p>
+          <p>{mode === 'each' ? '메시지가 올 때마다 바로 다시 그리게(flushSync) 했어요. 그래서 렌더 수가 메시지 수만큼 늘어요. 모니터는 보통 1초에 60번쯤 화면을 바꿔요. 그보다 많이 그린 건 아무도 못 보는 헛수고예요.'
+            : mode === 'raf' ? '메시지는 임시 보관함(버퍼)에 모아 둬요. 그리고 requestAnimationFrame으로 다음 화면을 그리기 직전에 한 번만 반영해요. 렌더 수가 모니터가 1초에 화면을 바꾸는 횟수(주사율) 근처로 떨어져요.'
+            : '화면에 보이는 값(소수점 없는 %)이 그대로면 상태를 바꾸지 않아요. 그래서 렌더 자체를 건너뛰어요.'}</p>
         </div>
       </div>
     </div>
@@ -534,13 +535,13 @@ function PageApis() {
         <small>document.visibilityState</small>
         <b>{vis === 'visible' ? 'visible — 보이는 중' : 'hidden — 가려짐'}</b>
         <span>이 페이지가 가려진 횟수 <b>{hid}</b>번. 다른 탭을 눌렀다 돌아와 보세요.</span>
-        <p>가려진 동안엔 그리기를 멈추고, 돌아오면 그동안 쌓인 값을 한 번에 받아 다시 그려요. 이 탭의 모든 시뮬레이션도 화면에 보일 때만 돌아요.</p>
+        <p>탭이 가려진 동안에는 그리기를 멈춰요. 돌아오면 그동안 쌓인 값을 한 번에 받아 다시 그려요. 이 페이지의 시뮬레이션도 모두 화면에 보일 때만 돌아요.</p>
       </div>
       <div className="fe-api">
         <small>Screen Wake Lock API</small>
         <b>{wl === 'on' ? '화면 꺼짐 방지 켜짐' : wl === 'unsupported' ? '이 브라우저는 지원하지 않아요' : wl === 'error' ? '요청이 거절됐어요' : '화면 꺼짐 방지 꺼짐'}</b>
         <button type="button" className="btn sm" disabled={wl === 'unsupported'} onClick={toggle} aria-pressed={wl === 'on'}>{wl === 'on' ? '해제하기' : '화면 꺼짐 방지 켜기'}</button>
-        <p>관제 화면은 절전으로 꺼지면 안 돼요. 탭이 가려지면 브라우저가 자동으로 풀기 때문에, 돌아왔을 때 다시 요청해요(이 데모도 그렇게 해요). 지원하지 않으면 운영체제 전원 설정으로 막아요.</p>
+        <p>관제 화면은 절전 모드로 꺼지면 안 돼요. 탭이 가려지면 브라우저가 화면 꺼짐 방지를 자동으로 풀어요. 그래서 돌아왔을 때 다시 요청해요(이 데모도 그렇게 해요). 브라우저가 지원하지 않으면 운영체제 전원 설정으로 막아요.</p>
       </div>
     </div>
   )
@@ -581,7 +582,7 @@ function ClockSkew() {
           </div>
         </Hmi>
       </div>
-      <p className="fe-p">PC 시계가 느리면 묵은 값이 방금 들어온 것처럼 보여요. <b>멈춘 화면이 정상처럼 보이는 것</b>이 관제 화면에서 가장 위험해요(05 탭). 시각은 서버가 정하고, 브라우저는 차이만 계산해 보정해요. 표시는 <code>Asia/Seoul</code>처럼 시간대를 정해 두고, 기록과 API는 <code>2026-11-08T14:02:08+09:00</code>처럼 시간대가 붙은 형식으로 주고받아요.</p>
+      <p className="fe-p">PC 시계가 느리면 오래된 값이 방금 들어온 것처럼 보여요. 관제 화면에서 가장 위험한 건 <b>멈춘 화면이 정상처럼 보이는 것</b>이에요(05 탭). 그래서 기준 시각은 서버가 정해요. 브라우저는 서버와의 차이만 계산해서 고쳐 보여줘요. 화면에 표시할 땐 <code>Asia/Seoul</code>처럼 시간대를 정해 둬요. 기록을 남기거나 <Term k="API" />로 주고받을 땐 <code>2026-11-08T14:02:08+09:00</code>처럼 시간대가 붙은 형식을 써요.</p>
     </div>
   )
 }
@@ -609,7 +610,7 @@ function A11yDemo() {
       <div className="fe-sr" aria-live="polite" aria-atomic="true">{polite}</div>
       <div className="fe-row">
         {([1, 2, 3] as Pri[]).map(p => <button key={p} type="button" className="btn sm ghost fe-raise" onClick={() => raise(p)}><PriBadge p={p} /> 알람 발생</button>)}
-        <button type="button" className="chip" aria-pressed={calm} onClick={() => setCalm(v => !v)}>움직임 줄이기 흉내</button>
+        <button type="button" className="chip" aria-pressed={calm} onClick={() => setCalm(v => !v)}>‘동작 줄이기’ 켠 것처럼 보기</button>
       </div>
       <div className="fe-a11y-grid">
         <Hmi title="알람 목록" right={`${list.filter(a => !a.ack).length}건 미확인`}>
@@ -625,18 +626,18 @@ function A11yDemo() {
           </ul>
         </Hmi>
         <div className="fe-said">
-          <b>스크린 리더가 할 일 (흉내)</b>
+          <b>스크린 리더(화면 낭독기)가 읽는 내용 (흉내)</b>
           <ol>{said.length ? said.map((s, i) => <li key={i}><PriBadge p={s.p} /><span>“{s.t}”<small>{s.how}</small></span></li>) : <li className="muted">아직 없어요</li>}</ol>
         </div>
       </div>
-      <p className="fe-p">미확인 알람은 1초에 한 번 깜빡여요(초당 3회 이하 <Cite n={7} />). 운영체제에서 ‘동작 줄이기’를 켰거나 위 버튼을 누르면 깜빡임 대신 굵은 테두리와 ‘미확인’ 글자로만 구분해요. 깜빡임이 없어도 상태를 알 수 있어야 해요.</p>
+      <p className="fe-p">미확인 알람은 1초에 한 번 깜빡여요. 기준은 초당 3회 이하예요 <Cite n={7} />. 운영체제에서 ‘동작 줄이기’를 켰거나 위 버튼을 누르면 깜빡이지 않아요. 대신 굵은 테두리와 ‘미확인’ 글자로만 구분해요. 깜빡임이 없어도 상태를 알 수 있어야 해요.</p>
     </div>
   )
 }
 
 /* ================= 8. 체크리스트 ================= */
 const CHECK: { g: string; items: string[] }[] = [
-  { g: '연결', items: ['서버가 보내는 일이 대부분이면 SSE, 브라우저도 자주 보내면 웹소켓을 골랐다', '재연결은 지수 백오프 + 지터, 최대 간격을 정했다', '메시지마다 순서 번호(seq)가 있고, 재연결 때 마지막 번호 이후를 다시 받는다', '끊긴 동안 화면에 끊김 배너와 마지막 갱신 시각을 보여준다'] },
+  { g: '연결', items: ['서버가 보내는 일이 대부분이면 SSE, 브라우저도 자주 보내면 웹소켓을 골랐다', '재연결은 지수 백오프 + 지터로 하고, 최대 대기 간격을 정했다', '메시지마다 순서 번호(seq)가 있고, 재연결 때 마지막 번호 이후를 다시 받는다', '끊긴 동안 화면에 끊김 배너와 마지막 갱신 시각을 보여준다'] },
   { g: '그리기', items: ['점이 화면 폭보다 훨씬 많으면 최대·최소를 지키는 다운샘플링을 쓴다', '수천 개가 넘는 점은 Canvas로 그린다(또는 실제로 재 보고 정했다)', '갱신은 requestAnimationFrame으로 프레임당 한 번 반영한다', '보이는 값이 같으면 렌더하지 않는다'] },
   { g: '오래 켜 두기', items: ['구독·타이머·이벤트 리스너를 모두 정리(cleanup)한다', '시계열은 링버퍼로 최근 N개만 메모리에 둔다', '탭이 가려지면 그리기를 멈추고, 돌아오면 다시 받는다', '화면 꺼짐 방지(Wake Lock)를 쓰고, 돌아올 때 다시 요청한다', '8시간 이상 켜 두고 메모리 그래프를 확인했다'] },
   { g: '시간 · 접근성', items: ['표시 시각은 서버 기준으로 보정하고 시간대를 정했다', '긴급 알람만 aria-live="assertive", 나머지는 polite 또는 없음', '깜빡임은 초당 3회 이하, 동작 줄이기 설정이면 멈춘다', '우선순위는 색 + 모양 + 글자로 구분한다'] },
@@ -682,7 +683,7 @@ export function connect(url: string, onMsg: (m: Msg) => void, onState: (s: 'open
     ws.onclose = () => {
       if (closed) return
       const cap = Math.min(30_000, 1_000 * 2 ** attempt++) // 1s, 2s, 4s … 최대 30s
-      const wait = Math.random() * cap                   // full jitter
+      const wait = Math.random() * cap                   // full jitter: 0 ~ cap 사이 무작위
       onState('retry', wait)
       timer = window.setTimeout(open, wait)
     }
@@ -732,87 +733,95 @@ useEffect(() => {
 export default function Tab() {
   return (
     <div data-dash="fe">
+      <TermList keys={['폴링', '롱폴링', 'SSE', '웹소켓', '백오프', '지터', '다운샘플링', 'LTTB', 'Canvas', 'SVG', '링버퍼', '메모리 누수', 'aria-live', 'API']} />
       <SysGrid>
         <Section id="dash-fe-transport" wide title="데이터를 어떻게 받을까 — 폴링, 롱폴링, SSE, 웹소켓"
-          desc="같은 30초 동안 서버에서 변화 8건이 생겨요. 네 방식이 요청을 몇 번 보내고, 변화가 화면에 몇 초 늦게 도착하는지 재생해 보세요. 아래 회색 막대가 지연이에요.">
+          gist="관제 화면처럼 받기만 하면 SSE, 자주 보내기도 하면 웹소켓이 맞아요."
+          desc={<>택배 확인에 비유하면 쉬워요. 5분마다 현관에 나가 보는 게 <Term k="폴링" />, 택배가 오면 기사가 초인종을 눌러 주는 게 <Term k="SSE" />·<Term k="웹소켓" />이에요. 같은 30초 동안 서버에서 변화 8건이 생겨요. 네 방식이 요청을 몇 번 보내고, 변화가 화면에 몇 초 늦게 도착하는지 재생해 보세요. 아래 회색 막대가 늦어진 시간(지연)이에요.</>}>
           <Transport />
           <div className="sys-table-wrap">
             <table className="sys-table">
               <thead><tr><th>방식</th><th>방향</th><th>지연</th><th>서버 부담</th><th>끊기면</th><th>잘 맞는 곳</th></tr></thead>
               <tbody>
                 <tr><td>폴링</td><td>브라우저 → 서버 요청</td><td>최대 간격만큼 늦음</td><td>변화가 없어도 계속 요청</td><td>다음 요청 때 자연히 회복</td><td>몇 분 단위 지표, 단순한 화면</td></tr>
-                <tr><td>롱폴링</td><td>요청을 서버가 붙잡음</td><td>짧음</td><td>대기 중인 요청을 계속 유지</td><td>다시 요청</td><td>웹소켓을 못 쓰는 환경의 대안</td></tr>
-                <tr><td>SSE</td><td>서버 → 브라우저 한 방향</td><td>짧음</td><td>연결 하나</td><td>브라우저가 자동 재연결, 마지막 이벤트 ID를 보내 줌 <Cite n={2} /></td><td>알람·측정값처럼 받기만 하는 관제 화면</td></tr>
+                <tr><td><Term k="롱폴링" /></td><td>요청을 서버가 붙잡음</td><td>짧음</td><td>기다리는 요청을 계속 붙잡고 있음</td><td>다시 요청</td><td>웹소켓을 못 쓰는 환경의 대안</td></tr>
+                <tr><td>SSE</td><td>서버 → 브라우저 한 방향</td><td>짧음</td><td>연결 하나</td><td>브라우저가 알아서 다시 연결하고, 마지막으로 받은 이벤트 번호(ID)를 보내 줌 <Cite n={2} /></td><td>알람·측정값처럼 받기만 하는 관제 화면</td></tr>
                 <tr><td>웹소켓</td><td>양방향</td><td>짧음</td><td>연결 하나</td><td>재연결을 직접 만들어야 해요 <Cite n={1} /></td><td>확인·조작 명령도 자주 보내는 화면</td></tr>
               </tbody>
             </table>
           </div>
-          <Note>통신 시간·사건 시각은 비교를 위한 <b>가상 값</b>이에요. 실제 차이는 망과 서버에 따라 달라요. 관제 화면은 대부분 ‘받기’라서 SSE로 충분한 경우가 많고, 조작 명령은 보통 별도 API(확인 절차 포함)로 보내요.</Note>
+          <Note>통신 시간과 사건 시각은 비교를 위해 만든 <b>가상 값</b>이에요. 실제 차이는 네트워크와 서버에 따라 달라요. 관제 화면은 대부분 ‘받기’만 해서 SSE로 충분한 경우가 많아요. 개폐기 조작 같은 명령은 보통 따로 만든 <Term k="API" />로 보내요(확인 절차 포함).</Note>
         </Section>
 
-        <Section id="dash-fe-reconnect" wide title="끊겼다 다시 붙기 — 백오프, 지터, 놓친 구간"
-          desc="관제실 화면 수십 대가 같은 서버를 봐요. 서버가 잠깐 죽으면 모두가 동시에 다시 붙으려 해요. 전략을 바꿔 보세요.">
+        <Section id="dash-fe-reconnect" wide title="끊겼다 다시 연결하기 — 백오프, 지터, 놓친 구간"
+          gist="기다리는 시간을 늘리고 흩어서 다시 붙어요. 놓친 값은 다시 받아요."
+          desc={<>정전 뒤 전기가 들어오자마자 모든 집이 에어컨을 켜면 또 과부하가 걸리죠. 서버도 같아요. 관제실 화면 수십 대가 같은 서버를 보고 있어요. 서버가 잠깐 멈추면 모두가 동시에 다시 접속하려 해요. <Term k="백오프" />와 <Term k="지터" /> 전략을 바꿔 보세요.</>}>
           <Herd />
           <LiveReconnect />
           <SysPair>
-            <Note><b>마지막 번호(seq)를 기억해요.</b> 서버가 메시지마다 순서 번호를 붙이면, 다시 붙을 때 “1042번 이후 주세요”라고 할 수 있어요. ‘다시 받기’를 끄고 끊어 보면 그래프에 구멍이 남아요. 그 구멍이 바로 사고 조사 때 찾는 구간일 수 있어요.</Note>
-            <Note tone="tip"><b>끊긴 동안 화면이 할 일.</b> 끊김 배너, 마지막 갱신 시각, 오래된 값은 빗금·회색으로. 재시도 중이라는 것과 다음 시도까지 남은 시간을 보여요. 자세한 화면 표현은 05 실시간 갱신 탭에 있어요.</Note>
+            <Note><b>마지막 번호(seq)를 기억해요.</b> 서버가 메시지마다 순서 번호를 붙이면, 다시 연결할 때 “1042번 이후 주세요”라고 할 수 있어요. ‘다시 받기’를 끄고 끊어 보면 그래프에 구멍이 남아요. 그 구멍이 바로 사고 조사 때 찾는 구간일 수 있어요.</Note>
+            <Note tone="tip"><b>끊긴 동안 화면이 할 일.</b> 끊겼다는 배너와 마지막 갱신 시각을 보여줘요. 오래된 값은 빗금이나 회색으로 바꿔요. 다시 연결하는 중이라는 것과 다음 시도까지 남은 시간도 보여줘요. 자세한 화면 표현은 05 실시간 갱신 탭에 있어요.</Note>
           </SysPair>
         </Section>
 
         <Section id="dash-fe-bench" wide title="점 10만 개 그리기 — 이 브라우저에서 직접 재요"
-          desc="하루치 1초 측정값이면 한 선로에 8만 6천 개예요. 점 개수·그리는 방식·다운샘플링을 바꿔 가며 실제로 걸리는 시간을 재 보세요. 데이터 한가운데에 짧은 고장 급등이 숨어 있어요.">
+          gist="점은 화면 폭만큼만 그려요. 줄일 땐 최댓값이 사라지지 않게 해요."
+          desc={<>1초마다 잰 값을 하루 모으면 한 선로에 8만 6천 개예요. 점 개수, 그리는 방식(<Term k="SVG" />·<Term k="Canvas" />), <Term k="다운샘플링" />(점 줄이기)을 바꿔 가며 실제로 걸리는 시간을 재 보세요. 데이터 한가운데에 고장 순간의 짧은 급등이 숨어 있어요.</>}>
           <Bench />
           <SysPair>
             <Finding src={<>Steinarsson (2013) LTTB · Jugel 등 (2014) M4 — 한국어 요약 <Cite n={3} /><Cite n={4} /></>}>
-              화면 폭보다 많은 점은 눈에 보이지 않아요. 픽셀 칸마다 모양을 지키는 점만 남기면 같은 그림을 훨씬 빨리 그릴 수 있어요.
+              화면 폭보다 많은 점은 어차피 눈에 보이지 않아요. 화면 한 칸(픽셀)마다 모양을 지키는 점만 남기면, 같은 그림을 훨씬 빨리 그릴 수 있어요.
             </Finding>
-            <Note tone="warn"><b>‘n개마다 1개’는 위험해요.</b> 고르게 솎아 내면 1~2개 점으로 된 고장 급등이 사라질 수 있어요. 관제 화면에선 최댓값·최솟값이 곧 사건이에요. 구간마다 최소·최대를 남기거나 LTTB처럼 모양을 지키는 방법을 쓰고, 확대하면 원본을 다시 불러와요.</Note>
+            <Note tone="warn"><b>‘n개마다 1개’는 위험해요.</b> 고르게 솎아 내면 점 1~2개로 된 고장 급등이 사라질 수 있어요. 관제 화면에서는 최댓값·최솟값이 곧 사건이에요. 구간마다 최소·최대를 남기거나 <Term k="LTTB" />처럼 모양을 지키는 방법을 써요. 확대하면 원본을 다시 불러와요.</Note>
           </SysPair>
         </Section>
 
-        <Section id="dash-fe-batch" title="업데이트 묶기 — 프레임당 한 번"
-          desc="초당 250건이 들어와도 화면은 보통 1초에 60번쯤 바뀌어요. 방식을 바꿔 렌더 수를 비교해 보세요.">
+        <Section id="dash-fe-batch" title="업데이트 묶기 — 화면 한 장에 한 번만 반영"
+          gist="메시지가 아무리 많아도 화면은 1초에 60번쯤만 다시 그리면 돼요."
+          desc={<>영화는 1초에 24장을 보여줘요. 그 사이에 그림을 더 그려도 관객은 못 봐요. 초당 250건이 들어와도 화면은 보통 1초에 60번쯤 바뀌어요. 방식을 바꿔 <Term k="렌더" d="바뀐 데이터에 맞춰 화면을 다시 그리는 일이에요. React에서는 컴포넌트 함수가 다시 실행되는 것이에요." /> 수를 비교해 보세요.</>}>
           <Batching />
         </Section>
 
         <Section id="dash-fe-time" title="시각은 서버 기준으로"
-          desc="관제 PC 시계가 틀리면 ‘마지막 갱신 n초 전’이 거짓말을 해요. 슬라이더로 PC 시계를 틀어 보세요.">
+          gist="시각은 서버가 정하고, 브라우저는 차이만 계산해서 고쳐요."
+          desc="내 손목시계가 3분 느리면, 3분 전 일이 방금 일어난 것처럼 느껴져요. 관제 PC 시계가 틀리면 ‘마지막 갱신 n초 전’이 틀린 시간을 보여줘요. 슬라이더로 PC 시계를 틀어 보세요.">
           <ClockSkew />
         </Section>
 
         <Section id="dash-fe-longrun" wide title="8~12시간 켜 두는 화면 — 메모리와 화면 꺼짐"
-          desc="관제 화면은 새로고침 없이 근무 내내 켜져 있어요. 짧게 써 보는 웹페이지에선 안 보이던 문제가 몇 시간 뒤에 나와요.">
+          gist="근무 내내 켜 두는 화면은 메모리가 계속 늘지 않고, 화면이 꺼지지 않게 만들어요."
+          desc={<>관제 화면은 새로고침 없이 근무 내내 켜져 있어요. 잠깐 써 보는 웹페이지에서는 안 보이던 문제가 몇 시간 뒤에 나와요. 대표적인 게 <Term k="메모리 누수" />예요.</>}>
           <div className="fe-long-grid">
             <figure className="fe-fig">
               <figcaption><b>점 개수가 근무 시간에 따라 어떻게 쌓이나</b><span className="muted">선로 9개 × 값 3개, 1초에 1번 (계산)</span></figcaption>
               <GrowthChart />
-              <small className="muted">12시간이면 116만 개. 숫자만 Float64로 담아도 점 하나에 16바이트(x·y)라 약 19MB, 객체로 담으면 훨씬 커요. 1시간 링버퍼는 약 9만 7천 개에서 멈춰요.</small>
+              <small className="muted">12시간이면 116만 개예요. 숫자만 Float64로 담아도 점 하나에 16바이트(x·y)라 약 19MB예요. 객체로 담으면 훨씬 커요. 1시간 링버퍼는 약 9만 7천 개에서 더 늘지 않아요.</small>
             </figure>
             <figure className="fe-fig">
-              <figcaption><b>링버퍼</b><span className="muted">정해진 칸을 돌려 쓰는 배열</span></figcaption>
+              <figcaption><b><Term k="링버퍼" /></b><span className="muted">회전초밥 레일처럼 정해진 칸을 돌려 쓰는 배열</span></figcaption>
               <RingBuffer />
             </figure>
           </div>
           <div className="fe-leaks">
             {[
-              ['해제 안 한 구독', 'useEffect에서 연 웹소켓·SSE·이벤트 리스너를 정리 함수에서 닫지 않으면, 화면을 오갈 때마다 연결이 하나씩 늘어요.'],
-              ['멈추지 않는 타이머', 'setInterval을 clearInterval 하지 않으면 사라진 컴포넌트의 상태를 계속 고치려 해요.'],
-              ['계속 쌓이는 배열', 'data.push()만 하고 지우지 않는 시계열. 링버퍼나 “최근 N개만 남기기”로 바꿔요.'],
-              ['떨어진 DOM 참조', '지운 차트 요소를 변수·맵에 계속 들고 있으면 메모리에서 못 치워요.'],
+              ['해제 안 한 구독', 'useEffect에서 연 웹소켓·SSE·이벤트 리스너를 정리 함수(cleanup)에서 닫지 않았어요. 그러면 화면을 오갈 때마다 연결이 하나씩 늘어요.'],
+              ['멈추지 않는 타이머', 'setInterval로 만든 타이머를 clearInterval로 멈추지 않았어요. 그러면 이미 사라진 화면 조각(컴포넌트)의 상태를 계속 고치려 해요.'],
+              ['계속 쌓이는 배열', '시간별 값을 data.push()로 넣기만 하고 지우지 않았어요. 링버퍼나 “최근 N개만 남기기”로 바꿔요.'],
+              ['떨어진 DOM 참조', '화면에서 지운 차트 요소를 변수나 Map에 계속 붙잡고 있어요. 그러면 브라우저가 메모리에서 치우지 못해요.'],
             ].map(([t, d]) => <div key={t}><b>{t}</b><p>{d}</p></div>)}
           </div>
           <PageApis />
           <CodeBlock label="TypeScript · 가려지면 멈추고 화면 꺼짐 방지" code={CODE_PAGE} />
         </Section>
 
-        <Section id="dash-fe-a11y" wide title="알람의 접근성 — 누구에게 끼어들 것인가"
-          desc="aria-live는 화면을 보지 않는 사람에게 변화를 읽어 줘요. 모든 알람을 assertive로 하면 스크린 리더가 쉴 새 없이 말을 끊어요.">
+        <Section id="dash-fe-a11y" wide title="알람 접근성 — 화면 낭독기가 언제 끼어들어 읽을까"
+          gist="긴급 알람만 바로 끼어들어 읽고, 나머지는 기다렸다 읽거나 목록에만 둬요."
+          desc={<><Term k="aria-live" />는 화면을 보지 못하는 사람에게 바뀐 내용을 읽어 주게 해요. 회의 중에 모두가 끼어들면 아무 말도 안 들리죠. 모든 알람을 assertive(바로 끼어들기)로 하면 스크린 리더가 쉴 새 없이 말을 끊어요.</>}>
           <A11yDemo />
-          <Note>긴급(1)만 <code>aria-live="assertive"</code>, 높음(2)은 <code>polite</code>, 주의(3)는 목록에만 둬요 <Cite n={6} />. 폭주 때는 하나씩 읽지 말고 “긴급 알람 12건”처럼 요약해서 한 번만 읽어요.</Note>
+          <Note>긴급(1)만 <code>aria-live="assertive"</code>, 높음(2)은 <code>polite</code>, 주의(3)는 목록에만 둬요 <Cite n={6} />. 알람이 한꺼번에 쏟아질 때(폭주)는 하나씩 읽지 말고 “긴급 알람 12건”처럼 요약해서 한 번만 읽어요.</Note>
         </Section>
 
-        <Section id="dash-fe-code" wide title="코드와 체크리스트" desc="복사해서 시작점으로 쓰세요. 체크리스트는 출시 전 리뷰에 그대로 써요.">
+        <Section id="dash-fe-code" wide title="코드와 체크리스트" gist="코드는 시작점으로 복사해 쓰고, 체크리스트는 출시 전 리뷰에 써요." desc="복사해서 시작점으로 쓰세요. 체크리스트는 출시 전 리뷰에 그대로 써요.">
           <SysPair>
             <CodeBlock label="TypeScript · 웹소켓 재연결" code={CODE_WS} maxHeight={420} />
             <CodeBlock label="TypeScript · 프레임당 한 번 반영" code={CODE_RAF} maxHeight={420} />
@@ -829,7 +838,7 @@ export default function Tab() {
           { kind: 'standard', text: 'W3C WAI-ARIA 1.2 — aria-live (assertive · polite)', url: 'https://www.w3.org/TR/wai-aria-1.2/#aria-live' },
           { kind: 'standard', text: 'WCAG 2.1 성공 기준 2.3.1 — 초당 3회 이하 깜빡임', url: 'https://www.w3.org/WAI/WCAG21/Understanding/three-flashes-or-below-threshold.html' },
           { kind: 'standard', text: 'IETF RFC 5905 (2010). Network Time Protocol Version 4 — 시각 차이 계산', url: 'https://www.rfc-editor.org/rfc/rfc5905' },
-          { kind: 'practice', text: '지수 백오프와 지터(재접속 몰림 분산), 링버퍼, requestAnimationFrame 묶기 — 프런트엔드·분산 시스템 실무 방식' },
+          { kind: 'practice', text: '지수 백오프와 지터(재접속이 한꺼번에 몰리지 않게 흩기), 링버퍼, requestAnimationFrame으로 업데이트 묶기 — 프런트엔드·분산 시스템 실무 방식' },
         ]} />
       </SysGrid>
     </div>

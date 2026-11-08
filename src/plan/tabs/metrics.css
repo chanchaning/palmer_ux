@@ -156,3 +156,6 @@
   [data-plan="metrics"] .mt-gap em, [data-plan="metrics"] .mt-sim-axis i { animation: none; }
   [data-plan="metrics"] .mt-stage-bar i { transition: none; }
 }
+
+/* 용어 풀이 팝업의 제목이 굵은 글 스타일(b 색)을 물려받아 안 보이지 않게 */
+[data-plan="metrics"] .term-pop b { color: inherit; }

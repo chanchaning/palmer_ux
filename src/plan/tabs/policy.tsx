@@ -2,7 +2,21 @@ import { useMemo, useRef, useState, type ReactNode } from 'react'
 import { Seg, useTimers } from '../../components/ui'
 import { download } from '../../system/export'
 import { CodeBlock, Note, Section, SysGrid } from '../../system/ui'
+import { Term, TermList } from '../../components/Term'
 import './policy.css'
+
+/* 사전(glossary.ts)에 없는 말 — 이 탭에서만 쓰는 쉬운 뜻 */
+const EXTRA: Record<string, string> = {
+  '행복 경로': '아무 문제 없이 처음부터 끝까지 술술 진행되는 흐름이에요. 결제가 한 번에 되고 배송도 제때 오는 경우예요.',
+  '상태 머신': '정해진 상태 사이를 정해진 길로만 옮겨 가는 구조예요. 신호등이 초록 → 노랑 → 빨강 순서로만 바뀌는 것과 같아요.',
+  '전이': '한 상태에서 다른 상태로 넘어가는 것이에요. 예: 결제완료 → 배송준비중.',
+  'RBAC': '역할 기반 권한(Role-Based Access Control)이에요. 사람 한 명 한 명이 아니라 ‘사장님’, ‘운영자’ 같은 역할마다 할 수 있는 일을 정해요.',
+  'CRUD': '데이터에 하는 네 가지 일, 생성(Create)·조회(Read)·수정(Update)·삭제(Delete)의 첫 글자예요.',
+  '리소스': '권한을 거는 대상이에요. 이 탭에서는 주문, 메뉴, 리뷰, 정산, 공지예요.',
+  '정산': '팔린 금액을 계산해 사장님에게 나눠 주는 일이에요. 예: 매주 한 번 지난주 매출을 정리해 입금해요.',
+  '멱등키': '요청마다 붙이는 번호표예요. 서버는 같은 번호표를 두 번 받으면 새로 처리하지 않고 처음 결과를 돌려줘요.',
+  '오픈 이슈': '아직 정하지 못한 질문을 “누가, 언제까지 정할지”와 함께 적어 둔 목록이에요.',
+}
 
 /* ================= 공용 ================= */
 const csvCell = (v: string | number) => {
@@ -52,10 +66,10 @@ interface St { name: string; zone: Zone; desc: string; acts: Act[]; auto?: strin
 const MAIN: SId[] = ['PENDING', 'PAID', 'PREPARING', 'SHIPPING', 'DELIVERED', 'CONFIRMED']
 const ST: Record<SId, St> = {
   PENDING: {
-    name: '결제대기', zone: 'cancel', desc: '주문서를 냈지만 결제 승인이 아직이에요.',
+    name: '결제대기', zone: 'cancel', desc: '주문서는 냈지만 결제가 아직 승인되지 않았어요.',
     acts: [
-      { label: '결제하기', actor: '구매자', to: 'PAID', cond: '결제 승인 성공 시', kind: 'main' },
-      { label: '주문 취소', actor: '구매자', to: 'CANCELED', cond: '언제든 바로. 결제 전이라 환불할 돈이 없어요.', kind: 'cancel' },
+      { label: '결제하기', actor: '구매자', to: 'PAID', cond: '결제가 승인되면', kind: 'main' },
+      { label: '주문 취소', actor: '구매자', to: 'CANCELED', cond: '언제든 바로 돼요. 결제 전이라 돌려줄 돈이 없어요.', kind: 'cancel' },
     ],
     auto: '결제 기한이 지나면 자동 취소돼요. 기한은 정책으로 정해요 (예: 30분).',
     buyerBtns: ['결제하기', '주문 취소'],
@@ -63,54 +77,54 @@ const ST: Record<SId, St> = {
   PAID: {
     name: '결제완료', zone: 'cancel', desc: '돈은 냈고, 사장님이 아직 주문을 접수하지 않았어요.',
     acts: [
-      { label: '주문 접수', actor: '사장님', to: 'PREPARING', cond: '사장님 센터 OWN-01에서', kind: 'main' },
-      { label: '주문 거절', actor: '사장님', to: 'CANCELED', cond: '재료 소진 등. 거절 사유를 꼭 골라요.', kind: 'cancel' },
-      { label: '주문 취소', actor: '구매자', to: 'CANCELED', cond: '바로 취소 + 전액 환불', kind: 'cancel' },
+      { label: '주문 접수', actor: '사장님', to: 'PREPARING', cond: '사장님용 화면(OWN-01)에서', kind: 'main' },
+      { label: '주문 거절', actor: '사장님', to: 'CANCELED', cond: '재료가 떨어졌을 때 등. 거절 이유를 꼭 골라요.', kind: 'cancel' },
+      { label: '주문 취소', actor: '구매자', to: 'CANCELED', cond: '바로 취소되고 전액 환불돼요.', kind: 'cancel' },
     ],
-    auto: '사장님이 정해진 시간 안에 접수하지 않으면 자동 취소·환불돼요. 시간은 정책으로 정해요 (예: 20분).',
+    auto: '사장님이 정해진 시간 안에 접수하지 않으면 저절로 취소되고 환불돼요. 시간은 정책으로 정해요 (예: 20분).',
     buyerBtns: ['주문 취소'],
   },
   PREPARING: {
-    name: '배송준비중', zone: 'approve', desc: '사장님이 접수하고 반찬을 담는 중이에요. 이미 만들기 시작했을 수 있어요.',
+    name: '배송준비중', zone: 'approve', desc: '사장님이 주문을 받고 반찬을 담는 중이에요. 이미 만들기 시작했을 수도 있어요.',
     acts: [
-      { label: '배송 시작', actor: '사장님', to: 'SHIPPING', cond: '라이더 출발 시', kind: 'main' },
+      { label: '배송 시작', actor: '사장님', to: 'SHIPPING', cond: '배달 기사가 출발하면', kind: 'main' },
       { label: '취소 요청', actor: '구매자', cond: '바로 취소되지 않고 사장님에게 요청이 가요.', kind: 'cancel' },
-      { label: '취소 요청 승인', actor: '사장님', to: 'CANCELED', cond: '승인하면 취소 + 환불. 거절하면 그대로 진행', kind: 'cancel' },
+      { label: '취소 요청 승인', actor: '사장님', to: 'CANCELED', cond: '승인하면 취소되고 환불돼요. 거절하면 주문이 그대로 진행돼요.', kind: 'cancel' },
     ],
     auto: '사장님이 취소 요청에 답하지 않으면 어떻게 할지 정책으로 정해요 (예: 10분 뒤 운영자에게 알림).',
     buyerBtns: ['취소 요청'],
   },
   SHIPPING: {
-    name: '배송중', zone: 'return', desc: '반찬이 가게를 떠났어요. 이제는 "취소"가 아니에요.',
+    name: '배송중', zone: 'return', desc: '반찬이 가게를 떠났어요. 이제부터는 "취소"라고 부르지 않아요.',
     acts: [
-      { label: '배송 완료 처리', actor: '사장님', to: 'DELIVERED', cond: '문 앞 전달 후', kind: 'main' },
+      { label: '배송 완료 처리', actor: '사장님', to: 'DELIVERED', cond: '문 앞에 전달한 뒤', kind: 'main' },
       { label: '배송 문의', actor: '구매자', cond: '취소 버튼 대신 문의하기를 보여줘요.' },
     ],
-    auto: '배달 연동이 있으면 도착 신호를 받아 자동으로 배송완료가 돼요.',
+    auto: '배달 업체와 시스템이 연결돼 있으면, 도착 신호를 받아 저절로 배송완료가 돼요.',
     buyerBtns: ['배송 문의'],
   },
   DELIVERED: {
     name: '배송완료', zone: 'return', desc: '반찬을 받았어요. 문제가 있으면 반품·교환을 신청해요.',
     acts: [
-      { label: '구매 확정', actor: '구매자', to: 'CONFIRMED', cond: '직접 누르면 바로', kind: 'main' },
-      { label: '반품 신청', actor: '구매자', to: 'RETURN', cond: '상한 반찬·잘못 온 반찬 등 사유 + 사진', kind: 'return' },
+      { label: '구매 확정', actor: '구매자', to: 'CONFIRMED', cond: '구매자가 직접 누르면 바로', kind: 'main' },
+      { label: '반품 신청', actor: '구매자', to: 'RETURN', cond: '상한 반찬, 잘못 온 반찬 등. 이유와 사진을 함께 내요.', kind: 'return' },
       { label: '교환 신청', actor: '구매자', to: 'EXCHANGE', cond: '다른 반찬이 왔을 때', kind: 'return' },
     ],
-    auto: '아무것도 안 하면 N일 뒤 자동 구매확정돼요. N은 정책으로 정해요 (예: 3일). 신청 가능 기간도 같이 정해요.',
+    auto: '구매자가 아무것도 안 하면 N일 뒤 저절로 구매확정돼요. N은 정책으로 정해요 (예: 3일). 반품·교환을 신청할 수 있는 기간도 같이 정해요.',
     buyerBtns: ['구매 확정', '반품 신청', '교환 신청'],
   },
   CONFIRMED: {
-    name: '구매확정', zone: 'closed', desc: '거래가 끝났어요. 이 주문은 사장님 정산에 들어가요.',
+    name: '구매확정', zone: 'closed', desc: '거래가 끝났어요. 이 주문 금액은 사장님에게 줄 돈(정산)에 들어가요.',
     acts: [
-      { label: '리뷰 작성', actor: '구매자', cond: '작성 가능 기간은 정책으로 정해요 (예: 30일)' },
-      { label: '예외 환불', actor: '운영자', cond: '앱에는 버튼이 없어요. 고객센터를 통해 운영자가 처리해요.' },
+      { label: '리뷰 작성', actor: '구매자', cond: '리뷰를 쓸 수 있는 기간은 정책으로 정해요 (예: 30일)' },
+      { label: '예외 환불', actor: '운영자', cond: '앱에는 버튼이 없어요. 구매자가 고객센터에 연락하면 운영자가 처리해요.' },
     ],
-    auto: '정산 주기에 맞춰 정산 대상에 포함돼요. 주기는 정책으로 정해요 (예: 매주).',
+    auto: '정해진 정산 날이 되면 정산 목록에 들어가요. 얼마마다 할지는 정책으로 정해요 (예: 매주).',
     buyerBtns: ['리뷰 쓰기'],
   },
-  CANCELED: { name: '주문취소', zone: 'closed', desc: '주문이 취소됐어요. 결제했다면 환불이 진행돼요.', acts: [], auto: '환불은 결제 수단에 따라 걸리는 시간이 달라요. 수단별 안내 문구를 정책 장표에 적어요.', buyerBtns: ['다시 주문하기'] },
-  RETURN: { name: '반품', zone: 'closed', desc: '반품 요청 → 사장님 확인 → 반품 완료(환불) 순서로 가요. 하위 상태를 따로 그려요.', acts: [{ label: '반품 승인 / 거절', actor: '사장님', cond: '거절이면 사유를 남기고, 구매자는 운영자에게 이의를 낼 수 있어요.' }], buyerBtns: ['반품 진행 상황'] },
-  EXCHANGE: { name: '교환', zone: 'closed', desc: '교환 요청 → 사장님 확인 → 다시 배송으로 가요. 반찬은 재고가 없으면 교환 대신 반품으로 안내해요.', acts: [{ label: '교환 승인 / 반품 전환', actor: '사장님', cond: '재고가 없으면 반품으로 전환' }], buyerBtns: ['교환 진행 상황'] },
+  CANCELED: { name: '주문취소', zone: 'closed', desc: '주문이 취소됐어요. 결제했다면 환불이 진행돼요.', acts: [], auto: '환불은 결제 수단(카드, 계좌 등)마다 걸리는 시간이 달라요. 수단별 안내 문구를 정책 장표에 적어요.', buyerBtns: ['다시 주문하기'] },
+  RETURN: { name: '반품', zone: 'closed', desc: '반품 요청 → 사장님 확인 → 반품 완료(환불) 순서로 가요. 이 안의 작은 단계는 따로 그려요.', acts: [{ label: '반품 승인 / 거절', actor: '사장님', cond: '거절하면 이유를 남겨요. 구매자는 운영자에게 다시 판단해 달라고 할 수 있어요.' }], buyerBtns: ['반품 진행 상황'] },
+  EXCHANGE: { name: '교환', zone: 'closed', desc: '교환 요청 → 사장님 확인 → 다시 배송으로 가요. 반찬은 재고가 없으면 교환 대신 반품으로 안내해요.', acts: [{ label: '교환 승인 / 반품 전환', actor: '사장님', cond: '같은 반찬이 없으면 반품으로 바꿔요' }], buyerBtns: ['교환 진행 상황'] },
 }
 const ZONE_LABEL: Record<Zone, string> = { cancel: '바로 취소', approve: '승인 후 취소', return: '반품·교환', closed: '종료' }
 
@@ -122,7 +136,7 @@ function stateMd() {
     s.acts.forEach((a, i) => L.push(`| ${i ? '' : s.name} | ${i ? '' : s.desc} | ${a.label} | ${a.actor} | ${a.to ? ST[a.to].name : '(변화 없음)'} | ${a.cond} |`))
     if (s.auto) L.push(`| | | (자동) | 시스템 | | ${s.auto} |`)
   }
-  L.push('', '## 경계', '- 배송준비중까지는 "취소", 배송중부터는 "반품·교환"으로 불러요. 상품이 가게를 떠났는지가 기준이에요.', '- 숫자(N분·N일)는 모두 정책으로 정해요. 정한 값과 정한 날짜, 정한 사람을 적어요.')
+  L.push('', '## 경계', '- 배송준비중까지는 "취소", 배송중부터는 "반품·교환"이라고 불러요. 기준은 상품이 가게를 떠났는지예요.', '- 숫자(N분·N일)는 모두 정책으로 정해요. 정한 값, 정한 날짜, 정한 사람을 함께 적어요.')
   return L.join('\n')
 }
 
@@ -192,7 +206,7 @@ function StateMachine() {
               </table>
             </div>
           )}
-          {s.auto && <div className="po-auto"><span className="po-actor 시스템">시스템</span><span><b>자동 전이</b> {s.auto}</span></div>}
+          {s.auto && <div className="po-auto"><span className="po-actor 시스템">시스템</span><span><b>저절로 넘어가는 경우</b> {s.auto}</span></div>}
           <div className="po-trail"><span className="muted">따라온 길</span>{trail.map((t, i) => <span key={i} className="po-trail-i">{i > 0 && '→ '}{ST[t].name}</span>)}</div>
         </div>
         <div className="po-mock" aria-label="구매자 주문 상세 화면 미리보기">
@@ -206,11 +220,11 @@ function StateMachine() {
           <div className="po-mock-btns">
             {s.buyerBtns.map((b, i) => <span key={b} className={'po-mbtn' + (i === 0 ? ' pri' : '')}>{b}</span>)}
           </div>
-          <small className="po-mock-cap">상태가 바뀌면 구매자에게 보이는 버튼도 바뀌어요. 화면설계서에 상태별로 적어요.</small>
+          <small className="po-mock-cap">상태가 바뀌면 구매자가 보는 버튼도 바뀌어요. 화면설계서에 상태마다 적어요.</small>
         </div>
       </div>
       <div className="po-row">
-        <span className="muted">행동의 <b>다음 상태 →</b>를 누르면 상태가 실제로 바뀌어요.</span>
+        <span className="muted">표의 <b>다음 상태 →</b> 버튼을 누르면 상태가 실제로 바뀌어요.</span>
         <span className="po-grow" />
         <CopyBtn text={md} label="상태 정의표 복사(.md)" />
         <button type="button" className="btn sm" onClick={() => download('오늘반찬_주문상태.md', md, 'text/markdown;charset=utf-8')}>마크다운 내려받기</button>
@@ -265,15 +279,15 @@ function lint(m: Matrix): Warn[] {
   for (const r of RES) for (const ro of ROLES) {
     const p = m[r][ro]
     for (const op of ['U', 'D'] as Op[]) {
-      if (p[op] && !p.R) W.push({ level: 'danger', msg: `${ga(ro)} ${eul(r)} ${OP_NAME[op]}할 수 있는데 조회는 못 해요. 보지도 못하는 걸 고치거나 지우게 돼요.`, cells: [cellKey(r, ro, op), cellKey(r, ro, 'R')] })
-      else if (p[op] > p.R) W.push({ level: 'warn', msg: `${ro}의 ${r} ${OP_NAME[op]} 범위(${LV_LABEL[p[op]]})가 조회 범위(${LV_LABEL[p.R]})보다 넓어요.`, cells: [cellKey(r, ro, op), cellKey(r, ro, 'R')] })
+      if (p[op] && !p.R) W.push({ level: 'danger', msg: `${ga(ro)} ${eul(r)} ${OP_NAME[op]}할 수 있는데 조회는 못 해요. 보지도 못하는 것을 고치거나 지우게 돼요.`, cells: [cellKey(r, ro, op), cellKey(r, ro, 'R')] })
+      else if (p[op] > p.R) W.push({ level: 'warn', msg: `${ro}의 ${r} ${OP_NAME[op]} 범위(${LV_LABEL[p[op]]})가 조회 범위(${LV_LABEL[p.R]})보다 넓어요. 볼 수 있는 것보다 많이 건드릴 수 있다는 뜻이에요.`, cells: [cellKey(r, ro, op), cellKey(r, ro, 'R')] })
     }
-    if (ro === '비로그인') for (const op of ['C', 'U', 'D'] as Op[]) if (p[op]) W.push({ level: 'danger', msg: `비로그인 사용자가 ${eul(r)} ${OP_NAME[op]}할 수 있어요. 누가 했는지 남지 않아요. 비회원 주문처럼 의도한 거라면 본인 확인 방법을 정책에 적어요.`, cells: [cellKey(r, ro, op)] })
+    if (ro === '비로그인') for (const op of ['C', 'U', 'D'] as Op[]) if (p[op]) W.push({ level: 'danger', msg: `로그인 안 한 사람이 ${eul(r)} ${OP_NAME[op]}할 수 있어요. 누가 했는지 기록이 남지 않아요. 비회원 주문처럼 일부러 허용한 거라면, 본인 확인 방법을 정책에 적어요.`, cells: [cellKey(r, ro, op)] })
   }
   for (const r of RES) {
-    if (m[r]['사장님'].U && r === '리뷰') W.push({ level: 'danger', msg: '사장님이 고객 리뷰를 수정할 수 있어요. 리뷰를 믿을 수 없게 돼요. 사장님 답글은 "리뷰 답글"이라는 별도 리소스로 나눠요.', cells: [cellKey('리뷰', '사장님', 'U')] })
-    if (r === '정산') for (const ro of ROLES) if (m[r][ro].D) W.push({ level: 'warn', msg: `${ga(ro)} 정산을 삭제할 수 있어요. 돈과 관련된 기록은 지우지 않고 "취소·정정" 기록을 새로 남겨요.`, cells: [cellKey('정산', ro, 'D')] })
-    for (const op of OPS) if (m[r]['운영자'][op] > m[r]['최고관리자'][op]) W.push({ level: 'warn', msg: `${r} ${OP_NAME[op]}: 운영자가 최고관리자보다 권한이 넓어요. 위 역할은 아래 역할의 권한을 모두 가져야 해요.`, cells: [cellKey(r, '운영자', op), cellKey(r, '최고관리자', op)] })
+    if (m[r]['사장님'].U && r === '리뷰') W.push({ level: 'danger', msg: '사장님이 고객 리뷰를 고칠 수 있어요. 그러면 리뷰를 믿을 수 없게 돼요. 사장님 답글은 "리뷰 답글"이라는 별도 항목으로 나눠요.', cells: [cellKey('리뷰', '사장님', 'U')] })
+    if (r === '정산') for (const ro of ROLES) if (m[r][ro].D) W.push({ level: 'warn', msg: `${ga(ro)} 정산을 삭제할 수 있어요. 돈과 관련된 기록은 지우지 않아요. 대신 "취소·정정" 기록을 새로 남겨요.`, cells: [cellKey('정산', ro, 'D')] })
+    for (const op of OPS) if (m[r]['운영자'][op] > m[r]['최고관리자'][op]) W.push({ level: 'warn', msg: `${r} ${OP_NAME[op]}: 운영자가 최고관리자보다 권한이 넓어요. 윗 역할은 아랫 역할이 할 수 있는 일을 모두 할 수 있어야 해요.`, cells: [cellKey(r, '운영자', op), cellKey(r, '최고관리자', op)] })
   }
   return W
 }
@@ -325,14 +339,14 @@ function RBAC() {
       </div>
       <div className={'po-warns' + (warns.length ? '' : ' clean')} aria-live="polite">
         <div className="po-warns-head">
-          {warns.length ? <><b>이상 패턴 {warns.length}개</b><span className="muted">문장을 누르면 해당 칸이 표에서 깜빡여요.</span></> : <b>✓ 눈에 띄는 이상 패턴이 없어요</b>}
+          {warns.length ? <><b>이상한 칸 {warns.length}개</b><span className="muted">문장을 누르면 그 칸이 표에서 깜빡여요.</span></> : <b>✓ 눈에 띄는 문제가 없어요</b>}
         </div>
         {warns.map((w, i) => (
-          <button key={i} type="button" className={'po-warn ' + w.level} onClick={() => setHl(w.cells)}>{w.level === 'danger' ? '⛔' : '⚠'} {w.msg}</button>
+          <button key={i} type="button" className={'po-warn ' + w.level} onClick={() => setHl(w.cells)}>{w.level === 'danger' ? '위험 ·' : '주의 ·'} {w.msg}</button>
         ))}
       </div>
       <div className="po-row">
-        <span className="muted">셀을 누를 때마다 없음 → 본인 것만 → 전체 순서로 바뀌어요.</span>
+        <span className="muted">칸을 누를 때마다 없음 → 본인 것만 → 전체 순서로 바뀌어요.</span>
         <span className="po-grow" />
         <CopyBtn text={csv} label="CSV 복사" />
         <button type="button" className="btn sm" data-export="rbac-csv" onClick={() => download('오늘반찬_권한매트릭스.csv', '﻿' + csv, 'text/csv;charset=utf-8')}>CSV 내려받기</button>
@@ -353,32 +367,32 @@ const TYPES: { k: ScreenType; label: string; sample: string }[] = [
 interface Edge { cat: string; q: string; ex: string; types: ScreenType[] | 'all' }
 const EDGES: Edge[] = [
   { cat: '네트워크', q: '요청 중에 네트워크가 끊기면?', ex: '입력값은 그대로 두고 "연결이 끊겼어요. 다시 시도" 버튼을 보여줘요.', types: 'all' },
-  { cat: '세션', q: '작업 중에 로그인 세션이 만료되면?', ex: '로그인 후 원래 화면으로 돌아오고, 쓰던 내용은 남아 있어요.', types: 'all' },
-  { cat: '권한', q: '권한 없는 사람이 주소(URL)로 직접 들어오면?', ex: '구매자가 사장님 센터 주소를 열면 "접근 권한이 없어요" 화면 + 홈으로 가기.', types: 'all' },
-  { cat: '중복', q: '버튼을 빠르게 두 번 누르면(따닥)?', ex: '첫 번째 누름 뒤 버튼을 막고 처리 중을 보여줘요. 서버는 같은 요청을 한 번만 처리해요.', types: ['form', 'pay', 'upload', 'login'] },
-  { cat: '이탈', q: '작성 중 뒤로 가기를 누르면? (임시 저장 vs 확인 모달)', ex: '긴 글(메뉴 설명)은 임시 저장, 짧은 폼은 "작성을 그만할까요?" 확인 모달. 무엇을 쓸지 화면마다 정해요.', types: ['form', 'upload'] },
-  { cat: '입력', q: '필수값이 비었을 때 언제, 어디에 알려 주나요?', ex: '제출할 때 첫 번째 빈칸으로 스크롤 + 칸 아래 빨간 문구. 입력 중에는 혼내지 않아요.', types: ['form', 'pay'] },
-  { cat: '입력', q: '아주 긴 값(예: 200자 상품명)이 들어오면?', ex: '최대 글자 수를 정하고, 목록에서는 2줄 말줄임, 상세에서는 전체 노출.', types: ['form', 'list'] },
-  { cat: '입력', q: '이모지·특수문자·앞뒤 공백을 붙여 넣으면?', ex: '앞뒤 공백은 저장할 때 지우고, 허용 안 하는 문자는 입력 단계에서 알려줘요.', types: ['form', 'login'] },
-  { cat: '동시성', q: '두 사람(두 기기)이 같은 걸 동시에 고치면?', ex: '사장님이 PC와 폰에서 같은 메뉴를 수정 → 나중 저장 시 "다른 곳에서 먼저 바뀌었어요" 안내.', types: ['form'] },
-  { cat: '데이터', q: '결제 직전에 품절되거나 가격이 바뀌면?', ex: '결제 버튼을 누른 순간 다시 확인하고, 바뀐 금액을 보여준 뒤 한 번 더 동의받아요.', types: ['pay'] },
-  { cat: '외부 연동', q: '결제 승인 응답이 늦거나 오지 않으면(타임아웃)?', ex: '"결제 확인 중" 화면을 유지하고, 결과를 서버에서 다시 조회해요. 사용자가 다시 결제하게 두지 않아요.', types: ['pay'] },
-  { cat: '외부 연동', q: '돈은 빠져나갔는데 주문 생성에 실패하면?', ex: '자동 취소(환불) 규칙과 운영자 알림을 정해요. 사용자에게는 "결제가 취소됐어요"를 분명히 알려요.', types: ['pay'] },
-  { cat: '이탈', q: '결제 중 앱이 꺼지거나 전화가 오면?', ex: '다시 열었을 때 주문 상세로 보내 결제 결과를 보여줘요.', types: ['pay'] },
+  { cat: '로그인 풀림', q: '작업 중에 로그인이 풀리면(세션 만료)?', ex: '다시 로그인하면 원래 화면으로 돌아오고, 쓰던 내용은 그대로 남아 있어요.', types: 'all' },
+  { cat: '권한', q: '권한 없는 사람이 주소(URL)로 직접 들어오면?', ex: '구매자가 사장님용 화면 주소를 열면 "접근 권한이 없어요" 화면과 [홈으로 가기] 버튼을 보여줘요.', types: 'all' },
+  { cat: '중복', q: '버튼을 빠르게 두 번 누르면(따닥)?', ex: '처음 누른 뒤 버튼을 막고 "처리 중"을 보여줘요. 서버는 같은 요청을 한 번만 처리해요.', types: ['form', 'pay', 'upload', 'login'] },
+  { cat: '이탈', q: '쓰는 중에 뒤로 가기를 누르면? (임시 저장할까, 확인 창을 띄울까)', ex: '긴 글(메뉴 설명)은 임시 저장해요. 짧은 입력 화면은 "작성을 그만할까요?" 확인 창을 띄워요. 어느 쪽을 쓸지 화면마다 정해요.', types: ['form', 'upload'] },
+  { cat: '입력', q: '필수값이 비었을 때 언제, 어디에 알려 주나요?', ex: '제출할 때 첫 번째 빈칸으로 화면을 옮기고, 칸 아래에 빨간 문구를 보여줘요. 입력하는 중에는 미리 혼내지 않아요.', types: ['form', 'pay'] },
+  { cat: '입력', q: '아주 긴 값(예: 200자 상품명)이 들어오면?', ex: '최대 글자 수를 정해요. 목록에서는 2줄이 넘으면 "…"로 줄이고, 상세 화면에서는 전부 보여줘요.', types: ['form', 'list'] },
+  { cat: '입력', q: '이모지·특수문자·앞뒤 공백을 붙여 넣으면?', ex: '앞뒤 공백은 저장할 때 지워요. 못 쓰는 문자는 입력할 때 바로 알려줘요.', types: ['form', 'login'] },
+  { cat: '동시 수정', q: '두 사람(또는 두 기기)이 같은 걸 동시에 고치면?', ex: '사장님이 PC와 폰에서 같은 메뉴를 고치면, 나중에 저장할 때 "다른 곳에서 먼저 바뀌었어요"라고 알려요.', types: ['form'] },
+  { cat: '데이터', q: '결제 직전에 품절되거나 가격이 바뀌면?', ex: '결제 버튼을 누른 순간 한 번 더 확인해요. 금액이 바뀌었으면 바뀐 금액을 보여주고 다시 동의를 받아요.', types: ['pay'] },
+  { cat: '외부 연동', q: '결제 승인 응답이 늦거나 오지 않으면(타임아웃)?', ex: '"결제 확인 중" 화면을 계속 보여주고, 서버가 결과를 다시 물어봐요. 사용자가 또 결제하게 두지 않아요.', types: ['pay'] },
+  { cat: '외부 연동', q: '돈은 빠져나갔는데 주문이 만들어지지 않으면?', ex: '저절로 취소(환불)하는 규칙과 운영자에게 갈 알림을 정해요. 사용자에게는 "결제가 취소됐어요"라고 분명히 알려요.', types: ['pay'] },
+  { cat: '이탈', q: '결제 중 앱이 꺼지거나 전화가 오면?', ex: '앱을 다시 열면 주문 상세 화면으로 보내 결제 결과를 보여줘요.', types: ['pay'] },
   { cat: '데이터', q: '쿠폰으로 0원이 되면?', ex: '결제 수단 선택을 건너뛰고 "0원 결제" 버튼으로 바로 주문해요.', types: ['pay'] },
-  { cat: '0건', q: '결과가 0건이면?', ex: '검색어를 보여주고 "철자 확인 · 다른 검색어 추천 · 동네 인기 반찬"을 보여줘요.', types: ['list'] },
-  { cat: '0건', q: '필터 조합 때문에 0건이면?', ex: '어떤 필터 때문인지 보여주고 "필터 하나씩 풀기" 버튼을 줘요.', types: ['list'] },
-  { cat: '양', q: '결과가 아주 많으면(예: 1,000건)?', ex: '한 번에 몇 개씩 불러올지(예: 20개), 무한 스크롤인지 페이지 번호인지 정해요.', types: ['list'] },
-  { cat: '데이터', q: '목록을 보는 사이 항목이 지워지거나 품절되면?', ex: '눌렀을 때 "판매가 끝난 반찬이에요" 안내 후 목록 새로 고침.', types: ['list'] },
-  { cat: '데이터', q: '이미지가 안 불러와지면?', ex: '회색 자리 표시 + 반찬 이름은 그대로. 레이아웃이 흔들리지 않게 자리를 미리 잡아요.', types: ['list', 'upload'] },
+  { cat: '0건', q: '결과가 0건이면?', ex: '입력한 검색어를 보여주고, "철자 확인 · 다른 검색어 추천 · 동네 인기 반찬"을 함께 보여줘요.', types: ['list'] },
+  { cat: '0건', q: '필터 조합 때문에 0건이면?', ex: '어떤 필터 때문에 0건인지 보여주고 "필터 하나씩 풀기" 버튼을 줘요.', types: ['list'] },
+  { cat: '양', q: '결과가 아주 많으면(예: 1,000건)?', ex: '한 번에 몇 개씩 불러올지(예: 20개) 정해요. 끝에 닿으면 이어 붙일지(무한 스크롤), 페이지 번호를 둘지도 정해요.', types: ['list'] },
+  { cat: '데이터', q: '목록을 보는 사이 항목이 지워지거나 품절되면?', ex: '누르면 "판매가 끝난 반찬이에요"라고 알리고 목록을 새로 불러와요.', types: ['list'] },
+  { cat: '데이터', q: '이미지가 안 불러와지면?', ex: '이미지 자리에 회색 상자를 두고 반찬 이름은 그대로 보여줘요. 화면이 덜컹거리지 않게 자리를 미리 잡아 둬요.', types: ['list', 'upload'] },
   { cat: '입력', q: '오타·띄어쓰기·초성으로 검색하면?', ex: '"장 조림", "ㅈㅈㄹ"도 찾을지 개발자와 정해요. 못 찾으면 0건 화면으로.', types: ['list'] },
-  { cat: '파일', q: '용량·형식이 맞지 않으면?', ex: '고르기 전에 "사진 최대 N장, 장당 N MB"를 알려 주고, 넘으면 어떤 파일이 문제인지 보여줘요(숫자는 정책으로 정해요).', types: ['upload'] },
+  { cat: '파일', q: '용량·형식이 맞지 않으면?', ex: '고르기 전에 "사진 최대 N장, 장당 N MB"를 알려줘요. 넘으면 어떤 파일이 문제인지 보여줘요(숫자는 정책으로 정해요).', types: ['upload'] },
   { cat: '파일', q: '여러 장 중 일부만 실패하면?', ex: '성공한 것은 두고, 실패한 사진에만 "다시 올리기"를 보여줘요.', types: ['upload'] },
-  { cat: '파일', q: '사진에 개인정보(주소·전화번호)가 찍혀 있으면?', ex: '영수증 사진 첨부 전에 안내 문구. 신고되면 운영자가 가릴 수 있게 어드민 기능을 정해요.', types: ['upload'] },
-  { cat: '보안', q: '비밀번호를 여러 번 틀리면?', ex: 'N회 실패 시 잠시 잠금 또는 추가 인증. 횟수는 정책으로 정해요 (예: 5회).', types: ['login'] },
-  { cat: '계정', q: '휴면·탈퇴·정지 계정이 로그인하면?', ex: '상태마다 다른 안내: 휴면은 본인 인증 후 해제, 탈퇴는 재가입 안내, 정지는 사유와 문의처.', types: ['login'] },
-  { cat: '계정', q: '소셜 로그인 이메일이 기존 계정과 같으면?', ex: '같은 사람인지 확인하고 계정 연결을 제안해요. 몰래 합치지 않아요.', types: ['login'] },
-  { cat: '이탈', q: '로그인하고 나면 어디로 가나요?', ex: '장바구니에서 왔으면 장바구니로, 그냥 들어왔으면 홈으로. "돌아갈 곳"을 기억해요.', types: ['login'] },
+  { cat: '파일', q: '사진에 개인정보(주소·전화번호)가 찍혀 있으면?', ex: '영수증 사진을 올리기 전에 주의 문구를 보여줘요. 신고가 들어오면 운영자가 가릴 수 있게 어드민 기능도 정해요.', types: ['upload'] },
+  { cat: '보안', q: '비밀번호를 여러 번 틀리면?', ex: 'N번 틀리면 잠시 잠그거나 추가 인증을 받아요. 횟수는 정책으로 정해요 (예: 5회).', types: ['login'] },
+  { cat: '계정', q: '휴면·탈퇴·정지 계정이 로그인하면?', ex: '상태마다 안내가 달라요. 휴면은 본인 인증 후 풀어 주고, 탈퇴는 다시 가입하라고 안내하고, 정지는 이유와 문의처를 알려요.', types: ['login'] },
+  { cat: '계정', q: '소셜 로그인 이메일이 기존 계정과 같으면?', ex: '같은 사람인지 확인한 뒤 두 계정을 연결할지 물어봐요. 몰래 합치지 않아요.', types: ['login'] },
+  { cat: '이탈', q: '로그인하고 나면 어디로 가나요?', ex: '장바구니에서 왔으면 장바구니로, 그냥 들어왔으면 홈으로 보내요. "돌아갈 곳"을 기억해 둬요.', types: ['login'] },
 ]
 
 function EdgeGen() {
@@ -433,7 +447,7 @@ function EdgeGen() {
         ))}
       </ul>
       <div className="po-row">
-        <span className="muted">체크한 항목은 마크다운에서 <code>[x]</code>로 나가요. "우리 정책" 칸을 채워 화면설계서에 붙여요.</span>
+        <span className="muted">체크한 항목은 마크다운 파일에서 <code>[x]</code>로 표시돼요. "우리 정책" 칸을 채운 뒤 화면설계서에 붙여요.</span>
         <span className="po-grow" />
         <CopyBtn text={md} label="마크다운 복사" />
         <button type="button" className="btn sm" data-export="edge-md" onClick={() => download('엣지케이스_체크리스트.md', md, 'text/markdown;charset=utf-8')}>.md 내려받기</button>
@@ -502,9 +516,9 @@ function DoubleClick() {
       {rows.length === 0 && <li className="empty">서버 기록이 비어 있어요</li>}
       {rows.map((r, i) => (
         <li key={i} className={r.t}>
-          {r.t === 'charge' && <>💳 결제 승인 #{r.n} · {won(PRICE)} <small>{r.via}{r.key ? ` · 키 ${r.key}` : ''}</small></>}
-          {r.t === 'dup' && <>↩ 같은 키 → 새로 결제하지 않고 기존 결과 돌려줌 <small>{r.via} · 키 {r.key}</small></>}
-          {r.t === 'ignored' && <>🚫 버튼이 이미 막혀 있어 요청을 보내지 않음 <small>{r.via}</small></>}
+          {r.t === 'charge' && <>결제 승인 #{r.n} · {won(PRICE)} <small>{r.via}{r.key ? ` · 키 ${r.key}` : ''}</small></>}
+          {r.t === 'dup' && <>↩ 같은 번호표(키) → 새로 결제하지 않고 처음 결과를 돌려줌 <small>{r.via} · 키 {r.key}</small></>}
+          {r.t === 'ignored' && <>버튼이 이미 막혀 있어서 요청을 보내지 않음 <small>{r.via}</small></>}
         </li>
       ))}
     </ol>
@@ -513,9 +527,9 @@ function DoubleClick() {
   return (
     <div className="po-dd">
       <div className="po-row">
-        <button type="button" className="btn sm orange" data-act="dadak" onClick={dadak}>⚡ 양쪽 다 따닥 (0.07초 간격 2번)</button>
+        <button type="button" className="btn sm orange" data-act="dadak" onClick={dadak}>양쪽 다 따닥 누르기 (0.07초 사이에 2번)</button>
         <button type="button" className="btn sm ghost" onClick={reset}>처음부터</button>
-        <span className="muted">직접 결제 버튼을 빠르게 두 번 눌러 봐도 돼요.</span>
+        <span className="muted">아래 결제 버튼을 직접 빠르게 두 번 눌러 봐도 돼요.</span>
       </div>
       <div className="po-dd-grid">
         <div className="po-dd-side bad">
@@ -524,37 +538,37 @@ function DoubleClick() {
             <div className="po-phone-top"><code>ORD-02</code> 주문서</div>
             <div className="po-phone-sum"><span>결제 금액</span><b>{won(PRICE)}</b></div>
             <button type="button" className="po-pay" data-side="a" onClick={() => pressA()}>{won(PRICE)} 결제하기</button>
-            {aBusy > 0 && <small className="po-phone-hint">요청 {aBusy}개 처리 중… (화면엔 아무 표시 없음)</small>}
+            {aBusy > 0 && <small className="po-phone-hint">요청 {aBusy}개 처리 중… (화면에는 아무 표시가 없어요)</small>}
           </div>
           <Log rows={aLog} />
-          <div className={'po-total' + (aCharges > 1 ? ' over' : '')} data-total="a">빠져나간 돈 <b>{won(aCharges * PRICE)}</b>{aCharges > 1 && <span> · {aCharges}건 결제 😱</span>}</div>
+          <div className={'po-total' + (aCharges > 1 ? ' over' : '')} data-total="a">빠져나간 돈 <b>{won(aCharges * PRICE)}</b>{aCharges > 1 && <span> · {aCharges}번 결제됨</span>}</div>
         </div>
 
         <div className="po-dd-side good">
-          <div className="po-dd-title"><span className="po-tag good">막음</span><b>3겹으로 지켜요</b></div>
+          <div className="po-dd-title"><span className="po-tag good">막음</span><b>세 겹으로 막아요</b></div>
           <div className="po-layers" role="group" aria-label="방어 장치 켜고 끄기">
-            <label><input type="checkbox" checked={disable} onChange={e => setDisable(e.target.checked)} /> ① 버튼 비활성화 + ② 처리 중 표시 <small>(화면)</small></label>
-            <label><input type="checkbox" checked={idem} onChange={e => setIdem(e.target.checked)} /> ③ 멱등키 <small>(서버)</small></label>
+            <label><input type="checkbox" checked={disable} onChange={e => setDisable(e.target.checked)} /> ① 버튼 막기 + ② 처리 중 표시 <small>(화면)</small></label>
+            <label><input type="checkbox" checked={idem} onChange={e => setIdem(e.target.checked)} /> ③ 멱등키(중복 방지 번호표) <small>(서버)</small></label>
           </div>
           <div className="po-phone">
-            <div className="po-phone-top"><code>ORD-02</code> 주문서 {idem && <span className="po-key" title="주문서를 열 때 한 번 만든 키">키 {key}</span>}</div>
+            <div className="po-phone-top"><code>ORD-02</code> 주문서 {idem && <span className="po-key" title="주문서를 열 때 한 번 만든 번호표">키 {key}</span>}</div>
             <div className="po-phone-sum"><span>결제 금액</span><b>{won(PRICE)}</b></div>
             <button type="button" className={'po-pay' + (bState === 'busy' && disable ? ' busy' : '') + (bState === 'done' && disable ? ' done' : '')}
               data-side="b" disabled={bBtnDisabled} aria-busy={bState === 'busy'} onClick={() => pressB()}>
               {disable && bState === 'busy' ? <><span className="po-spin" aria-hidden="true" />결제 중…</> : disable && bState === 'done' ? '✓ 결제 완료' : `${won(PRICE)} 결제하기`}
             </button>
-            <button type="button" className="po-retry" onClick={retryB} title="응답이 늦어 앱이 같은 요청을 다시 보낸 상황">↻ 네트워크 재전송 흉내</button>
+            <button type="button" className="po-retry" onClick={retryB} title="응답이 늦어서 앱이 같은 요청을 한 번 더 보낸 상황">↻ 같은 요청 다시 보내기</button>
           </div>
           <Log rows={bLog} />
-          <div className={'po-total' + (bCharges > 1 ? ' over' : ' ok')} data-total="b">빠져나간 돈 <b>{won(bCharges * PRICE)}</b>{bCharges > 1 ? <span> · {bCharges}건 결제 😱</span> : bCharges === 1 ? <span> · 1건만 ✓</span> : null}</div>
+          <div className={'po-total' + (bCharges > 1 ? ' over' : ' ok')} data-total="b">빠져나간 돈 <b>{won(bCharges * PRICE)}</b>{bCharges > 1 ? <span> · {bCharges}번 결제됨</span> : bCharges === 1 ? <span> · 1번만 ✓</span> : null}</div>
         </div>
       </div>
       <div className="po-dd-explain">
-        <div><b>① 버튼 비활성화</b><p>첫 번째 누름 직후 버튼을 막아요. 사람의 따닥은 대부분 여기서 막혀요.</p></div>
-        <div><b>② 처리 중 표시</b><p>"결제 중…"과 스피너로 지금 일하고 있다는 걸 알려요. 표시가 없으면 사람은 안 눌린 줄 알고 또 눌러요.</p></div>
-        <div><b>③ 멱등키 (Idempotency Key)</b><p>주문서를 열 때 키를 하나 만들어 결제 요청에 붙여요. 서버는 같은 키를 두 번 받으면 새로 결제하지 않고 처음 결과를 돌려줘요. 네트워크 재전송처럼 화면에서 못 막는 중복을 막아요.</p></div>
+        <div><b>① 버튼 막기</b><p>처음 누른 직후 버튼을 못 누르게 막아요(비활성화). 사람이 실수로 두 번 누르는 건 대부분 여기서 막혀요.</p></div>
+        <div><b>② 처리 중 표시</b><p>"결제 중…"과 빙글빙글 도는 표시(스피너)로 지금 처리 중이라고 알려요. 표시가 없으면 사람은 안 눌린 줄 알고 또 눌러요.</p></div>
+        <div><b>③ 멱등키</b><p>은행 창구 번호표와 비슷해요. 주문서를 열 때 번호표(키)를 하나 만들어 결제 요청에 붙여요. 서버는 같은 번호표를 두 번 받으면 새로 결제하지 않고 처음 결과를 돌려줘요. 그래서 앱이 요청을 다시 보내는 것처럼, 화면에서 못 막는 중복도 막아요.</p></div>
       </div>
-      <Note tone="warn"><b>①만 켜고 재전송을 눌러 보세요.</b> 화면 방어만으로는 앱·네트워크가 다시 보내는 요청을 막지 못해요. 기획서에는 "버튼 비활성화"와 함께 "서버에서 같은 주문의 중복 결제를 막는다"를 꼭 적고, 개발자에게 어떻게 막을지 물어봐요. 버튼 로딩 표현은 <a href="#/loading/loading-button">버튼 로딩</a> 카드를 보세요.</Note>
+      <Note tone="warn"><b>①만 켜고 “같은 요청 다시 보내기”를 눌러 보세요.</b> 화면에서 막는 것만으로는 앱이나 네트워크가 다시 보내는 요청을 막지 못해요. 기획서에는 "버튼 막기"와 함께 "서버에서 같은 주문이 두 번 결제되지 않게 막는다"를 꼭 적어요. 어떻게 막을지는 개발자에게 물어봐요. 버튼이 로딩 중일 때의 모양은 <a href="#/loading/loading-button">버튼 로딩</a> 카드를 보세요.</Note>
     </div>
   )
 }
@@ -566,26 +580,26 @@ function GoodBad() {
     {
       topic: '취소 정책',
       bad: <>"주문 취소 가능"</>,
-      good: <>결제대기·결제완료: 구매자가 <b>바로 취소</b>(전액 환불). 배송준비중: <b>취소 요청 → 사장님 승인</b>. 배송중부터: 취소 버튼을 숨기고 <b>배송완료 후 반품 신청</b>으로 안내.</>,
-      why: '"언제·누가·어떻게·그다음 상태"가 들어가야 개발자가 조건문을 쓸 수 있어요.',
+      good: <>결제대기·결제완료: 구매자가 <b>바로 취소</b>(전액 환불). 배송준비중: <b>취소 요청 → 사장님 승인</b>. 배송중부터: 취소 버튼을 숨기고, <b>배송완료 후 반품 신청</b>으로 안내.</>,
+      why: '"언제, 누가, 어떻게, 그다음엔 어떤 상태"가 들어가야 개발자가 "만약 ~이면" 규칙을 코드로 옮길 수 있어요.',
     },
     {
       topic: '자동 처리',
       bad: <>"일정 기간 후 자동 구매확정"</>,
-      good: <>배송완료 후 <b>N일</b>(정책으로 정해요, 예: 3일) 0시에 자동 구매확정. 그 전에 반품을 신청하면 자동 확정을 멈춰요. 확정 하루 전 알림을 보낼지는 오픈 이슈로 남겨요.</>,
-      why: '"일정 기간"은 숫자가 아니에요. 값이 아직 없으면 N으로 두고, 누가 언제 정할지를 적어요.',
+      good: <>배송완료 후 <b>N일</b>(정책으로 정해요, 예: 3일)째 0시에 저절로 구매확정. 그 전에 반품을 신청하면 자동 확정을 멈춰요. 확정 하루 전에 알림을 보낼지는 오픈 이슈로 남겨요.</>,
+      why: '"일정 기간"은 숫자가 아니에요. 값을 아직 못 정했으면 N으로 두고, 누가 언제 정할지 적어요.',
     },
     {
       topic: '권한',
       bad: <>"관리자만 수정 가능"</>,
       good: <>운영자: 공지 생성·조회·수정·삭제(전체). 사장님: 메뉴 수정(<b>자기 가게만</b>). 정산은 누구도 삭제하지 않고 <b>정정 기록</b>을 남겨요.</>,
-      why: '"관리자"가 운영자인지 최고관리자인지, 범위가 전체인지 자기 것인지 나눠야 해요.',
+      why: '"관리자"가 운영자인지 최고관리자인지 나눠야 해요. 범위가 전체인지, 자기 것만인지도요.',
     },
     {
       topic: '중복 클릭',
       bad: <>"버튼 중복 클릭 방지"</>,
-      good: <>누른 직후 버튼 비활성 + "결제 중…" 표시, 응답이 오면 주문 완료로 이동. 서버는 <b>같은 주문 키</b>로 온 결제를 한 번만 처리. 응답이 늦으면(예: 10초) "결제 확인 중" 화면.</>,
-      why: '화면에서 막는 것과 서버에서 막는 것을 나눠서 적어요. 둘 다 있어야 해요.',
+      good: <>누른 직후 버튼을 막고 "결제 중…"을 보여줘요. 응답이 오면 주문 완료 화면으로 가요. 서버는 <b>같은 주문 키</b>로 온 결제를 한 번만 처리해요. 응답이 늦으면(예: 10초) "결제 확인 중" 화면을 보여줘요.</>,
+      why: '화면에서 막는 것과 서버에서 막는 것을 나눠 적어요. 둘 다 있어야 해요.',
     },
   ]
   return (
@@ -608,67 +622,85 @@ function GoodBad() {
 export default function Tab() {
   return (
     <div data-plan="policy">
+      <TermList keys={['정책', '행복 경로', '상태 머신', '상태 다이어그램', '전이', '권한 매트릭스', 'RBAC', 'CRUD', '리소스', '정산', '엣지 케이스', '멱등키', '어드민', '오픈 이슈']} extra={EXTRA} />
       <SysGrid>
-        <Section id="plan-policy-why" wide title="행복 경로 다음이 진짜 기획이에요" desc="주니어와 시니어의 차이가 가장 크게 나는 곳이에요. 제 체감으로는 행복 경로는 전체 기획의 20% 정도예요. 나머지는 '만약에'예요.">
+        <Section id="plan-policy-why" wide title="“문제없는 흐름” 다음이 진짜 기획이에요"
+          gist="“만약에”를 미리 정하지 않으면 개발자가 대신 정하게 돼요."
+          desc={<>주니어와 시니어의 차이가 가장 크게 나는 곳이에요. 아무 문제 없이 흘러가는 흐름을 <Term k="행복 경로" d={EXTRA['행복 경로']} />라고 해요. 제 느낌으로는 이게 기획 전체의 20% 정도예요. 나머지는 전부 ‘만약에’예요.</>}>
           <div className="po-why">
             <div>
               <b>주니어가 자주 하는 실수</b>
-              <p>"주문 취소 가능"이라고 한 줄 쓰고 넘어가요. 그러면 개발자가 묻죠. "배송 중에도요? 사장님이 이미 만들었으면요? 환불은 언제요?" 그 답을 개발자가 정하면, 그게 우리 서비스 정책이 돼요.</p>
+              <p>"주문 취소 가능"이라고 한 줄 쓰고 넘어가요. 그러면 개발자가 물어요. "배송 중에도요? 사장님이 이미 만들었으면요? 환불은 언제 돼요?" 이 답을 개발자가 정하면, 그게 그대로 우리 서비스의 <Term k="정책" />이 돼요.</p>
             </div>
             <div>
-              <b>정책 = 상태 × 행위자 × 조건</b>
-              <p>주문이 <b>어떤 상태</b>일 때, <b>누가</b>, <b>무엇을</b> 할 수 있고, 하면 <b>어떤 상태로</b> 가는지를 표로 남겨요. 이 표가 있으면 화면·QA·CS 문구가 한 번에 맞춰져요.</p>
+              <b>정책 = 상태 × 누가 × 조건</b>
+              <p>신호등을 떠올려 보세요. 빨간불일 때(상태) 사람은(누가) 건너면 안 되고, 초록불이 되면(조건) 건너요. 주문도 같아요.</p>
+              <p>주문이 <b>어떤 상태</b>일 때 <b>누가</b> <b>무엇을</b> 할 수 있는지 표로 적어요. 그걸 하면 <b>어떤 상태로</b> 바뀌는지도 적어요. 이 표 하나로 화면, QA, 고객 상담 문구가 한 번에 맞춰져요.</p>
             </div>
             <div>
               <b>숫자는 비워 두지 않아요</b>
-              <p>자동 확정 일수처럼 아직 못 정한 값은 <b>"정책으로 정해요 (예: N일)"</b>로 적고, 누가 언제 정할지 오픈 이슈에 올려요.</p>
+              <p>자동 확정까지 며칠인지처럼 아직 못 정한 값도 비워 두지 않아요. <b>"정책으로 정해요 (예: N일)"</b>라고 적어요. 그리고 누가 언제 정할지 <Term k="오픈 이슈" d={EXTRA['오픈 이슈']} /> 목록에 올려요.</p>
             </div>
           </div>
         </Section>
 
-        <Section id="plan-policy-state" wide title="주문 상태 머신" desc="오늘반찬 주문의 일생이에요. 상태를 누르면 가능한 행동, 누가 하는지, 자동으로 넘어가는 조건이 나와요.">
+        <Section id="plan-policy-state" wide title="주문 상태 흐름 (상태 머신)"
+          gist="주문은 정해진 길로만 바뀌어요. 배송이 시작되면 취소가 반품이 돼요."
+          desc={<>오늘반찬 주문이 생겨서 끝날 때까지의 흐름이에요. 이렇게 상태와 길을 정해 둔 구조를 <Term k="상태 머신" d={EXTRA['상태 머신']} />이라고 해요. 상태를 누르면 할 수 있는 행동, 누가 하는지, 저절로 넘어가는 조건이 나와요.</>}>
           <StateMachine />
-          <Note tone="tip"><b>상태 이름은 하나로 통일해요.</b> 기획서엔 "배송준비중", 앱엔 "준비 중", 어드민엔 "접수완료"라고 쓰면 CS 상담 때 서로 다른 걸 말하게 돼요. 상태 값(코드)과 화면 문구를 같이 적어 두세요. 상태별 화면 디자인은 <a href="#/system/state">디자인 시스템 · 상태</a>에서 이어져요.</Note>
+          <Note tone="tip"><b>상태 이름은 하나로 통일해요.</b> 기획서엔 "배송준비중", 앱엔 "준비 중", <Term k="어드민" />엔 "접수완료"라고 쓰면, 고객 상담 때 서로 다른 걸 말하게 돼요. 개발에서 쓰는 상태 값(코드)과 화면 문구를 함께 적어 두세요. 상태별 화면 디자인은 <a href="#/system/state">디자인 시스템 · 상태</a>에서 이어져요.</Note>
         </Section>
 
-        <Section id="plan-policy-rbac" wide title="권한 매트릭스 (RBAC)" desc="역할 × 리소스 × CRUD(생성·조회·수정·삭제)예요. 일부러 실수 몇 개를 넣어 뒀어요. 경고를 읽고 셀을 눌러 고쳐 보세요.">
+        <Section id="plan-policy-rbac" wide title="누가 무엇을 할 수 있나: 권한 표 (RBAC)"
+          gist="역할마다 볼 수 있는 것과 고칠 수 있는 것을 칸마다 정해요."
+          desc={<>아파트 출입 카드와 비슷해요. 주민 카드는 자기 집과 공용 공간만, 관리실 카드는 모든 곳을 열어요. 이 표가 <Term k="권한 매트릭스" />예요. 가로는 역할, 세로는 <Term k="리소스" d={EXTRA['리소스']} />, 각 칸은 <Term k="CRUD" d={EXTRA['CRUD']} />(생성·조회·수정·삭제)예요. 일부러 실수를 몇 개 넣어 뒀어요. 경고를 읽고 칸을 눌러 고쳐 보세요.</>}>
           <RBAC />
-          <Note><b>"본인 것만"이 진짜 어려운 부분이에요.</b> 사장님의 '주문 조회'는 자기 가게 주문만, 구매자의 '리뷰 수정'은 자기가 쓴 리뷰만이에요. 범위가 다르면 화면도 달라져요(어드민 목록의 가게 필터가 고정되는 식). 어드민 설계는 <a href="#/plan/admin">07 백오피스 · 연동</a>에서 이어져요.</Note>
+          <Note><b>"본인 것만"이 진짜 어려운 부분이에요.</b> 사장님의 ‘주문 조회’는 자기 가게 주문만 봐요. 구매자의 ‘리뷰 수정’은 자기가 쓴 리뷰만 고쳐요. 범위가 다르면 화면도 달라져요. 예를 들어 사장님이 보는 <Term k="어드민" /> 목록은 가게 필터가 자기 가게로 고정돼요. 어드민 설계는 <a href="#/plan/admin">07 백오피스 · 연동</a>에서 이어져요.</Note>
         </Section>
 
-        <Section id="plan-policy-edge" wide title="엣지 케이스 체크리스트 생성기" desc="화면 유형을 고르면 꼭 물어야 할 '만약에'가 나와요. 정한 것은 체크하고, 마크다운으로 내보내 화면설계서에 붙여요.">
+        <Section id="plan-policy-edge" wide title="“만약에” 목록 만들기 (엣지 케이스)"
+          gist="화면 종류마다 꼭 물어야 할 “만약에”가 정해져 있어요."
+          desc={<>화면 유형을 고르면 꼭 물어야 할 <Term k="엣지 케이스" />가 나와요. 예를 들어 오늘반찬 결제 화면이면 “결제 직전에 품절되면?”을 정해야 해요. 정한 것은 체크하고, 마크다운 파일로 내보내 화면설계서에 붙여요.</>}>
           <EdgeGen />
-          <Note tone="tip">빈 화면·오프라인·권한 없음 화면은 디자인 쪽에 이미 패턴이 있어요. <a href="#/empty/empty-search">검색 결과 없음</a> · <a href="#/empty/empty-offline">오프라인</a> · <a href="#/empty/empty-perm">권한 없음</a> · <a href="#/feedback/feedback-modal">확인 모달</a></Note>
+          <Note tone="tip">빈 화면·인터넷 끊김·권한 없음 화면은 디자인 쪽에 이미 만들어 둔 모양이 있어요. <a href="#/empty/empty-search">검색 결과 없음</a> · <a href="#/empty/empty-offline">오프라인</a> · <a href="#/empty/empty-perm">권한 없음</a> · <a href="#/feedback/feedback-modal">확인 모달</a></Note>
         </Section>
 
-        <Section id="plan-policy-dadak" wide title="'따닥' 데모 — 결제 버튼 중복 클릭" desc="같은 주문서, 같은 23,000원이에요. 왼쪽은 아무것도 막지 않았고, 오른쪽은 화면과 서버에서 함께 막았어요.">
+        <Section id="plan-policy-dadak" wide title="‘따닥’ 데모: 결제 버튼을 두 번 누르면"
+          gist="화면에서 한 번, 서버에서 한 번 더 막아야 돈이 두 번 안 빠져요."
+          desc={<>엘리베이터 버튼을 여러 번 눌러도 엘리베이터는 한 대만 와요. 결제 버튼도 그래야 해요. 양쪽 모두 같은 주문서, 같은 23,000원이에요. 왼쪽은 아무것도 막지 않았고, 오른쪽은 화면과 서버(<Term k="멱등키" d={EXTRA['멱등키']} />)에서 함께 막았어요.</>}>
           <DoubleClick />
         </Section>
 
-        <Section id="plan-policy-gb" wide title="좋은 예 vs 나쁜 예" desc="같은 정책을 한 줄로 쓰면 이렇게 돼요.">
+        <Section id="plan-policy-gb" wide title="한 줄 정책 vs 제대로 쓴 정책"
+          gist="“언제·누가·어떻게·그다음”이 들어가야 개발자가 만들 수 있어요."
+          desc="같은 정책을 한 줄로 쓰면 이렇게 돼요. 위 버튼으로 나쁜 예와 좋은 예를 바꿔 보세요.">
           <GoodBad />
         </Section>
 
-        <Section id="plan-policy-check" title="사수의 체크리스트" desc="정책 장표를 리뷰할 때 제가 실제로 묻는 질문이에요.">
+        <Section id="plan-policy-check" title="사수의 체크리스트"
+          gist="이 8가지에 모두 “네”라고 답하면 정책 장표는 준비된 거예요."
+          desc="정책 장표를 검토할 때 제가 실제로 묻는 질문이에요.">
           <CheckList id="po-ck" items={[
-            '모든 상태에서 구매자·사장님·운영자가 각각 무엇을 할 수 있는지 표로 있나요?',
-            '"취소"와 "반품"의 경계가 어느 상태인지, 이유와 함께 적었나요?',
-            '자동 전이(자동 취소·자동 확정)의 시간 값이 정해졌거나, 오픈 이슈로 올라가 있나요?',
+            '모든 상태마다 구매자·사장님·운영자가 각각 무엇을 할 수 있는지 표로 있나요?',
+            '"취소"와 "반품"이 어느 상태에서 갈리는지, 이유와 함께 적었나요?',
+            '저절로 넘어가는 시간(자동 취소·자동 확정)을 정했거나, 오픈 이슈로 올렸나요?',
             '"관리자"를 운영자/최고관리자로 나누고, "본인 것만"인지 "전체"인지 적었나요?',
-            '삭제할 수 있는데 조회는 못 하는 칸, 비로그인 사용자의 쓰기 권한이 없나요?',
-            '돈과 관련된 기록(결제·정산)을 지우는 대신 정정 기록을 남기나요?',
-            '버튼을 두 번 눌러도, 네트워크가 다시 보내도 한 번만 결제되나요?',
-            '네트워크 끊김·세션 만료·권한 없음일 때 사용자가 보는 화면과 문구가 있나요?',
+            '“지울 수는 있는데 볼 수는 없는” 칸이나, 로그인 안 한 사람이 쓸 수 있는 칸이 없나요?',
+            '돈과 관련된 기록(결제·정산)은 지우지 않고, 정정 기록을 새로 남기나요?',
+            '버튼을 두 번 눌러도, 네트워크가 요청을 다시 보내도 한 번만 결제되나요?',
+            '인터넷 끊김·로그인 풀림·권한 없음일 때 사용자가 보는 화면과 문구가 있나요?',
           ]} />
         </Section>
 
-        <Section id="plan-policy-ref" title="참고" desc="더 깊게 보고 싶을 때요.">
+        <Section id="plan-policy-ref" title="참고"
+          gist="상태 그림, 권한, 중복 결제 방지의 원래 자료예요."
+          desc="더 깊게 보고 싶을 때 보세요.">
           <ul className="po-ref">
-            <li>David Harel, “Statecharts: A Visual Formalism for Complex Systems” (1987) — 상태 다이어그램의 기초</li>
-            <li>OMG UML 명세의 상태 머신 다이어그램 — 상태 · 전이 · 이벤트 · 조건(guard) 표기</li>
-            <li>NIST RBAC 모델 (Ferraiolo · Kuhn) — 역할 기반 접근 제어의 표준 개념</li>
-            <li>RFC 9110 HTTP Semantics — 멱등(idempotent) 메서드의 정의. 결제 같은 요청에 쓰는 Idempotency-Key 헤더는 IETF에서 표준화가 논의 중이에요.</li>
-            <li>Atlassian Agile Coach — 인수 조건(AC)에 예외 조건을 넣는 법</li>
+            <li>David Harel, “Statecharts: A Visual Formalism for Complex Systems” (1987) — <Term k="상태 다이어그램" />의 기초가 된 논문</li>
+            <li>OMG UML 명세의 상태 머신 다이어그램 — 상태 · <Term k="전이" d={EXTRA['전이']} />(넘어감) · 이벤트 · 조건(guard)을 그리는 표준 기호</li>
+            <li>NIST RBAC 모델 (Ferraiolo · Kuhn) — 역할마다 권한을 주는 방식(<Term k="RBAC" d={EXTRA['RBAC']} />)의 표준 개념</li>
+            <li>RFC 9110 HTTP Semantics — 멱등(같은 요청을 여러 번 보내도 한 번 보낸 것과 결과가 같음) 메서드의 정의. 결제 같은 요청에 붙이는 Idempotency-Key 헤더는 IETF에서 표준으로 만들지 논의 중이에요.</li>
+            <li>Atlassian Agile Coach — 인수 조건(AC)에 예외 상황을 넣는 법</li>
             <li>이 도감: <a href="#/plan/flow">02 구조 · 동선</a> · <a href="#/plan/storyboard">03 화면설계서</a> · <a href="#/plan/qa">09 QA · 출시</a> · <a href="#/loading/loading-button">버튼 로딩</a></li>
           </ul>
         </Section>

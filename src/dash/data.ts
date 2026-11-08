@@ -43,10 +43,10 @@ export const RANGES = {
 export interface AlarmDef { id: string; pri: Pri; where: string; what: string; action: string }
 /** 예시 알람 목록 */
 export const ALARMS: AlarmDef[] = [
-  { id: 'A-101', pri: 1, where: '산단 1선', what: '선로 고장 — 차단기 트립', action: '고장 구간 분리 후 건전 구간 역송' },
-  { id: 'A-102', pri: 2, where: '강변 1선', what: '부하율 95% 초과 15분 지속', action: '인접 선로로 부하 절체 검토' },
-  { id: 'A-103', pri: 2, where: '산업단지 변전소 주변압기', what: '유온 90℃ 초과', action: '냉각팬 동작 확인, 부하 감축' },
-  { id: 'A-104', pri: 3, where: '북부 2선', what: '전압 22.4kV 미만', action: '탭 조정 검토' },
+  { id: 'A-101', pri: 1, where: '산단 1선', what: '선로 고장 — 차단기 트립', action: '고장 구간을 끊어 내고, 멀쩡한 구간은 옆 선로로 전기 보내기' },
+  { id: 'A-102', pri: 2, where: '강변 1선', what: '부하율 95% 초과 15분 지속', action: '옆 선로로 부하 일부 옮기기 검토' },
+  { id: 'A-103', pri: 2, where: '산업단지 변전소 주변압기', what: '유온 90℃ 초과', action: '냉각팬이 도는지 확인, 부하 줄이기' },
+  { id: 'A-104', pri: 3, where: '북부 2선', what: '전압 22.4kV 미만', action: '변압기 전압 조절(탭) 검토' },
   { id: 'A-105', pri: 3, where: '강변 2선 R/C-12', what: '개폐기 통신 두절', action: '현장 점검 요청' },
   { id: 'A-106', pri: 3, where: '북부 변전소', what: '출입문 개방', action: 'CCTV 확인' },
 ]

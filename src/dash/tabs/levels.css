@@ -81,11 +81,11 @@
 [data-dash="levels"] .lv-pt em { font-style: normal; text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
 [data-dash="levels"] .lv-pt .dash-spark { color: var(--h-text); }
 [data-dash="levels"] .lv-l3-st { background: var(--h-panel); border: 1px solid var(--h-line); border-radius: 6px; padding: 10px 12px; min-width: 0; }
-[data-dash="levels"] dl { margin: 0; display: flex; flex-direction: column; gap: 6px; font-size: 13px; }
-[data-dash="levels"] dl > div { display: flex; justify-content: space-between; gap: 10px; border-bottom: 1px solid var(--h-line); padding-bottom: 5px; }
-[data-dash="levels"] dl > div:last-child { border-bottom: 0; }
-[data-dash="levels"] dt { color: var(--h-sub); }
-[data-dash="levels"] dd { margin: 0; text-align: right; }
+[data-dash="levels"] .lv-hmi dl { margin: 0; display: flex; flex-direction: column; gap: 6px; font-size: 13px; }
+[data-dash="levels"] .lv-hmi dl > div { display: flex; justify-content: space-between; gap: 10px; border-bottom: 1px solid var(--h-line); padding-bottom: 5px; }
+[data-dash="levels"] .lv-hmi dl > div:last-child { border-bottom: 0; }
+[data-dash="levels"] .lv-hmi dt { color: var(--h-sub); }
+[data-dash="levels"] .lv-hmi dd { margin: 0; text-align: right; }
 
 /* 레벨 4 */
 [data-dash="levels"] .lv-l4 { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 12px; }

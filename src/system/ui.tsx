@@ -2,14 +2,18 @@
 import { useState, type ReactNode } from 'react'
 
 /** 탭 안의 한 덩어리(카드). wide=true 면 그리드 전체 폭 */
-export function Section({ id, title, desc, wide, aside, children }: {
-  id: string; title: ReactNode; desc?: ReactNode; wide?: boolean; aside?: ReactNode; children: ReactNode
+export function Section({ id, title, desc, gist, wide, aside, children }: {
+  id: string; title: ReactNode; desc?: ReactNode
+  /** 한마디로 — 이것만 읽어도 핵심이 잡히는 한 줄 */
+  gist?: ReactNode
+  wide?: boolean; aside?: ReactNode; children: ReactNode
 }) {
   return (
     <section className={'sys-sec' + (wide ? ' wide' : '')} id={id}>
       <header className="sys-sec-head">
         <div>
           <h3>{title}</h3>
+          {gist && <p className="sys-gist"><b>한마디로</b>{gist}</p>}
           {desc && <p>{desc}</p>}
         </div>
         {aside}

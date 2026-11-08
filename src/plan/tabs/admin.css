@@ -275,3 +275,6 @@
 @media (prefers-reduced-motion: reduce) {
   [data-plan="admin"] .ad-hot.on, [data-plan="admin"] .ad-tl-batch.run { animation: none; }
 }
+
+/* 용어 풀이 팝업의 제목이 굵은 글 스타일(b 색)을 물려받아 안 보이지 않게 */
+[data-plan="admin"] .term-pop b { color: inherit; }

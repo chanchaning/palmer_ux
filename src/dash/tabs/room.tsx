@@ -1,9 +1,25 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { Term, TermList } from '../../components/Term'
 import { Range, Seg } from '../../components/ui'
 import { Note, Section, SliderRow, SysGrid } from '../../system/ui'
 import { ALARMS, RANGES, SUBSTATIONS } from '../data'
 import { AnalogBar, Cite, Finding, Hmi, PriBadge, Refs } from '../ui'
 import './room.css'
+
+/** 사전(glossary.ts)에 없는 이 탭 전용 용어 */
+const X: Record<string, string> = {
+  '인간공학': '사람의 몸과 눈, 주의력에 맞춰 일하는 환경을 설계하는 분야예요. 의자 높이, 화면까지 거리, 글자 크기 같은 것을 다뤄요.',
+  '콘솔': '운영자가 앉아 일하는 책상과 모니터 묶음이에요. 모니터 여러 대가 반원처럼 놓여 있어요.',
+  '감독자': '관제실 전체를 조율하는 책임자예요. 보통 운영자 뒤쪽, 조금 높은 자리에 앉아요.',
+  '시청 거리': '눈에서 화면까지의 거리예요. 멀수록 글자가 커야 읽혀요.',
+  '시각도': '물체가 눈에 얼마나 크게 보이는지를 각도로 나타낸 값이에요. 멀리 있는 큰 산과 눈앞의 손톱이 비슷한 크기로 보이는 것처럼, 실제 크기가 아니라 ‘보이는 크기’예요. 단위 ′(분)은 1도의 1/60이에요.',
+  '화소 간격': '화면의 점(화소) 하나와 옆 점 사이의 거리예요. 같은 크기 화면이라도 해상도가 높을수록 점이 촘촘해서 간격이 작아요.',
+  'FHD · QHD · 4K': '화면 해상도 이름이에요. FHD는 1920×1080, QHD는 2560×1440, 4K는 3840×2160개의 점으로 그려요. 숫자가 클수록 점이 촘촘해요.',
+  '경험칙': '표준이나 실험이 정한 숫자가 아니라, 현장에서 써 보니 대체로 맞더라는 기준이에요.',
+  '대비': '글자나 기호가 배경과 얼마나 뚜렷하게 구분되는지예요. 흰 종이 위 검은 글씨는 대비가 높고, 회색 위 연회색 글씨는 낮아요. 3:1처럼 비율로 나타내요.',
+  '번인': '같은 그림을 오래 띄워 두면 화면에 그 자국이 희미하게 남는 현상이에요. 오래 붙여 둔 스티커를 떼면 자국이 남는 것과 비슷해요.',
+  '픽셀 시프트': '화면 전체를 몇 화소씩 아주 조금, 주기적으로 옮기는 기능이에요. 같은 그림이 같은 자리에 계속 머물지 않게 해요.',
+}
 
 /* ================= 공용: 대비 계산 ================= */
 const hexRgb = (h: string) => {
@@ -83,9 +99,9 @@ function ViewDistance() {
   const wallMid = (wallTop + wallBot) / 2
 
   const ZONES = {
-    wall: { name: '벽면 대형 화면', lv: '레벨 1 · 공유', d: '모두가 같은 그림을 봐요. 누가 봐도 같은 결론이 나와야 해서 전체 개요만 올리고, 조작하지 않아요. 멀리서 읽혀야 하니 글자와 기호가 커요.' },
-    desk: { name: '운영자 콘솔', lv: '레벨 2~4 · 개인', d: '모니터 여러 대로 각자 들어가 보는 화면이에요. 팔 길이 정도 거리라 글자는 작아도 되지만, 고개를 돌리는 범위 안에 모아요.' },
-    sup: { name: '감독자 자리', lv: '전체 조율', d: '운영자 뒤, 벽면 화면과 운영자를 함께 볼 수 있는 자리예요. 벽면 화면이 감독자 시선에서도 가리지 않게 배치해요.' },
+    wall: { name: '벽면 대형 화면', lv: '레벨 1 · 모두 함께', d: '모두가 같은 그림을 봐요. 누가 봐도 같은 결론이 나와야 해요. 그래서 전체 개요만 올리고, 여기서 조작하지 않아요. 멀리서 읽혀야 하니 글자와 기호가 커요.' },
+    desk: { name: '운영자 콘솔', lv: '레벨 2~4 · 개인', d: '모니터 여러 대로 각자 자세히 들어가 보는 화면이에요. 팔 길이쯤 떨어져 보니 글자가 작아도 돼요. 대신 고개만 돌려 볼 수 있는 범위 안에 모아 둬요.' },
+    sup: { name: '감독자 자리', lv: '전체 조율', d: '운영자 뒤쪽 자리예요. 여기서 벽면 화면과 운영자를 함께 봐요. 감독자 눈높이에서도 벽면 화면이 가려지지 않게 배치해요.' },
   }
 
   return (
@@ -138,12 +154,12 @@ function ViewDistance() {
           <div className="rm-k">화면</div>
           <Seg value={dispId} onChange={pickDisp} options={DISPS.map(d => [d.id, d.name] as const)} />
           <SliderRow label="눈에서 화면까지 거리" value={dist.toFixed(1)} unit="m" ok={tooClose ? false : undefined}
-            hint={isWall ? <>벽면 전체 높이 {(g.wallH / 1000).toFixed(2)}m → 경험칙상 최소 {minDist.toFixed(1)}m<Cite n={3} />{tooClose && ' — 지금은 너무 가까워요'}</> : '콘솔 모니터는 보통 팔 길이 안팎이에요.'}>
+            hint={isWall ? <>벽면 전체 높이가 {(g.wallH / 1000).toFixed(2)}m예요. 경험칙으로는 그 2배인 {minDist.toFixed(1)}m 이상 떨어져야 해요<Cite n={3} />{tooClose && ' — 지금은 너무 가까워요'}</> : '콘솔 모니터는 보통 팔 길이쯤 떨어져서 봐요.'}>
             <Range value={dist} min={isWall ? 1.5 : 0.4} max={isWall ? 8 : 1.2} step={0.1} onChange={setDist} label="눈에서 화면까지 거리(m)" />
           </SliderRow>
-          <div className="rm-k">글자가 차지할 시각도</div>
-          <Seg value={arc} onChange={setArc} options={[[16, '16′ (최소로 자주 쓰는 값)'], [20, '20′ (여유 있게)']]} />
-          <small className="muted">′는 각도의 분(1도의 1/60)이에요. 16~20′은 2차 자료에서 확인한 값이에요<Cite n={4} />.</small>
+          <div className="rm-k">글자가 눈에 보이는 크기(시각도)</div>
+          <Seg value={arc} onChange={setArc} options={[[16, '16′ (자주 쓰는 최솟값)'], [20, '20′ (여유 있게)']]} />
+          <small className="muted">′는 각도 단위 '분'이에요. 1도의 1/60이에요. 16~20′은 2차 자료에서 확인한 값이에요<Cite n={4} />.</small>
         </div>
 
         <div className="rm-vd-out">
@@ -158,19 +174,20 @@ function ViewDistance() {
             <text x="66" y="40">θ = {arc}′</text>
           </svg>
           <div className="rm-formula">h = 2 × d × tan(θ ÷ 2)</div>
+          <small className="muted">거리(d)와 보이는 각도(θ)로 글자 높이(h)를 구하는 식이에요.</small>
           <dl className="rm-res">
             <div><dt>필요한 글자 높이</dt><dd><b>{mm.toFixed(1)}</b> mm</dd></div>
-            <div><dt>이 화면의 화소 간격</dt><dd>{g.pitch.toFixed(3)} mm</dd></div>
-            <div><dt>글자 높이 (화면 화소)</dt><dd><b>{Math.ceil(px)}</b> px</dd></div>
-            <div><dt>글꼴 크기로 바꾸면</dt><dd>{fs ? <><b>{Math.ceil(fs)}</b> px 이상</> : '측정 중'}</dd></div>
+            <div><dt>이 화면의 점(화소) 간격</dt><dd>{g.pitch.toFixed(3)} mm</dd></div>
+            <div><dt>글자 높이를 화소로 바꾸면</dt><dd><b>{Math.ceil(px)}</b> px</dd></div>
+            <div><dt>글꼴 크기(font-size)로는</dt><dd>{fs ? <><b>{Math.ceil(fs)}</b> px 이상</> : '측정 중'}</dd></div>
           </dl>
-          <small className="muted">{ratio ? <>이 사이트 글꼴(Pretendard 굵게)로 '관제'를 실제로 재 보니 글자 높이가 글꼴 크기의 {Math.round(ratio * 100)}%예요. 글꼴마다 달라서 쓰는 글꼴로 다시 재야 해요.</> : '글꼴을 재는 중이에요.'}</small>
+          <small className="muted">{ratio ? <>이 사이트 글꼴(Pretendard 굵게)로 '관제'를 실제로 재 봤어요. 글자 높이가 글꼴 크기의 {Math.round(ratio * 100)}%예요. 글꼴마다 다르니, 실제로 쓸 글꼴로 다시 재야 해요.</> : '글꼴을 재는 중이에요.'}</small>
         </div>
       </div>
       <div className="rm-sample" aria-hidden="true">
-        <span className="muted">벽면 화면 화소 {fs ? Math.ceil(fs) : '–'}px 글꼴로 쓴 예</span>
+        <span className="muted">벽면 화면에서 {fs ? Math.ceil(fs) : '–'}px 글꼴로 쓴 예</span>
         <div className="rm-sample-box"><span style={{ fontSize: Math.min(72, Math.max(10, fs ?? 16)) }}>강변 1선 83%</span></div>
-        <small className="muted">지금 보는 화면과 화소 크기가 달라서 실제 보이는 크기는 아니에요. 크기 관계만 보세요.</small>
+        <small className="muted">지금 보고 계신 화면과 화소 크기가 달라서, 실제로 보이는 크기는 아니에요. 크기 관계만 보세요.</small>
       </div>
     </div>
   )
@@ -186,8 +203,8 @@ function LightAndScreen() {
   const [scr, setScr] = useState<Scr>('gray')
   const fit = (light === 'bright' && scr === 'gray') || (light === 'dim' && scr === 'dark')
   const msg = light === 'bright'
-    ? scr === 'gray' ? '밝은 방과 밝기가 비슷해서 눈이 편하고, 조명이 비쳐도 잘 안 보여요.' : '어두운 화면에 천장 조명과 창이 비쳐 보여요. 반사가 값을 가려요.'
-    : scr === 'dark' ? '어두운 방에서 화면이 눈부시지 않아요. 알람 색은 다크 배경에 맞게 밝혀 써요.' : '화면이 방에서 가장 밝은 물체가 돼요. 눈이 계속 화면 밝기에 맞추느라 피곤해요.'
+    ? scr === 'gray' ? '방과 화면 밝기가 비슷해서 눈이 편해요. 천장 조명도 화면에 잘 비치지 않아요.' : '어두운 화면에 천장 조명과 창이 거울처럼 비쳐요. 비친 빛이 값을 가려요.'
+    : scr === 'dark' ? '어두운 방에서 화면이 눈부시지 않아요. 알람 색은 다크 배경에 맞게 더 밝은 색으로 바꿔 써요.' : '화면이 방에서 가장 밝은 물건이 돼요. 눈이 계속 화면 밝기에 맞추느라 피곤해져요.'
   return (
     <div className="rm-ls">
       <div className="rm-ls-ctl">
@@ -235,7 +252,7 @@ function DarkContrast() {
     <div className="rm-dc" ref={ref}>
       <div className="sys-table-wrap">
         <table className="sys-table rm-dc-t">
-          <thead><tr><th>우선순위</th><th>회색 배경 (기본 색)</th><th>다크 배경 (기본 색 그대로)</th><th>다크 배경 (밝힌 색)</th></tr></thead>
+          <thead><tr><th>우선순위</th><th>회색 배경 (기본 색)</th><th>다크 배경 (기본 색 그대로)</th><th>다크 배경 (밝게 바꾼 색)</th></tr></thead>
           <tbody>{rows.map(r => (
             <tr key={r.k}>
               <td><PriBadge p={r.n} label /></td>
@@ -246,7 +263,7 @@ function DarkContrast() {
           ))}</tbody>
         </table>
       </div>
-      <small className="muted">대비는 이 페이지가 쓰는 실제 색값으로 계산했어요(WCAG 상대 휘도 공식). 기호·막대 같은 UI 요소는 3:1 이상이 기준이에요<Cite n={7} />.</small>
+      <small className="muted">대비는 이 페이지가 실제로 쓰는 색값으로 계산했어요. 계산식은 WCAG의 상대 휘도 공식(색의 밝기를 숫자로 바꾸는 식)이에요. 기호·막대 같은 화면 요소는 배경과의 대비가 3:1 이상이어야 해요<Cite n={7} />.</small>
     </div>
   )
 }
@@ -284,9 +301,9 @@ function Monitors() {
   return (
     <div className="rm-mon">
       <div className="rm-row">
-        <Seg value={layout} onChange={v => { setLayout(v); setT0(null) }} options={[['moving', '화면마다 다른 배치'], ['fixed', '알람 목록 고정']]} />
+        <Seg value={layout} onChange={v => { setLayout(v); setT0(null) }} options={[['moving', '자리가 바뀌는 배치'], ['fixed', '알람 목록 자리 고정']]} />
         <button type="button" className="btn sm" onClick={start} disabled={t0 !== null}>{t0 === null ? '새 알람 울리기' : '알람 목록을 누르세요'}</button>
-        <span className="muted">평균 — 다른 배치 <b>{avg('moving')}</b> · 고정 <b>{avg('fixed')}</b></span>
+        <span className="muted">평균 찾는 시간 — 바뀌는 배치 <b>{avg('moving')}</b> · 고정 배치 <b>{avg('fixed')}</b></span>
       </div>
       <div className="rm-mon-desk">
         {roles.map((r, i) => {
@@ -302,7 +319,7 @@ function Monitors() {
           )
         })}
       </div>
-      <p className="muted rm-mon-cap" aria-live="polite">{t0 !== null ? `어느 모니터에 알람 목록이 있을까요?${miss ? ` (헛짚음 ${miss}번)` : ''}` : '버튼을 누르면 화면 내용이 가려지고 새 알람이 와요. 알람 목록을 찾아 누르세요. 두 배치를 번갈아 해 보세요.'}</p>
+      <p className="muted rm-mon-cap" aria-live="polite">{t0 !== null ? `어느 모니터에 알람 목록이 있을까요?${miss ? ` (잘못 누름 ${miss}번)` : ''}` : '버튼을 누르면 화면 내용이 가려지고 새 알람이 와요. 알람 목록을 찾아 누르세요. 두 배치를 번갈아 해 보세요.'}</p>
     </div>
   )
 }
@@ -314,7 +331,7 @@ function BurnIn() {
   return (
     <div className="rm-bi">
       <div className="rm-row">
-        <Seg value={mode} onChange={setMode} options={[['static', '고정 요소 그대로'], ['shift', '번인 줄이기 적용']]} />
+        <Seg value={mode} onChange={setMode} options={[['static', '고정 요소 그대로'], ['shift', '자국(번인) 줄이기 적용']]} />
         <button type="button" className="btn sm ghost" aria-pressed={reveal} onClick={() => setReveal(r => !r)}>{reveal ? '원래 화면 보기' : '오래 켠 뒤 회색 화면 띄우기'}</button>
       </div>
       <div className={'rm-bi-scr ' + mode + (reveal ? ' reveal' : '')}>
@@ -328,20 +345,20 @@ function BurnIn() {
           </div>
         )}
       </div>
-      <small className="muted">시뮬레이션이에요. 실제 잔상은 패널 종류(LCD·OLED 등)와 켜 둔 시간에 따라 달라요.</small>
+      <small className="muted">흉내 낸 화면이에요. 실제 자국은 패널 종류(LCD·OLED 등)와 켜 둔 시간에 따라 달라요.</small>
     </div>
   )
 }
 
 /* ================= 체크리스트 ================= */
 const CHECK = [
-  '벽면 화면에는 레벨 1(전체 개요)만 올리고, 누가 조작해도 바뀌지 않게 했나요?',
-  '가장 먼 자리에서 시청 거리를 재고, 글자 높이를 계산식으로 확인했나요?',
-  '관제실 조명(주간·야간)을 확인하고 배경 밝기를 그에 맞췄나요?',
-  '다크 화면을 쓴다면 알람 색을 다크 배경에서 다시 검사했나요?',
+  '벽면 화면에는 레벨 1(전체 개요)만 올렸나요? 누가 조작해도 바뀌지 않게 했나요?',
+  '가장 먼 자리에서 화면까지 거리를 재고, 글자 높이를 계산식으로 확인했나요?',
+  '관제실 조명(낮·밤)을 확인하고, 화면 배경 밝기를 거기에 맞췄나요?',
+  '다크 화면을 쓴다면, 알람 색을 다크 배경에서 다시 검사했나요?',
   '알람 목록은 어느 화면에서든 같은 모니터, 같은 자리에 있나요?',
-  '12시간 켜 둬도 같은 자리에 오래 머무는 밝은 요소가 적나요?',
-  '감독자 자리에서도 벽면 화면이 가리지 않나요?',
+  '12시간 켜 둬도 한자리에 오래 머무는 밝은 요소가 적나요?',
+  '감독자 자리에서도 벽면 화면이 가려지지 않나요?',
 ]
 function CheckList() {
   const [on, setOn] = useState(() => CHECK.map(() => false))
@@ -360,72 +377,81 @@ function CheckList() {
 export default function Tab() {
   return (
     <div data-dash="room">
+      <TermList keys={['인간공학', '콘솔', '감독자', '시청 거리', '시각도', '화소 간격', 'FHD · QHD · 4K', '경험칙', '대비', '우선순위', '번인', '픽셀 시프트', 'HMI', '인수인계']} extra={X} />
       <SysGrid>
-        <Section id="dash-room-why" wide title="관제 화면은 방 안에서 완성돼요"
-          desc={<>같은 화면도 몇 미터 떨어져 보는지, 방이 얼마나 밝은지, 몇 시간째 보고 있는지에 따라 다르게 읽혀요. 관제센터의 인간공학 설계는 ISO 11064가 다뤄요<Cite n={1} /><Cite n={2} />.</>}>
+        <Section id="dash-room-why" wide title="같은 화면도 방에 따라 다르게 보여요"
+          gist="화면만 따로 디자인하지 않아요. 방, 책상, 화면을 함께 맞춰요."
+          desc={<>극장 맨 앞줄과 맨 뒷줄에서 보는 스크린은 느낌이 달라요. 관제 화면도 몇 미터 떨어져 보는지, 방이 얼마나 밝은지, 몇 시간째 보고 있는지에 따라 다르게 읽혀요. 관제센터를 사람에게 맞게 설계하는 방법(<Term k="인간공학" d={X['인간공학']} />)은 ISO 11064라는 표준이 다뤄요<Cite n={1} /><Cite n={2} />.</>}>
           <div className="rm-why">
             <Finding src={<>ISO 11064 관제센터 인간공학 설계 — 원칙 수준 한국어 요약</>}>
-              관제실 배치, 작업대, 표시 장치는 따로 정하지 않아요. 운영자가 하는 일과 시야에서 출발해 방 → 작업대 → 화면 순서로 함께 맞춰요.
+              관제실 배치, 작업대, 화면을 따로따로 정하지 않아요. 운영자가 하는 일과 눈에 보이는 범위에서 출발해요. 그리고 방 → 작업대 → 화면 순서로 함께 맞춰요.
             </Finding>
             <ol className="rm-iso" aria-label="ISO 11064 중 이 탭과 관련된 부분">
               <li><small>Part 4 (2013)</small><b>작업대 배치와 치수</b><span>콘솔 높이, 모니터 위치, 벽면 화면까지의 시선</span></li>
-              <li><small>Part 5 (2008)</small><b>표시와 조작</b><span>무엇을 어떤 크기·위치로 보여주고, 어떻게 조작하나</span></li>
+              <li><small>Part 5 (2008)</small><b>화면 표시와 조작 장치</b><span>무엇을 어떤 크기와 위치로 보여 주고, 어떻게 조작하나</span></li>
             </ol>
           </div>
-          <Note>표준 원문의 구체적인 시청 거리 수치는 제가 직접 확인하지 못했어요. 그래서 이 탭은 <b>계산하는 방법</b>과 원칙을 보여주고, 2차 자료의 경험칙은 '보고된 수치'로 표시했어요.</Note>
+          <Note>표준 원문에 적힌 시청 거리 숫자는 제가 직접 확인하지 못했어요. 그래서 이 탭은 <b>직접 계산하는 방법</b>과 원칙을 보여 줘요. 2차 자료에서 가져온 <Term k="경험칙" d={X['경험칙']} />은 '보고된 수치'로 표시했어요.</Note>
         </Section>
 
-        <Section id="dash-room-distance" wide title="관제실 단면 — 시청 거리와 글자 크기"
-          desc="구역을 누르면 그 자리에서 보는 화면이 설명돼요. 화면과 거리를 바꾸면 필요한 글자 크기가 다시 계산돼요.">
+        <Section id="dash-room-distance" wide title="화면까지 거리에 따라 필요한 글자 크기"
+          gist="가장 먼 자리에서도 읽히게 계산해요. 글자가 너무 커지면 정보를 줄여요."
+          desc={<>멀리 있는 표지판 글씨가 커야 읽히는 것과 같아요. 아래 그림은 관제실을 옆에서 자른 모습(단면)이에요. 구역을 누르면 그 자리에서 보는 화면이 설명돼요. 화면 종류와 <Term k="시청 거리" d={X['시청 거리']} />를 바꾸면 필요한 글자 크기를 다시 계산해요. 계산에는 글자가 눈에 보이는 크기(<Term k="시각도" d={X['시각도']} />)와 화면의 <Term k="화소 간격" d={X['화소 간격']} />을 써요.</>}>
           <ViewDistance />
-          <Note tone="tip"><b>가장 먼 자리 기준으로 계산해요.</b> 벽면 화면은 맨 뒤 감독자 자리에서도 읽혀야 해요. 계산 결과가 너무 크면 글자를 키우기보다 벽면에 올리는 정보를 줄여요. 그게 <a href="#/dash/levels">01 화면 위계</a>의 레벨 1이에요.</Note>
+          <Note tone="tip"><b>가장 먼 자리를 기준으로 계산해요.</b> 벽면 화면은 맨 뒤 <Term k="감독자" d={X['감독자']} /> 자리에서도 읽혀야 해요. 계산한 글자가 너무 크게 나오면, 글자를 키우기보다 벽면에 올리는 정보를 줄여요. 그게 <a href="#/dash/levels">01 화면 위계</a>에서 말한 레벨 1이에요.</Note>
         </Section>
 
-        <Section id="dash-room-light" wide title="다크냐 라이트냐, 정답은 조명이에요"
-          desc={<>ISA-101 쪽은 밝은 관제실에 회색 배경을 권해요<Cite n={5} />. 회색 배경은 눈부심과 반사를 줄여요<Cite n={6} />. 어두운 관제실이나 야간엔 다크 화면이 맞을 수 있어요. 조합을 바꿔 보세요.</>}>
+        <Section id="dash-room-light" wide title="다크 화면이냐 밝은 화면이냐는 방 조명이 정해요"
+          gist="밝은 방에는 회색 배경, 어두운 방에는 다크 배경이 맞아요."
+          desc={<>불 끈 방에서 휴대폰을 보면 눈이 부시죠. 반대로 햇빛 아래에서는 어두운 화면이 잘 안 보여요. 관제실도 같아요. ISA-101 쪽은 밝은 관제실에 회색 배경을 권해요<Cite n={5} />. 회색 배경은 눈부심과 반사를 줄여 줘요<Cite n={6} />. 어두운 관제실이나 밤에는 다크 화면이 맞을 수 있어요. 조합을 바꿔 보세요.</>}>
           <LightAndScreen />
         </Section>
 
         <Section id="dash-room-darkcolor" wide title="다크 화면에서는 알람 색을 다시 맞춰요"
-          desc="회색 배경에 맞춘 알람 색을 다크 배경에 그대로 쓰면 대비가 떨어지는 색이 생겨요. 실제 대비를 계산해 봤어요.">
+          gist="다크 배경에서는 알람 색을 더 밝게 바꾸고, 대비를 다시 재요."
+          desc={<>회색 배경에 맞춘 알람 색을 다크 배경에 그대로 쓰면, 배경과 잘 구분되지 않는 색이 생겨요. 이 구분되는 정도를 <Term k="대비" d={X['대비']} />라고 해요. 실제 대비를 계산해 봤어요.</>}>
           <DarkContrast />
-          <Note>회색 배경 위에서도 주황(높음)과 노랑(주의)은 3:1에 못 미쳐요. 밝은 색끼리라 그래요. 그래서 우선순위는 <b>색만으로 구분하지 않고</b> 모양(■▲●)과 숫자, 진한 테두리를 함께 써요. 자세한 색 규칙은 <a href="#/dash/color">02 회색이 기본, 색은 신호</a>에서 이어져요.</Note>
+          <Note>회색 배경 위에서도 주황(높음)과 노랑(주의)은 3:1에 못 미쳐요. 둘 다 밝은 색이라 밝은 회색과 잘 구분되지 않아요. 그래서 <Term k="우선순위" />는 <b>색만으로 구분하지 않아요.</b> 모양(■▲●), 숫자, 진한 테두리를 함께 써요. 자세한 색 규칙은 <a href="#/dash/color">02 회색이 기본, 색은 신호</a>에서 이어져요.</Note>
         </Section>
 
-        <Section id="dash-room-monitors" wide title="멀티 모니터 — 알람 목록은 늘 같은 자리"
-          desc="콘솔에 모니터가 여러 대면, 화면을 바꿀 때마다 무엇이 어디에 있는지 다시 찾게 돼요. 두 배치로 알람 목록 찾기를 해 보세요.">
+        <Section id="dash-room-monitors" wide title="모니터가 여러 대여도 알람 목록은 늘 같은 자리에"
+          gist="알람 목록 자리를 고정하면, 눈이 저절로 그쪽을 찾아가요."
+          desc={<>냉장고에서 우유 자리가 매번 바뀌면 찾는 데 시간이 걸리죠. <Term k="콘솔" d={X['콘솔']} />에 모니터가 여러 대 있을 때도 같아요. 화면을 바꿀 때마다 무엇이 어디 있는지 다시 찾게 돼요. 두 가지 배치로 알람 목록 찾기를 해 보세요.</>}>
           <Monitors />
           <div className="rm-rules">
-            <div><b>알람 목록은 고정</b><p>어느 화면을 열어도 알람 목록은 같은 모니터, 같은 자리. 눈이 위치를 외워요.</p></div>
-            <div><b>모니터마다 역할</b><p>주 작업(레벨 2)은 정면, 상세(레벨 3·4)는 옆. 역할이 바뀌지 않게 해요.</p></div>
-            <div><b>화면 간 일관성</b><p>시각, 빵부스러기, 메뉴 위치를 모든 모니터에서 같게 둬요.</p></div>
+            <div><b>알람 목록은 고정</b><p>어느 화면을 열어도 알람 목록은 같은 모니터, 같은 자리에 둬요. 그러면 눈이 위치를 외워요.</p></div>
+            <div><b>모니터마다 역할</b><p>주 작업(레벨 2) 화면은 정면에, 상세(레벨 3·4) 화면은 옆에 둬요. 역할이 바뀌지 않게 해요.</p></div>
+            <div><b>모든 모니터를 같은 규칙으로</b><p>시각, 빵부스러기(지금 위치를 보여 주는 경로 줄), 메뉴 위치를 모든 모니터에서 같게 둬요.</p></div>
           </div>
         </Section>
 
-        <Section id="dash-room-shift" title="12시간 켜 두는 화면"
-          desc="교대 근무자는 한 화면을 몇 시간씩 봐요. 같은 자리에 오래 머무는 밝은 요소는 패널에 잔상(번인)을 남길 수 있어요.">
+        <Section id="dash-room-shift" title="12시간 켜 두는 화면은 자국이 남지 않게"
+          gist="밝은 그림이 한자리에 오래 머물지 않게 해요. 화면 보호기는 쓰지 않아요."
+          desc={<>교대 근무자는 한 화면을 몇 시간씩 봐요. 같은 자리에 밝은 그림이 오래 머물면, 화면에 그 자국이 남을 수 있어요(<Term k="번인" d={X['번인']} />). 오래 붙여 둔 스티커를 떼면 자국이 남는 것과 비슷해요.</>}>
           <BurnIn />
           <ul className="rm-list">
-            <li><b>고정 요소를 줄여요.</b> 큰 로고·밝은 머리글은 빼거나 어둡게.</li>
-            <li><b>조금씩 옮겨요.</b> 테두리 몇 화소 단위로 주기적으로 움직이는 기능(픽셀 시프트)을 켜요.</li>
+            <li><b>고정 요소를 줄여요.</b> 큰 로고나 밝은 머리글은 빼거나 어둡게 해요.</li>
+            <li><b>조금씩 옮겨요.</b> 화면을 몇 화소씩 주기적으로 움직이는 기능(<Term k="픽셀 시프트" d={X['픽셀 시프트']} />)을 켜요.</li>
             <li><b>화면 보호기는 안 돼요.</b> 관제 화면은 꺼지거나 가려지면 안 돼요.</li>
-            <li><b>피로를 줄여요.</b> 개인 콘솔 밝기는 운영자가 조절할 수 있게, 교대 인수인계는 <a href="#/dash/ops">08 기획 · 운영 정의</a>에서.</li>
+            <li><b>피로를 줄여요.</b> 개인 콘솔 밝기는 운영자가 직접 조절할 수 있게 해요. 교대 <Term k="인수인계" />는 <a href="#/dash/ops">08 기획 · 운영 정의</a>에서 이어져요.</li>
           </ul>
         </Section>
 
-        <Section id="dash-room-check" title="관제실 화면 점검표" desc="현장 답사 때 제가 실제로 확인하는 것들이에요.">
+        <Section id="dash-room-check" title="관제실 화면 점검표"
+          gist="현장에 가기 전에 이 7가지를 확인해요."
+          desc="현장에 가 볼 때 제가 실제로 확인하는 것들이에요.">
           <CheckList />
         </Section>
 
         <Refs items={[
           { kind: 'standard', text: 'ISO 11064-4:2013 Ergonomic design of control centres — Part 4: Layout and dimensions of workstations', url: 'https://www.iso.org/standard/44691.html' },
           { kind: 'standard', text: 'ISO 11064-5:2008 Ergonomic design of control centres — Part 5: Displays and controls' },
-          { kind: 'reported', text: '벽면 화면은 화면 높이의 2배 이상 떨어져서 본다 — 2차 자료의 경험칙. 표준 원문 수치는 미확인.' },
-          { kind: 'reported', text: '글자 높이 시각도 16~20 arcmin — 인간공학 지침을 인용한 2차 자료의 값. 계산식(h = 2·d·tan(θ/2))은 기하학이에요.' },
+          { kind: 'reported', text: '벽면 화면은 화면 높이의 2배 이상 떨어져서 봐요 — 2차 자료의 경험칙이에요. 표준 원문의 수치는 확인하지 못했어요.' },
+          { kind: 'reported', text: '글자 높이의 시각도 16~20 arcmin(분) — 인간공학 지침을 인용한 2차 자료의 값이에요. 계산식(h = 2·d·tan(θ/2))은 기하학 공식이에요.' },
           { kind: 'standard', text: 'ANSI/ISA-101.01-2015 Human Machine Interfaces for Process Automation Systems (고성능 HMI)', url: 'https://blog.isa.org/the-high-performance-hmi' },
           { kind: 'book', text: 'Hollifield, B., Oliver, D., Nimmo, I., Habibi, E. The High Performance HMI Handbook (PAS, 2008) — 회색 배경과 눈부심' },
           { kind: 'standard', text: 'W3C WCAG 2.x — 1.4.11 비텍스트 대비 3:1, 대비 계산식(상대 휘도)', url: 'https://www.w3.org/TR/WCAG21/#non-text-contrast' },
-          { kind: 'practice', text: '멀티 모니터 역할 고정, 번인 줄이기, 화면 크기·거리 예시는 실무 경험과 설명용 예시예요.' },
+          { kind: 'practice', text: '모니터 역할 고정, 번인 줄이기, 화면 크기·거리 예시는 실무 경험과 설명을 위한 예시예요.' },
         ]} />
       </SysGrid>
     </div>

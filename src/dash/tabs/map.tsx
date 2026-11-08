@@ -1,5 +1,6 @@
 /* 06 지도 · 계통도 — 가상의 누리시 설비 지도(SVG)와 단선도 */
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent as RPointerEvent, type ReactNode } from 'react'
+import { Term, TermList } from '../../components/Term'
 import { Seg } from '../../components/ui'
 import { Note, Section, SysGrid } from '../../system/ui'
 import { ALARMS, PRI, RANGES, SUBSTATIONS, rng, type AlarmDef, type Pri } from '../data'
@@ -126,12 +127,12 @@ function BaseMap({ color, labels = true, k = 1 }: { color: boolean; labels?: boo
 /* ================= 1. 지도와 계통도, 무엇을 묻나 ================= */
 type View = 'map' | 'sld' | 'both'
 const QUESTIONS: { q: string; a: View; why: string }[] = [
-  { q: '점검반을 어느 길로 보내야 가장 빨리 도착하나요?', a: 'map', why: '거리·도로·방향이 답이에요. 계통도에는 실제 거리가 없어요.' },
-  { q: '산단 1선이 트립됐어요. 어느 개폐기를 열면 고장 구간만 떨어지나요?', a: 'sld', why: '어느 구간이 어느 개폐기 사이에 있는지, 즉 연결 관계가 답이에요. 지도에선 선로가 겹치고 꺾여서 순서가 안 보여요.' },
-  { q: '정전 신고 전화가 몰리는 동네가 어디인가요?', a: 'map', why: '신고 주소를 동네 위에 찍어 봐야 해요. 위치 문제예요.' },
-  { q: '강변 1선 부하를 옆 선로로 넘길 수 있나요?', a: 'sld', why: '어떤 연계 개폐기로 어느 선로와 이어져 있는지, 그리고 받는 쪽 여유가 답이에요.' },
-  { q: '도로 공사 구역 근처에 우리 설비가 있나요?', a: 'map', why: '공사 구역과 겹치는지가 질문이니까 지도예요.' },
-  { q: '강변 2선 R/C-12 통신이 끊겼어요. 이 개폐기가 맡은 구간과 현장 위치는요?', a: 'both', why: '맡은 구간(연결)은 계통도에서, 출동할 위치는 지도에서 봐요. 두 화면이 같은 이름·같은 선택을 공유해야 하는 이유예요.' },
+  { q: '점검반을 어느 길로 보내야 가장 빨리 도착하나요?', a: 'map', why: '답은 거리·도로·방향이에요. 계통도에는 실제 거리가 없어요.' },
+  { q: '산단 1선 차단기가 내려갔어요(트립). 어느 개폐기를 열면 고장 구간만 떼어 낼 수 있나요?', a: 'sld', why: '답은 연결 관계예요. 어느 구간이 어느 개폐기 사이에 있는지 봐야 해요. 지도에서는 전깃줄이 겹치고 꺾여서 순서가 안 보여요.' },
+  { q: '정전 신고 전화가 몰리는 동네가 어디인가요?', a: 'map', why: '신고가 들어온 주소를 지도 위에 찍어 봐야 해요. 위치를 묻는 질문이에요.' },
+  { q: '강변 1선에 걸린 전기 사용량(부하)을 옆 선로로 넘길 수 있나요?', a: 'sld', why: '두 가지를 봐야 해요. 어느 선로와 연계 개폐기로 이어져 있는지, 그리고 받는 쪽에 여유가 있는지예요.' },
+  { q: '도로 공사 구역 근처에 우리 설비가 있나요?', a: 'map', why: '공사 구역과 겹치는지 묻고 있어요. 위치 문제라서 지도로 봐요.' },
+  { q: '강변 2선 R/C-12 통신이 끊겼어요. 이 개폐기가 맡은 구간과 현장 위치는요?', a: 'both', why: '이 개폐기가 맡은 구간(연결)은 계통도에서 봐요. 출동할 위치는 지도에서 봐요. 그래서 두 화면은 같은 이름을 쓰고, 한쪽에서 고른 설비를 다른 쪽에도 표시해야 해요.' },
 ]
 function WhichView() {
   const [i, setI] = useState(1)
@@ -160,7 +161,7 @@ function WhichView() {
           <svg viewBox="0 40 1000 170" className="mp-thumb" aria-hidden="true">
             <SldSvg st={NORMAL_ST} mini />
           </svg>
-          <div><b>계통도(단선도)</b> · 연결 문제<p>무엇이 무엇에 이어져 있나, 어디를 끊으면 어디가 꺼지나</p></div>
+          <div><b>계통도(단선도)</b> · 연결 문제<p>무엇이 무엇에 이어져 있나, 어디를 끊으면 어디가 정전되나</p></div>
           {hit('sld') && <span className="mp-hit">이 화면으로 답해요</span>}
         </div>
         <p className="mp-why"><b>{q.a === 'map' ? '지도' : q.a === 'sld' ? '계통도' : '둘 다'}</b> — {q.why}</p>
@@ -401,10 +402,10 @@ function CityMap() {
                     </div>
                   )
                 })() : <span className="mp-ok">정상 · 알람 없음</span>}
-                {selDev && !selItem?.devs.every(d => d.id === sel) && selItem && <small className="muted">지금 배율에선 {selItem.devs.length}개 묶음 안에 있어요(테두리 표시).</small>}
+                {selDev && !selItem?.devs.every(d => d.id === sel) && selItem && <small className="muted">지금 확대 단계에서는 {selItem.devs.length}개짜리 묶음 안에 들어 있어요(테두리로 표시).</small>}
               </>
             ) : (
-              <><small>선택 없음</small><b className="mp-pname">설비나 묶음을 눌러 보세요</b><span className="muted">묶음을 누르면 그 자리로 확대돼요. 같은 전주에 겹친 설비는 ‘거리’ 배율에서 눌러 펼쳐요.</span></>
+              <><small>선택 없음</small><b className="mp-pname">설비나 묶음을 눌러 보세요</b><span className="muted">묶음을 누르면 그 자리로 확대돼요. 한 전주에 겹쳐 있는 설비는 가장 크게 확대한 ‘거리’ 단계에서 누르면 둥글게 펼쳐져요.</span></>
             )}
           </div>
           <div className="mp-alist">
@@ -428,7 +429,7 @@ function CityMap() {
         <span><svg width="12" height="12" viewBox="-6 -6 12 12" aria-hidden="true"><circle className="lg-tr" r="3.6" /></svg>주상변압기</span>
         <span><svg width="12" height="12" viewBox="-6 -6 12 12" aria-hidden="true"><circle className="lg-tr" r="2.4" /></svg>전주</span>
         <span><svg width="20" height="20" viewBox="-10 -10 20 20" aria-hidden="true"><circle className="lg-cl" r="9" /></svg>묶음(숫자 = 설비 수)</span>
-        <span><svg width="26" height="8" viewBox="0 0 26 8" aria-hidden="true"><line className="lg-fault" x1="1" y1="4" x2="25" y2="4" /></svg>고장 추정 구간</span>
+        <span><svg width="26" height="8" viewBox="0 0 26 8" aria-hidden="true"><line className="lg-fault" x1="1" y1="4" x2="25" y2="4" /></svg>고장 났을 것으로 보이는 구간</span>
         <span className="lg-pri"><PriBadge p={1} label /><PriBadge p={2} label /><PriBadge p={3} label /></span>
       </div>
     </div>
@@ -447,11 +448,11 @@ const OV_PTS: { x: number; y: number; k: Kind | 'alarm'; name: string }[] = [
   { x: 168, y: 108, k: 'sw', name: '강변 3선 R/C-5' },
 ]
 const OV_TEXT: Record<OvMode, [string, string]> = {
-  raw: ['그대로 그리기', '데이터에 들어온 순서대로 그렸더니 알람이 맨 먼저 그려져 변압기 아래에 깔렸어요. 7개가 있는지, 이상이 있는지 알 수 없어요.'],
-  top: ['이상은 맨 위', '그리는 순서를 우선순위로 정렬해 이상이 늘 맨 위에 와요. 선택한 설비는 그보다 위. 가장 먼저 해야 하는 처리예요.'],
-  cluster: ['묶음 + 이상 배지', '몇 개가 겹쳤는지 숫자로, 그 안의 가장 높은 우선순위를 배지로 보여줘요. 이상이 묶음에 묻히지 않아요.'],
-  spider: ['펼치기', '가장 크게 확대해도 같은 좌표(한 전주의 변압기 3대)인 설비는 둥글게 펼쳐 선으로 원래 자리와 이어요.'],
-  list: ['목록으로 보기', '펼쳐도 많으면 목록이 나아요. 이상부터, 우선순위 순으로 정렬해요.'],
+  raw: ['그대로 그리기', '데이터가 들어온 순서대로 그렸어요. 알람이 가장 먼저 그려져서 변압기 밑에 깔렸어요. 설비가 7개인지, 이상이 있는지 알 수 없어요.'],
+  top: ['이상은 맨 위', '그리는 순서를 바꿔서 이상 설비를 늘 맨 위에 그려요. 사용자가 선택한 설비는 그보다도 위에 그려요. 겹침 처리에서 가장 먼저 할 일이에요.'],
+  cluster: ['묶음 + 이상 배지', '몇 개가 겹쳤는지는 숫자로 보여줘요. 그 안에서 가장 급한 알람의 우선순위는 배지로 붙여요. 그래서 이상이 묶음 속에 묻히지 않아요.'],
+  spider: ['펼치기', '한 전주에 달린 변압기 3대처럼 좌표가 똑같으면 아무리 확대해도 겹쳐요. 이럴 땐 둥글게 펼쳐 놓고, 선으로 원래 자리와 이어 줘요.'],
+  list: ['목록으로 보기', '펼쳐도 너무 많으면 목록이 나아요. 이상 설비를 맨 위에 두고, 급한 순서대로 정렬해요.'],
 }
 function Overlap() {
   const [m, setM] = useState<OvMode>('raw')
@@ -492,9 +493,9 @@ function Overlap() {
           <b>{OV_TEXT[m][0]}</b>
           <p>{OV_TEXT[m][1]}</p>
           <ul className="mp-rules">
-            <li>그리는 순서: 정상 설비 → 묶음 → 이상(우선순위 낮은 것부터) → 선택한 것.</li>
-            <li>글자 이름표가 겹치면 이름표를 숨기고, 이상 설비와 선택한 설비 이름만 남겨요.</li>
-            <li>묶음 크기는 개수에 따라 조금만 커지게. 너무 커지면 지도를 가려요.</li>
+            <li>그리는 순서: 정상 설비 → 묶음 → 이상 설비(덜 급한 것부터) → 선택한 설비. 나중에 그린 것이 위에 올라와요.</li>
+            <li>이름표끼리 겹치면 이름표를 숨겨요. 이상 설비와 선택한 설비의 이름만 남겨요.</li>
+            <li>묶음 원은 개수가 늘어도 조금만 커지게 해요. 너무 크면 지도를 가려요.</li>
           </ul>
         </div>
       </div>
@@ -526,7 +527,7 @@ function BaseContrast() {
         <span>오른쪽 배경 지도 진하기 <b>{dim}%</b></span>
         <input type="range" min={20} max={100} value={dim} onChange={e => setDim(+e.target.value)} style={{ ['--p' as string]: ((dim - 20) / 80) * 100 + '%' }} />
       </label>
-      <p className="mp-bc-q">두 지도에 같은 알람 2건(<PriBadge p={2} /> 강변 1선 · <PriBadge p={3} /> 강변 2선 R/C-12)이 있어요. 왼쪽에선 주황 도로와 노란 알람이, 초록 설비 사이에서 경쟁해요.</p>
+      <p className="mp-bc-q">두 지도에는 같은 알람 2건(<PriBadge p={2} /> 강변 1선 · <PriBadge p={3} /> 강변 2선 R/C-12)이 있어요. 왼쪽 컬러 지도에서는 노란 알람이 주황 도로, 초록 설비와 섞여서 눈에 덜 띄어요.</p>
     </div>
   )
 }
@@ -591,18 +592,18 @@ function protect(st: SldSt): { st: SldSt; trips: SwId[] } {
 }
 
 const STEPS: { t: string; d: string; at: string; st: SldSt; log: string }[] = [
-  { t: '정상 운전', at: '14:00:00', st: NORMAL_ST, log: '정상 운전. 연계 T/S는 평소 열림.',
-    d: '산단 1선(왼쪽)과 산단 2선(오른쪽)이 각자 변전소에서 전기를 받아요. 가운데 연계 개폐기(T/S)는 평소 열려 있어 두 선로를 나눠요.' },
-  { t: '고장 발생 · 차단기 트립', at: '14:02:08', st: { closed: { ...ALL_ON, CB1: false }, fault: true, fi: false }, log: '산단 1선 CB 트립(보호 계전기 동작). 구간 1~4 정전.',
-    d: '선로 어딘가에서 고장이 나서 변전소 차단기가 트립(차단기가 스스로 끊김)했어요. 산단 1선 전체, 고객 1,430호가 정전이에요. 아직 고장 위치는 몰라요.' },
-  { t: '고장 구간 찾기', at: '14:02:40', st: { closed: { ...ALL_ON, CB1: false }, fault: true, fi: true }, log: '고장 표시기: CB · R/C-3 · R/C-6 감지, R/C-9 미감지 → 구간 3 고장 추정.',
-    d: '고장 전류는 전원에서 고장 지점까지만 흘러요. 고장 표시기가 켜진 마지막 개폐기(R/C-6)와 꺼진 첫 개폐기(R/C-9) 사이, 구간 3이 고장 구간이에요.' },
-  { t: '고장 구간 분리', at: '14:03:30', st: { closed: { ...ALL_ON, CB1: false, SW2: false, SW3: false }, fault: true, fi: true }, log: 'R/C-6 · R/C-9 원격 개방. 구간 3 분리.',
-    d: '구간 3 양쪽의 R/C-6과 R/C-9를 원격으로 열어 고장 구간을 떼어 내요. 이제 나머지 구간은 다시 전기를 받아도 안전해요.' },
-  { t: '상류 구간 복구', at: '14:04:05', st: { closed: { ...ALL_ON, CB1: true, SW2: false, SW3: false }, fault: true, fi: true }, log: '산단 1선 CB 투입. 구간 1·2 복구(930호).',
-    d: '변전소 차단기를 다시 넣어(투입) 고장 구간 앞쪽, 구간 1·2를 살려요.' },
-  { t: '하류 구간 역송', at: '14:05:20', st: { closed: { ...ALL_ON, CB1: true, SW2: false, SW3: false, TS: true }, fault: true, fi: true }, log: '연계 T/S 투입. 구간 4를 산단 2선에서 역송(260호).',
-    d: '고장 구간 뒤쪽 구간 4는 자기 변전소와 끊겼어요. 연계 T/S를 닫아 옆 산단 2선에서 거꾸로 보내요(역송). 넣기 전에 산단 2선 여유를 꼭 확인해요. 남은 정전은 수리할 구간 3뿐이에요.' },
+  { t: '정상 운전', at: '14:00:00', st: NORMAL_ST, log: '정상 운전. 연계 T/S는 평소대로 열려 있음.',
+    d: '산단 1선(왼쪽)과 산단 2선(오른쪽)은 각자 변전소에서 전기를 받아요. 가운데 연계 개폐기(T/S)는 평소에 열어 둬요. 그래서 두 선로가 서로 떨어져 있어요.' },
+  { t: '고장 발생 · 차단기가 끊김', at: '14:02:08', st: { closed: { ...ALL_ON, CB1: false }, fault: true, fi: false }, log: '산단 1선 CB 트립. 보호 계전기(고장 감지 장치)가 동작함. 구간 1~4 정전.',
+    d: '집 두꺼비집이 ‘탁’ 내려가듯, 변전소 차단기가 스스로 전기를 끊었어요(트립). 선로 어딘가에 고장이 났다는 뜻이에요. 산단 1선 전체, 고객 1,430호가 정전이에요. 아직 고장 위치는 몰라요.' },
+  { t: '고장 구간 찾기', at: '14:02:40', st: { closed: { ...ALL_ON, CB1: false }, fault: true, fi: true }, log: '고장 표시기: CB · R/C-3 · R/C-6 켜짐, R/C-9 안 켜짐 → 구간 3이 고장으로 보임.',
+    d: '고장이 나면 아주 큰 전류(고장 전류)가 흘러요. 이 전류는 변전소에서 고장 지점까지만 흘러요. 그 길 위의 개폐기마다 고장 표시기(FI)가 켜져요. 표시기가 켜진 마지막 개폐기(R/C-6)와 안 켜진 첫 개폐기(R/C-9) 사이, 구간 3이 고장 구간이에요.' },
+  { t: '고장 구간 떼어 내기', at: '14:03:30', st: { closed: { ...ALL_ON, CB1: false, SW2: false, SW3: false }, fault: true, fi: true }, log: 'R/C-6 · R/C-9 원격으로 엶(개방). 구간 3을 떼어 냄.',
+    d: '구간 3 양쪽에 있는 R/C-6과 R/C-9를 관제실에서 원격으로 열어요. 그러면 고장 구간이 떨어져 나가요. 이제 나머지 구간에는 다시 전기를 보내도 안전해요.' },
+  { t: '앞쪽 구간 복구', at: '14:04:05', st: { closed: { ...ALL_ON, CB1: true, SW2: false, SW3: false }, fault: true, fi: true }, log: '산단 1선 CB 다시 넣음(투입). 구간 1·2 복구(930호).',
+    d: '변전소 차단기를 다시 넣어요(투입). 고장 구간 앞쪽인 구간 1·2에 전기가 다시 들어와요.' },
+  { t: '뒤쪽 구간은 옆 선로로(역송)', at: '14:05:20', st: { closed: { ...ALL_ON, CB1: true, SW2: false, SW3: false, TS: true }, fault: true, fi: true }, log: '연계 T/S 닫음(투입). 구간 4에 산단 2선 전기를 보냄(역송, 260호).',
+    d: '길이 막히면 옆길로 돌아가듯, 옆 선로에서 전기를 끌어와요. 구간 4는 고장 구간 뒤쪽이라 자기 변전소와 끊겼어요. 연계 T/S를 닫아 옆 산단 2선의 전기를 보내요(역송). 닫기 전에 산단 2선에 여유가 있는지 꼭 확인해요. 이제 정전은 수리할 구간 3만 남아요.' },
 ]
 
 function SldSvg({ st, mini = false, onSw, sel, focusSw }: { st: SldSt; mini?: boolean; onSw?: (id: SwId) => void; sel?: SwId | null; focusSw?: SwId[] }) {
@@ -678,8 +679,8 @@ function FlisrSim() {
     const sec = last[0] * 3600 + last[1] * 60 + last[2] + clock.current
     const t = [Math.floor(sec / 3600), Math.floor(sec / 60) % 60, sec % 60].map(v => String(v).padStart(2, '0')).join(':')
     const name = SWS.find(s => s.id === id)!.name
-    const add: { t: string; m: string; bad?: boolean }[] = [{ t, m: `${name} ${base.closed[id] ? '투입(닫음)' : '개방(열음)'} — 직접 조작` }]
-    for (const cb of trips) add.push({ t, m: `${SWS.find(s => s.id === cb)!.name} 트립 — 고장 구간에 다시 전기를 넣었어요`, bad: true })
+    const add: { t: string; m: string; bad?: boolean }[] = [{ t, m: `${name} ${base.closed[id] ? '닫음(투입)' : '열음(개방)'} — 직접 조작` }]
+    for (const cb of trips) add.push({ t, m: `${SWS.find(s => s.id === cb)!.name} 트립 — 고장 구간에 다시 전기가 닿아서 차단기가 끊었어요`, bad: true })
     setSt(next); setManual(true)
     setLog(l => [...add.reverse(), ...l].slice(0, 12))
   }
@@ -706,12 +707,12 @@ function FlisrSim() {
         </div>
         <div className="mp-sld-legend" aria-label="단선도 범례">
           <span><i className="l live" />전기 들어옴</span><span><i className="l dead" />정전</span><span><i className="l back" />역송</span>
-          <span><i className="sq closed" />닫힘</span><span><i className="sq open" />열림</span><span><i className="l fault" />고장 구간</span><span><b className="fi-t">FI</b>고장 표시기 감지</span>
+          <span><i className="sq closed" />닫힘</span><span><i className="sq open" />열림</span><span><i className="l fault" />고장 구간</span><span><b className="fi-t">FI</b>고장 표시기 켜짐</span>
         </div>
       </Hmi>
       <div className="mp-flisr-grid">
         <div className="mp-flisr-say" aria-live="polite">
-          {manual ? <><b>직접 조작 중</b><p>개폐기를 눌러 보세요. 고장 구간(구간 3)에 전기가 닿게 만들면 그쪽 변전소 차단기가 다시 트립해요. 단계 버튼을 누르면 정해진 순서로 돌아가요.</p></>
+          {manual ? <><b>직접 조작 중</b><p>개폐기를 눌러 열고 닫아 보세요. 고장 구간(구간 3)에 전기가 닿으면 그쪽 변전소 차단기가 다시 끊겨요. 단계 버튼을 누르면 정해진 순서로 돌아가요.</p></>
             : <><b>{step}. {cur.t}</b><p>{cur.d}</p></>}
           <div className="mp-row">
             <button type="button" className="btn sm ghost" disabled={step === 0 && !manual} onClick={() => go(Math.max(0, manual ? step : step - 1))}>{manual ? '이 단계로 되돌리기' : '이전 단계'}</button>
@@ -719,7 +720,7 @@ function FlisrSim() {
           </div>
         </div>
         <div className="mp-flisr-load">
-          <b>선로 부하율</b>
+          <b>선로 <Term k="부하율" /></b>
           {([['산단 1선', l1, 'B1'], ['산단 2선', l2, 'B2']] as const).map(([n, v]) => (
             <div key={n} className="mp-load">
               <span>{n}</span>
@@ -727,7 +728,7 @@ function FlisrSim() {
               <b className={v > R.alarm[1] ? 'bad' : v > R.normal[1] ? 'warn' : ''}>{v}%</b>
             </div>
           ))}
-          <small className="muted">산단 2선은 평소 {FEED_LOAD.I2}%. 역송으로 정상 범위(~{R.normal[1]}%)를 넘지만 경보({R.alarm[1]}%) 아래예요. 넘는다면 구간을 더 잘게 나눠 일부만 넘겨요.</small>
+          <small className="muted">산단 2선은 평소 {FEED_LOAD.I2}%를 써요. 역송을 받으면 정상 범위(~{R.normal[1]}%)는 넘지만 경보 기준({R.alarm[1]}%)보다는 낮아요. 경보 기준까지 넘을 것 같으면 구간을 더 잘게 나눠 일부만 넘겨요.</small>
         </div>
         <div className="mp-flisr-log">
           <b>조작 기록</b>
@@ -758,7 +759,7 @@ function LinkedViews() {
     <div className="mp-link">
       <div className="mp-row">
         <button type="button" className="chip" aria-pressed={linked} onClick={() => setLinked(v => !v)}>두 화면 선택 연결</button>
-        <span className="muted" aria-live="polite">{sel ? <>선택: <b>{name}</b>{!linked && ` — ${lastFrom === 'map' ? '계통도' : '지도'}에선 다시 찾아야 해요`}</> : '개폐기를 눌러 보세요'}</span>
+        <span className="muted" aria-live="polite">{sel ? <>선택: <b>{name}</b>{!linked && ` — ${lastFrom === 'map' ? '계통도' : '지도'}에서는 다시 찾아야 해요`}</> : '개폐기를 눌러 보세요'}</span>
       </div>
       <div className="mp-link-grid">
         <Hmi title="지도 · 산단 1선 주변" right="위치">
@@ -792,13 +793,13 @@ function LinkedViews() {
 
 /* ================= 7. 지도 화면에 늘 있어야 할 것 ================= */
 const CHROME: { t: string; d: string; cls: string; el: ReactNode }[] = [
-  { t: '범례', cls: 'leg', el: <>■ ▲ ● 범례</>, d: '모양·색이 무엇인지. 우선순위 배지(색 + 모양 + 숫자)도 범례에 넣어요.' },
-  { t: '축척', cls: 'scale', el: <><i />1km</>, d: '“이 정도면 몇 km?”를 바로 답해요. 확대할 때마다 길이를 다시 계산해요.' },
-  { t: '현재 보는 범위', cls: 'mini', el: <i />, d: '미니맵의 사각형, “보는 범위 2.5km × 1.8km · 강변 변전소 근처” 같은 글.' },
-  { t: '화면 밖 이상', cls: 'off', el: <>◀ <i className="tri" /></>, d: '확대해 있는 동안 생긴 알람이 화면 밖이면 가장자리에 방향 화살표를 둬요.' },
-  { t: '방위', cls: 'north', el: <>북 ↑</>, d: '지도가 회전하지 않더라도 “위가 북쪽”을 한 번 적어 두면 현장과 말이 맞아요.' },
-  { t: '갱신 시각', cls: 'upd', el: <>갱신 14:05:20</>, d: '설비 위치는 안 바뀌어도 상태는 바뀌어요. 마지막 갱신 시각을 늘 보여줘요.' },
-  { t: '레이어 켜고 끄기', cls: 'lay', el: <>선로 · 통신 · 공사</>, d: '선로·통신·공사 구역을 켜고 끄되, 알람 레이어는 끌 수 없게 해요.' },
+  { t: '범례', cls: 'leg', el: <>■ ▲ ● 범례</>, d: '지도 위 모양과 색이 각각 무슨 뜻인지 알려 줘요. 우선순위 배지(색 + 모양 + 숫자)도 범례에 넣어요.' },
+  { t: '축척', cls: 'scale', el: <><i />1km</>, d: '“여기서 저기까지 몇 km?”에 바로 답해요. 확대할 때마다 막대 길이를 다시 계산해요.' },
+  { t: '현재 보는 범위', cls: 'mini', el: <i />, d: '지금 도시의 어디를 보고 있는지 알려 줘요. 미니맵(작은 전체 지도)의 사각형이나 “보는 범위 2.5km × 1.8km · 강변 변전소 근처” 같은 글로 보여줘요.' },
+  { t: '화면 밖 이상', cls: 'off', el: <>◀ <i className="tri" /></>, d: '확대해서 보는 동안 화면 밖에서 알람이 생길 수 있어요. 그럴 땐 화면 가장자리에 그쪽을 가리키는 화살표를 둬요.' },
+  { t: '방위', cls: 'north', el: <>북 ↑</>, d: '지도가 돌아가지 않더라도 “위가 북쪽”이라고 적어 둬요. 현장 직원과 통화할 때 방향이 서로 맞아요.' },
+  { t: '갱신 시각', cls: 'upd', el: <>갱신 14:05:20</>, d: '설비 위치는 그대로여도 상태는 계속 바뀌어요. 마지막으로 새 데이터를 받은 시각을 늘 보여줘요.' },
+  { t: '레이어 켜고 끄기', cls: 'lay', el: <>선로 · 통신 · 공사</>, d: '선로·통신·공사 구역처럼 지도에 겹쳐 그리는 층(레이어)을 켜고 끌 수 있게 해요. 단, 알람 레이어는 끌 수 없게 해요.' },
 ]
 function MapChrome() {
   const [on, setOn] = useState(0)
@@ -820,70 +821,83 @@ function MapChrome() {
 }
 
 /* ================= 탭 ================= */
+const EXTRA: Record<string, string> = {
+  '연계 T/S': '두 선로의 끝을 잇는 스위치예요. 평소엔 열어 두고, 한쪽이 정전되면 닫아서 옆 선로의 전기를 보내요. 두 동네 사이 비상 연결 다리와 비슷해요.',
+  '고장 표시기': '고장 때 흐르는 큰 전류가 지나가면 불이 켜지는 장치예요(FI). 켜진 곳과 안 켜진 곳 사이에 고장이 있어요.',
+}
+
 export default function Tab() {
   return (
     <div data-dash="map">
+      <TermList keys={['계통도', '단선도', '변전소', '배전선로', '개폐기', 'R/C', '차단기', '트립', '역송', '부하율', '클러스터', '상황 인식', '연계 T/S', '고장 표시기']} extra={EXTRA} />
       <SysGrid>
-        <Section id="dash-map-which" wide title="지도는 ‘어디’, 계통도는 ‘무엇과 이어졌나’"
-          desc="전력 관제에는 큰 화면이 둘 있어요. 질문을 하나씩 눌러 보세요. 어느 화면이 답하는지가 달라요.">
+        <Section id="dash-map-which" wide title="지도는 ‘어디에 있나’, 계통도는 ‘무엇과 이어졌나’"
+          gist="위치를 물으면 지도로, 연결을 물으면 계통도로 답해요."
+          desc={<>내비게이션 지도와 지하철 노선도를 떠올려 보세요. 지도는 실제 위치와 거리를, 노선도는 어디서 어디로 이어지는지를 보여줘요. 전력 <Term k="관제">관제실</Term>에도 이 두 화면, 지도와 <Term k="계통도" />가 있어요. 질문을 하나씩 눌러 어느 화면이 답하는지 보세요.</>}>
           <WhichView />
-          <Note>이 탭의 도시·설비·고객 수·시각은 모두 설명을 위한 <b>가상 값</b>이에요. 실제 지도도 아니고 실제 설비 기준도 아니에요.</Note>
+          <Note>이 탭의 도시·설비·고객 수·시각은 모두 설명을 위해 만든 <b>가상 값</b>이에요. 실제 지도가 아니고, 실제 설비 기준도 아니에요.</Note>
         </Section>
 
-        <Section id="dash-map-city" wide title="설비 수백 개를 한 지도에 — 묶음과 이상 표시"
-          desc="누리시 배전 설비 약 450개예요. 멀리서 보면 묶음(클러스터)으로, 가까이 가면 하나씩 보여요. ‘묶음에 이상 배지’를 꺼 보세요. 산단 1선의 긴급 알람이 숫자 뭉치 속으로 사라져요.">
+        <Section id="dash-map-city" wide title="설비 450개를 한 지도에 — 묶어서 보여주되 이상은 드러내기"
+          gist="멀리선 묶어서, 가까이선 하나씩. 묶어도 알람은 꼭 보이게 해요."
+          desc={<>누리시에는 배전 설비가 약 450개 있어요. 멀리서 보면 가까운 설비끼리 묶음(<Term k="클러스터" />)으로, 가까이 가면 하나씩 보여요. ‘묶음에 이상 배지’를 꺼 보세요. 산단 1선의 긴급 알람이 숫자 뭉치 속으로 사라져요.</>}>
           <CityMap />
           <SysGridPair>
-            <Finding src={<>Shneiderman (1996) 시각 정보 탐색 만트라 — 한국어 요약 <Cite n={1} /></>}>
-              개요를 먼저, 그다음 확대와 거르기, 세부는 필요할 때.
+            <Finding src={<>Shneiderman (1996) 정보 시각화 탐색 원칙 — 한국어 요약 <Cite n={1} /></>}>
+              먼저 전체를 훑어보고, 그다음 확대하고 걸러 내요. 자세한 정보는 필요할 때 봐요.
             </Finding>
-            <Note tone="tip"><b>배율별로 할 일을 정해요.</b> ‘도시 전체’에서는 변전소 3곳과 알람 배지만 읽히면 충분해요(개요). ‘구역·동네’에서 선로를 따라가고(확대·거르기), ‘거리’에서 설비 하나를 눌러 정보를 봐요(세부). ISA-101의 화면 위계(01 탭)와 같은 생각이에요 <Cite n={2} />.</Note>
+            <Note tone="tip"><b>확대 단계마다 할 일을 정해요.</b> ‘도시 전체’에서는 <Term k="변전소" /> 3곳과 알람 배지만 읽히면 충분해요(전체 훑기). ‘구역·동네’에서는 <Term k="선로" />를 따라가며 좁혀요(확대·거르기). ‘거리’에서는 설비 하나를 눌러 정보를 봐요(자세히 보기). <Term k="ISA-101" d="공장·발전소 같은 산업 현장의 관제 화면을 어떻게 만들지 정리한 국제 표준이에요." />이 화면을 단계별로 나누는 방식(01 탭)과 같은 생각이에요 <Cite n={2} />.</Note>
           </SysGridPair>
-          <Note tone="warn"><b>묶음은 이상을 숨기기 쉬워요.</b> 숫자 묶음은 “여기에 설비가 몇 개”만 말해요. 그 안에 긴급 알람이 있어도 겉모습은 똑같아요. 그래서 ① 묶음에 가장 높은 우선순위 배지를 붙이거나 ② 이상 설비는 아예 묶지 않고 따로 그려요. 둘 다 켜 두는 게 가장 안전해요.</Note>
+          <Note tone="warn"><b>묶음은 이상을 숨기기 쉬워요.</b> 숫자 묶음은 “여기에 설비가 몇 개 있다”만 알려 줘요. 그 안에 긴급 알람이 있어도 겉모습은 똑같아요. 그래서 방법이 두 가지예요. ① 묶음 안에서 가장 급한 알람의 우선순위 배지를 묶음에 붙여요. ② 이상 설비는 아예 묶지 않고 따로 그려요. 둘 다 켜 두는 게 가장 안전해요.</Note>
         </Section>
 
-        <Section id="dash-map-overlap" title="겹침 처리 — 이상이 밑에 깔리지 않게"
-          desc="한 전주에 변압기 3대가 붙어 있으면 좌표가 똑같아요. 아무리 확대해도 겹쳐요.">
+        <Section id="dash-map-overlap" title="겹친 설비 처리 — 알람이 밑에 깔리지 않게"
+          gist="알람은 늘 맨 위에 그려요. 겹친 건 숫자·펼치기·목록으로 풀어요."
+          desc="한 전주에 변압기 3대가 붙어 있으면 지도 좌표가 똑같아요. 그래서 아무리 확대해도 겹쳐요. 버튼을 바꿔 가며 다섯 가지 방법을 비교해 보세요.">
           <Overlap />
         </Section>
 
-        <Section id="dash-map-base" title="배경 지도는 눌러야 알람이 보여요"
-          desc="일반 지도 앱의 컬러 지도를 그대로 깔면 공원 초록, 강 파랑, 도로 주황·노랑이 알람 색과 경쟁해요.">
+        <Section id="dash-map-base" title="배경 지도는 흐리게 — 그래야 알람이 보여요"
+          gist="배경 지도는 회색으로 흐리게 깔아요. 색은 알람에만 써요."
+          desc="시끄러운 카페에서는 작은 목소리가 묻히죠. 지도 앱의 컬러 지도를 그대로 깔면 공원 초록, 강 파랑, 도로 주황·노랑 때문에 알람 색이 묻혀요. 슬라이더로 오른쪽 지도를 흐리게 해 보세요.">
           <BaseContrast />
-          <Note>02 탭의 원칙을 지도에도 그대로 써요. 회색을 기본으로 두고 색은 비정상에만 <Cite n={2} />, 회색 배경은 눈부심과 반사도 줄여요 <Cite n={6} />. 색·모양 같은 특징은 주변에 비슷한 색이 많을수록 덜 튀어 보여요 <Cite n={4} />. 배경 지도는 <b>밝기 차이만 조금</b> 두고, 정상 설비도 회색으로 그려요.</Note>
+          <Note>02 탭의 원칙을 지도에도 그대로 써요. 기본은 회색이고, 색은 비정상일 때만 써요 <Cite n={2} />. 회색 배경은 눈부심과 화면 반사도 줄여 줘요 <Cite n={6} />. 색이나 모양은 주변에 비슷한 것이 많을수록 덜 튀어 보여요 <Cite n={4} />. 그래서 배경 지도는 <b>밝기 차이만 조금</b> 두고, 정상 설비도 회색으로 그려요.</Note>
         </Section>
 
-        <Section id="dash-map-sld" wide title="단선도로 보는 고장 처리 — 찾고, 떼어 내고, 다시 보내기"
-          desc="전력 관제의 핵심 화면이에요. 단계 버튼을 차례로 누르거나, 개폐기를 직접 눌러 열고 닫아 보세요. 단선도는 3상 선로를 선 하나로 줄여 연결 관계만 그린 그림이에요.">
+        <Section id="dash-map-sld" wide title="단선도로 고장 처리 따라 하기 — 찾고, 떼어 내고, 다시 보내기"
+          gist="고장 난 구간만 떼어 내고, 나머지는 앞뒤에서 다시 전기를 보내요."
+          desc={<><Term k="단선도" />는 지하철 노선도처럼 연결만 단순하게 그린 그림이에요. 실제 전깃줄은 세 가닥(3상)이지만 선 하나로 줄여 그려요. 전력 관제에서 가장 중요한 화면이에요. 단계 버튼을 차례로 누르거나, <Term k="개폐기" />를 직접 눌러 열고 닫아 보세요.</>}>
           <FlisrSim />
           <SysGridPair>
-            <Note><b>단선도에서 지킬 것.</b> 전원은 왼쪽(또는 위), 흐름은 한 방향으로. 열림·닫힘은 색이 아니라 <b>채움(■ 닫힘 · □ 열림)</b>으로 구분해요. 일부 현장은 빨강·초록으로 개폐 상태를 표시하는 관습이 있는데, 그러면 알람 색과 뜻이 겹쳐요 <Cite n={7} />.</Note>
-            <Note tone="tip"><b>화면이 대신 해 줄 계산.</b> 정전 고객 수, 역송 받는 선로의 부하율 예측, “이 개폐기를 닫으면 고장 구간에 전기가 들어가요” 같은 경고는 운영자가 머리로 하지 않게 화면이 먼저 보여줘요. 상황 인식의 ‘예측’ 단계를 돕는 일이에요 <Cite n={5} />.</Note>
+            <Note><b>단선도에서 지킬 것.</b> 전기가 들어오는 쪽은 왼쪽(또는 위)에 두고, 흐름은 한 방향으로 그려요. 열림·닫힘은 색이 아니라 <b>채움(■ 닫힘 · □ 열림)</b>으로 구분해요. 일부 현장은 빨강·초록으로 열림·닫힘을 표시하는 관습이 있어요. 그러면 알람 색과 뜻이 겹쳐요 <Cite n={7} />.</Note>
+            <Note tone="tip"><b>화면이 대신 해 줄 계산.</b> <Term k="운영자" />가 머리로 계산하지 않게 화면이 먼저 보여줘요. 예를 들면 정전 고객 수, <Term k="역송" />을 받는 선로의 부하율 예측, “이 개폐기를 닫으면 고장 구간에 전기가 들어가요” 같은 경고예요. 운전 중 “곧 앞차와 부딪히겠다”를 미리 아는 것처럼, <Term k="상황 인식" />의 ‘예측’ 단계를 돕는 일이에요 <Cite n={5} />.</Note>
           </SysGridPair>
         </Section>
 
-        <Section id="dash-map-link" wide title="지도와 계통도를 오갈 때 — 선택을 함께 넘겨요"
-          desc="같은 개폐기를 지도에서 누르면 계통도에서도, 계통도에서 누르면 지도에서도 표시돼요. 연결을 꺼 보면 화면을 바꿀 때마다 다시 찾아야 해요.">
+        <Section id="dash-map-link" wide title="지도와 계통도를 오갈 때 — 고른 설비를 양쪽에 함께 표시"
+          gist="한쪽 화면에서 고른 설비는 다른 화면에서도 바로 보여야 해요."
+          desc="개폐기를 지도에서 누르면 계통도에서도 표시되고, 계통도에서 누르면 지도에서도 표시돼요. ‘두 화면 선택 연결’을 꺼 보세요. 화면을 바꿀 때마다 같은 개폐기를 다시 찾아야 해요.">
           <LinkedViews />
-          <Finding src={<>Woods (1984) 시각적 운동량(visual momentum) — 한국어 요약 <Cite n={3} /></>}>
+          <Finding src={<>Woods (1984) 시각적 운동량(visual momentum, 화면을 바꿔도 보던 흐름이 끊기지 않는 정도) — 한국어 요약 <Cite n={3} /></>}>
             화면을 바꿔도 사용자가 방금 보던 것을 새 화면에서 바로 다시 찾을 수 있어야 해요.
           </Finding>
-          <Note>같은 <b>이름</b>(산단 1선 R/C-6), 같은 <b>선택</b>, 같은 <b>방향</b>(산업단지 변전소가 왼쪽 아래 · 계통도 왼쪽), 전환 버튼은 늘 같은 자리. 이 네 가지만 지켜도 전환할 때 길을 잃지 않아요.</Note>
+          <Note>네 가지만 지켜도 화면을 바꿀 때 길을 잃지 않아요. ① 같은 <b>이름</b>을 써요(산단 1선 R/C-6). ② 같은 <b>선택</b>을 유지해요. ③ 같은 <b>방향</b>으로 그려요(산업단지 변전소가 지도에선 왼쪽 아래, 계통도에선 왼쪽). ④ 화면 전환 버튼은 늘 같은 자리에 둬요.</Note>
         </Section>
 
-        <Section id="dash-map-chrome" wide title="지도 화면에 늘 있어야 할 것"
-          desc="항목을 누르면 목업에서 위치가 표시돼요. 알람 지도에선 이것들이 장식이 아니라 판단 근거예요.">
+        <Section id="dash-map-chrome" wide title="지도 화면에 늘 있어야 할 것 7가지"
+          gist="범례·축척·갱신 시각 같은 작은 정보가 판단의 근거가 돼요."
+          desc="항목을 누르면 화면 그림에서 그 위치가 표시돼요. 알람 지도에서는 이것들이 꾸밈이 아니라 판단에 꼭 필요한 정보예요.">
           <MapChrome />
         </Section>
 
         <Refs items={[
           { kind: 'paper', text: 'Shneiderman, B. (1996). The Eyes Have It: A Task by Data Type Taxonomy for Information Visualizations. IEEE Symposium on Visual Languages.' },
-          { kind: 'standard', text: 'ANSI/ISA-101.01-2015 Human Machine Interfaces for Process Automation Systems — 회색조 기본, 색은 비정상에만, 화면 위계 4단계 (ISA 블로그 요약)', url: 'https://blog.isa.org/the-high-performance-hmi' },
+          { kind: 'standard', text: 'ANSI/ISA-101.01-2015 Human Machine Interfaces for Process Automation Systems — 기본은 회색, 색은 비정상일 때만, 화면은 4단계로 나눔 (ISA 블로그 요약)', url: 'https://blog.isa.org/the-high-performance-hmi' },
           { kind: 'paper', text: 'Woods, D. D. (1984). Visual momentum: a concept to improve the cognitive coupling of person and computer. International Journal of Man-Machine Studies, 21(3).' },
-          { kind: 'paper', text: 'Healey, C. G. & Enns, J. T. (2012). Attention and Visual Memory in Visualization and Computer Graphics. IEEE TVCG 18(7) — 전주의 처리(preattentive) 정리.' },
+          { kind: 'paper', text: 'Healey, C. G. & Enns, J. T. (2012). Attention and Visual Memory in Visualization and Computer Graphics. IEEE TVCG 18(7) — 전주의 처리(preattentive, 눈이 따로 집중하지 않아도 저절로 알아채는 처리) 정리.' },
           { kind: 'paper', text: 'Endsley, M. R. (1995). Toward a Theory of Situation Awareness in Dynamic Systems. Human Factors 37(1).', url: 'https://en.wikipedia.org/wiki/Situation_awareness' },
           { kind: 'book', text: 'Hollifield, B., Oliver, D., Nimmo, I., Habibi, E. (2008). The High Performance HMI Handbook. PAS.' },
-          { kind: 'practice', text: '고장 구간 찾기·분리·역송 순서(FLISR), 묶음·펼치기·화면 밖 표시 — 배전 관제와 지도 UI 실무에서 쓰는 방식. 실제 보호 협조와 조작 순서는 설비 운영 기준을 따라요.' },
+          { kind: 'practice', text: '고장 구간을 찾고, 떼어 내고, 다시 전기를 보내는 순서(FLISR). 묶음·펼치기·화면 밖 표시는 배전 관제와 지도 UI 실무에서 쓰는 방식이에요. 실제 보호 설정과 조작 순서는 각 설비의 운영 기준을 따라요.' },
         ]} />
       </SysGrid>
     </div>

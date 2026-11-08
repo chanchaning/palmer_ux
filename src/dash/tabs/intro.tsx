@@ -1,4 +1,5 @@
 import { useMemo, useState, type ReactNode } from 'react'
+import { Term, TermList } from '../../components/Term'
 import { Range, Seg } from '../../components/ui'
 import { Note, Section, SysGrid } from '../../system/ui'
 import { ALARMS, CENTER, RANGES, SUBSTATIONS, rng, type Pri } from '../data'
@@ -13,9 +14,9 @@ const COMPARE: { row: string; v: Record<Kind, ReactNode> }[] = [
   { row: '얼마나 오래', v: { 분석형: '질문 하나를 푸는 동안', 경영형: '회의 때 몇 분', 관제형: <><b>교대 내내 8~12시간</b> 띄워 둬요</> } },
   { row: '어디서', v: { 분석형: '개인 PC', 경영형: '회의실 · 메일 · 휴대폰', 관제형: '관제실 벽면 화면 + 여러 대 모니터' } },
   { row: '무엇을 묻나', v: { 분석형: '왜 그랬지? 무엇과 관련 있지?', 경영형: '목표대로 가고 있나?', 관제형: <><b>지금 괜찮은가?</b> 무엇이 이상한가? 무엇을 해야 하나?</> } },
-  { row: '갱신', v: { 분석형: '필요할 때', 경영형: '하루 · 주 · 월', 관제형: '초~분 단위로 계속' } },
-  { row: '대부분의 시간', v: { 분석형: '파고들기', 경영형: '훑어보기', 관제형: <><b>'아무 일 없음'을 확인</b>하기</> } },
-  { row: '실패의 대가', v: { 분석형: '잘못된 결론, 다시 분석', 경영형: '늦은 결정', 관제형: <><b>정전 · 설비 손상 · 안전사고.</b> 놓치면 바로 현장 피해예요</> } },
+  { row: '값이 바뀌는 주기', v: { 분석형: '필요할 때', 경영형: '하루 · 주 · 월', 관제형: '몇 초~몇 분마다 계속' } },
+  { row: '대부분의 시간에 하는 일', v: { 분석형: '깊이 파고들기', 경영형: '훑어보기', 관제형: <><b>'아무 일 없음'을 확인</b>하기</> } },
+  { row: '잘못되면', v: { 분석형: '결론이 틀려서 다시 분석해요', 경영형: '결정이 늦어져요', 관제형: <><b>정전 · 설비 고장 · 안전사고.</b> 놓치면 바로 현장에 피해가 나요</> } },
   { row: '좋은 화면이란', v: { 분석형: '깊이 파고들 수 있는 화면', 경영형: '요약이 정확한 화면', 관제형: <>평소엔 조용하고, <b>드문 이상은 놓칠 수 없는</b> 화면</> } },
 ]
 
@@ -69,7 +70,7 @@ const addMin = (hhmm: string, m: number) => {
 
 type SaLv = 1 | 2 | 3
 const SA_STEPS: { lv: SaLv; name: string; q: string }[] = [
-  { lv: 1, name: '지각', q: '무엇이 보이나?' },
+  { lv: 1, name: '지각(보기)', q: '무엇이 보이나?' },
   { lv: 2, name: '이해', q: '그게 무슨 뜻인가?' },
   { lv: 3, name: '예측', q: '앞으로 어떻게 되나?' },
 ]
@@ -117,8 +118,8 @@ function SituationAwareness() {
 
   const concl: Record<SaLv, { shown: string; truth: string }> = {
     1: { shown: `강변 1선 부하율 ${v}%`, truth: '강변 1선 부하율 83%' },
-    2: { shown: high ? `정상 범위(${nb[0]}~${nb[1]}%)보다 높아요. 아직 경보(95%) 전` : `정상 범위(${nb[0]}~${nb[1]}%) 안이에요. 괜찮아요`, truth: '정상 범위보다 높아요. 아직 경보 전' },
-    3: { shown: hit <= 120 ? `이 속도면 약 ${hit}분 뒤(${addMin(NOW_LABEL, hit)}쯤) 95% 도달 예상` : '2시간 안에는 95%에 닿지 않을 것 같아요', truth: `약 ${realHit}분 뒤 95% 도달 예상 → 지금 부하 절체를 준비해야 해요` },
+    2: { shown: high ? `정상 범위(${nb[0]}~${nb[1]}%)보다 높아요. 경보(95%)까지는 아직이에요` : `정상 범위(${nb[0]}~${nb[1]}%) 안이에요. 괜찮아요`, truth: '정상 범위보다 높아요. 경보까지는 아직이에요' },
+    3: { shown: hit <= 120 ? `이 속도로 오르면 약 ${hit}분 뒤(${addMin(NOW_LABEL, hit)}쯤) 95%에 닿아요` : '2시간 안에는 95%에 닿지 않을 것 같아요', truth: `약 ${realHit}분 뒤 95%에 닿아요 → 지금 부하를 옆 선로로 옮길(절체) 준비를 해야 해요` },
   }
   const wrong = fault && !quality
 
@@ -128,7 +129,7 @@ function SituationAwareness() {
         {SA_STEPS.map((s, i) => (
           <li key={s.lv}>
             <button type="button" className={'in-sa-step' + (lv === s.lv ? ' on' : '') + (s.lv <= lv ? ' reached' : '')} aria-pressed={lv === s.lv} onClick={() => setLv(s.lv)}>
-              <small>Level {s.lv}</small>
+              <small>{s.lv}단계</small>
               <b>{s.name}</b>
               <span>{s.q}</span>
             </button>
@@ -149,13 +150,13 @@ function SituationAwareness() {
               <div className="in-sa-l2">
                 <AnalogBar value={v} min={RANGES.load.min} max={RANGES.load.max} normal={nb} alarm={RANGES.load.alarm} unit="%" name="강변 1선 부하율" w={260} />
                 <div className="in-sa-scale" aria-hidden="true"><span>0</span><span>정상 30~80</span><span>경보 95</span><span>120</span></div>
-                <p>{flagged ? '같은 변전소의 다른 계측과 맞지 않아요. 값을 믿기 전에 확인이 필요해요.' : high ? '정상 범위 위 — 높음' : '정상 범위 안'}</p>
+                <p>{flagged ? '같은 변전소의 다른 측정값과 맞지 않아요. 이 값을 믿기 전에 먼저 확인해요.' : high ? '정상 범위보다 높아요' : '정상 범위 안이에요'}</p>
               </div>
             )}
             {lv >= 3 && (
               <div className="in-sa-l3">
                 <TrendChart past={shown} slope={slope} proj={!flagged} />
-                <p>{flagged ? '예측을 멈췄어요. 계측이 의심될 때 예측선을 그리면 틀린 자신감을 줘요.' : concl[3].shown}</p>
+                <p>{flagged ? '예측선을 그리지 않았어요. 값이 의심스러울 때 예측선을 그리면, 틀린 예측을 믿게 돼요.' : concl[3].shown}</p>
               </div>
             )}
           </div>
@@ -163,8 +164,8 @@ function SituationAwareness() {
 
         <div className="in-sa-side">
           <div className="in-sa-ctl">
-            <label className="in-check"><input type="checkbox" checked={fault} onChange={e => setFault(e.target.checked)} /> <span><b>센서 오류 넣기</b> 변류기(CT, 전류를 재는 센서) 배선 문제로 실제의 절반쯤으로 읽혀요</span></label>
-            <label className={'in-check' + (fault ? '' : ' dim')}><input type="checkbox" checked={quality} disabled={!fault} onChange={e => setQuality(e.target.checked)} /> <span><b>값 품질 표시 켜기</b> 다른 계측과 어긋나면 '계측 의심'을 붙여요</span></label>
+            <label className="in-check"><input type="checkbox" checked={fault} onChange={e => setFault(e.target.checked)} /> <span><b>센서 오류 넣기</b> 전류를 재는 센서(변류기, CT)의 배선이 잘못됐어요. 값이 실제의 절반쯤으로 읽혀요</span></label>
+            <label className={'in-check' + (fault ? '' : ' dim')}><input type="checkbox" checked={quality} disabled={!fault} onChange={e => setQuality(e.target.checked)} /> <span><b>값 품질 표시 켜기</b> 다른 측정값과 맞지 않으면 값 옆에 '계측 의심'을 붙여요</span></label>
           </div>
           <ol className="in-sa-chain" aria-label="운영자가 내리는 판단">
             {SA_STEPS.map(s => {
@@ -172,10 +173,10 @@ function SituationAwareness() {
               const st = !active ? 'idle' : flagged ? 'check' : wrong ? 'bad' : 'ok'
               return (
                 <li key={s.lv} className={'in-sa-c ' + st}>
-                  <span className="k">Level {s.lv} {s.name}</span>
+                  <span className="k">{s.lv}단계 {s.name}</span>
                   {active ? (
                     <>
-                      <b>{flagged ? (s.lv === 1 ? `읽힌 값 ${v}% — 확인 필요` : '판단 보류 → 현장·다른 계측 확인') : concl[s.lv].shown}</b>
+                      <b>{flagged ? (s.lv === 1 ? `읽힌 값은 ${v}%예요. 확인이 필요해요` : '판단을 미뤄요 → 현장이나 다른 측정값을 먼저 확인') : concl[s.lv].shown}</b>
                       {wrong && <span className="truth"><i aria-hidden="true">✕</i> 실제: {concl[s.lv].truth}</span>}
                     </>
                   ) : <span className="muted">단계를 눌러 열어 보세요</span>}
@@ -183,7 +184,7 @@ function SituationAwareness() {
               )
             })}
           </ol>
-          {wrong && lv === 3 && <p className="in-sa-msg">세 판단이 모두 틀렸어요. 운영자는 아무 잘못도 하지 않았는데요. <b>지각이 틀리면 이해와 예측도 함께 틀려요.</b></p>}
+          {wrong && lv === 3 && <p className="in-sa-msg">세 판단이 모두 틀렸어요. 운영자는 아무 실수도 하지 않았는데요. <b>처음 본 값(1단계)이 틀리면 이해와 예측도 함께 틀려요.</b></p>}
         </div>
       </div>
     </div>
@@ -196,12 +197,12 @@ const PHASES: { id: PhaseId; from: number; to: number }[] = [
   { id: 'take', from: 0, to: 10 }, { id: 'calm', from: 10, to: 375 }, { id: 'sign', from: 375, to: 390 },
   { id: 'resp', from: 390, to: 415 }, { id: 'calm', from: 415, to: 710 }, { id: 'hand', from: 710, to: 720 },
 ]
-const PH: Record<PhaseId, { name: string; job: string; screen: string[]; link: [string, string] }> = {
-  take: { name: '교대 인수', job: '앞 근무자가 남긴 일을 넘겨받아요.', screen: ['진행 중인 이슈와 보류 중인 알람을 한 화면에', '지난 근무의 특이 사항 요약', '내가 볼 범위가 지금 정상인지 한눈에'], link: ['#/dash/ops', '08 교대 인수인계'] },
-  calm: { name: '평온', job: "'아무 일 없음'을 빠르게 확인하고 넘어가요.", screen: ['회색조로 조용하게 — 정상은 눈에 띄지 않게', '움직이는 것·깜빡이는 것 없음', '몇 초 훑어보면 "괜찮다"가 끝나야 해요'], link: ['#/dash/color', '02 회색이 기본, 색은 신호'] },
-  sign: { name: '이상 징후', job: '아직 알람은 없지만 무언가 기울고 있어요.', screen: ['값보다 추세 — 천천히 오르는 부하를 먼저 보여 주기', '정상 범위 띠 위에 값을 그려 "어디쯤인지"', '알람이 울리기 전에 운영자가 먼저 알아채게'], link: ['#/dash/context', '04 값보다 맥락'] },
-  resp: { name: '사고 대응', job: '차단기 트립(차단기가 스스로 끊김). 몇 분 안에 판단해야 해요.', screen: ['원인 알람 하나를 맨 위에, 연쇄 알람은 묶어서', '알람을 누르면 해당 화면으로 바로 이동', '무엇을 하라는지(대응 절차)까지 바로'], link: ['#/dash/alarm', '03 알람 설계'] },
-  hand: { name: '교대 인계', job: '다음 근무자에게 넘겨요.', screen: ['이번 근무에 생긴 일을 시간순으로', '아직 끝나지 않은 일과 보류 사유', '인계 기록이 다음 근무자의 첫 화면이 돼요'], link: ['#/dash/ops', '08 교대 인수인계'] },
+const PH: Record<PhaseId, { name: string; job: ReactNode; screen: string[]; link: [string, string] }> = {
+  take: { name: '근무 넘겨받기', job: '앞 근무자가 남긴 일을 넘겨받아요.', screen: ['아직 안 끝난 일과 잠시 꺼 둔(보류) 알람을 한 화면에 모아요', '지난 근무에 있었던 특별한 일을 요약해요', '내가 맡은 범위가 지금 정상인지 한눈에 보여요'], link: ['#/dash/ops', '08 교대 인수인계'] },
+  calm: { name: '평온', job: "'아무 일 없음'을 빠르게 확인하고 넘어가요.", screen: ['정상일 땐 회색으로 조용하게, 눈에 띄지 않게 해요', '움직이거나 깜빡이는 것이 없어요', '몇 초만 훑어봐도 "괜찮다"를 알 수 있어야 해요'], link: ['#/dash/color', '02 회색이 기본, 색은 신호'] },
+  sign: { name: '이상 조짐', job: '알람은 아직 없어요. 하지만 값이 조금씩 나쁜 쪽으로 가고 있어요.', screen: ['지금 값보다 흐름(추세)을 보여 줘요. 천천히 오르는 부하가 먼저 보이게요', '정상 범위 띠 위에 값을 그려 "어디쯤인지" 보여 줘요', '알람이 울리기 전에 운영자가 먼저 알아채게 해요'], link: ['#/dash/context', '04 값보다 맥락'] },
+  resp: { name: '사고 대응', job: <>차단기가 스스로 전기를 끊었어요(<Term k="트립" />). 집 두꺼비집이 내려간 것과 같아요. 몇 분 안에 판단해야 해요.</>, screen: ['원인이 된 알람 하나를 맨 위에 둬요. 뒤따라 생긴 알람은 묶어요', '알람을 누르면 그 설비 화면으로 바로 가요', '무엇을 해야 하는지(대응 절차)도 바로 보여 줘요'], link: ['#/dash/alarm', '03 알람 설계'] },
+  hand: { name: '근무 넘겨주기', job: '다음 근무자에게 넘겨요.', screen: ['이번 근무에 생긴 일을 시간 순서대로 보여 줘요', '아직 안 끝난 일과, 알람을 꺼 둔 이유를 남겨요', '넘겨준 기록이 다음 근무자의 첫 화면이 돼요'], link: ['#/dash/ops', '08 교대 인수인계'] },
 }
 const phaseAt = (t: number) => PHASES.find(p => t >= p.from && t < p.to) ?? PHASES[PHASES.length - 1]
 const clock = (t: number) => addMin('08:00', Math.min(719, t))
@@ -276,7 +277,7 @@ function DayTimeline() {
             })}
           </div>
           <div className="in-day-al" aria-live="off">
-            {active.length === 0 ? <span className="none">활성 알람 없음</span> : active.map(d => (
+            {active.length === 0 ? <span className="none">지금 울리는 알람 없음</span> : active.map(d => (
               <div key={d.a.id} className={'row' + (t < d.ack ? ' unack' : '')}>
                 <PriBadge p={d.a.pri} />
                 <b>{d.a.where}</b><span>{d.a.what}</span><small>{t < d.ack ? '미확인' : '확인됨'}</small>
@@ -292,7 +293,7 @@ function DayTimeline() {
           <a href={info.link[0]}>{info.link[1]} →</a>
         </div>
       </div>
-      <p className="in-day-foot">이 예시 근무 12시간 중 <b>{Math.round((calm / 720) * 100)}%</b>가 평온이에요. 화면은 그 긴 시간 동안 조용해야 하고, 남은 몇 분 동안은 놓칠 수 없어야 해요. 두 가지를 동시에 만족시키는 게 관제 화면 디자인이에요.</p>
+      <p className="in-day-foot">이 예시 근무 12시간 중 <b>{Math.round((calm / 720) * 100)}%</b>가 평온이에요. 화면은 그 긴 시간 동안 조용해야 해요. 그리고 사고가 난 몇 분 동안은 절대 놓칠 수 없게 눈에 띄어야 해요. 이 두 가지를 함께 해내는 게 관제 화면 디자인이에요.</p>
     </div>
   )
 }
@@ -301,14 +302,14 @@ function DayTimeline() {
 type Dec = '전략' | '전술' | '운영'
 const DECS: { id: Dec; who: string; span: string; ex: string }[] = [
   { id: '전략', who: '경영진', span: '몇 달 ~ 몇 년', ex: '방향을 정해요' },
-  { id: '전술', who: '관리자 · 기획자', span: '며칠 ~ 몇 주', ex: '자원을 나눠요' },
+  { id: '전술', who: '관리자 · 기획자', span: '며칠 ~ 몇 주', ex: '사람·장비를 어디에 쓸지 정해요' },
   { id: '운영', who: '현장 운영자', span: '지금 ~ 몇 시간', ex: '지금 조치해요' },
 ]
 const QUIZ: { q: string; a: Dec }[] = [
   { q: '지금 강변 1선 부하가 괜찮은가?', a: '운영' },
   { q: '5년 뒤 산업단지 수요에 맞춰 변전소를 늘릴까?', a: '전략' },
   { q: '이번 주 알람이 가장 많았던 설비는?', a: '전술' },
-  { q: '산단 1선 트립 — 어느 구간을 먼저 분리하나?', a: '운영' },
+  { q: '산단 1선이 트립됐다. 어느 구간을 먼저 끊어 낼까?', a: '운영' },
   { q: '다음 달 어느 선로를 먼저 보강하나?', a: '전술' },
   { q: '올해 정전 시간을 작년보다 줄였나?', a: '전략' },
 ]
@@ -352,14 +353,14 @@ function DecisionQuiz() {
 
 /* ================= 5. Bach 디자인 패턴 8그룹 ================= */
 const BACH: { g: string; kind: '구성 요소' | '구성 방식'; ex: string; ops: string; link: [string, string] }[] = [
-  { g: '데이터 정보', kind: '구성 요소', ex: '개별 값 · 파생 값 · 기준값', ops: '관제에선 "기준값"이 핵심이에요. 값 옆에 정상 범위를 함께 둬요.', link: ['#/dash/context', '04'] },
-  { g: '메타 정보', kind: '구성 요소', ex: '데이터 출처 · 고지 · 주석', ops: '마지막 갱신 시각과 통신 상태가 메타 정보예요. 멈춘 화면을 알아채게 해요.', link: ['#/dash/realtime', '05'] },
-  { g: '시각 표현', kind: '구성 요소', ex: '숫자 · 추세 화살표 · 표', ops: '숫자만 두지 않고 아날로그 막대와 추세를 붙여요.', link: ['#/dash/context', '04'] },
-  { g: '상호작용', kind: '구성 요소', ex: '탐색 · 이동 · 필터와 초점', ops: '관제에선 "이동"이 가장 중요해요. 알람에서 해당 화면으로 바로 가요.', link: ['#/dash/levels', '01'] },
-  { g: '화면 공간', kind: '구성 방식', ex: '한 화면에 맞춤 · 넘침 · 요청 시 세부', ops: '벽면 화면은 스크롤 없이 한 화면에 맞춰요. 세부는 개인 화면에서 요청할 때.', link: ['#/dash/room', '07'] },
-  { g: '구조', kind: '구성 방식', ex: '한 페이지 · 위계형 · 병렬', ops: '관제는 위계형이에요. 전체 → 구역 → 설비 → 진단.', link: ['#/dash/levels', '01'] },
-  { g: '페이지 배치', kind: '구성 방식', ex: '열린 배치 · 표 배치 · 묶음 배치', ops: '변전소·계통 단위로 묶어 배치해요. 현장 구조와 화면 구조를 맞춰요.', link: ['#/dash/map', '06'] },
-  { g: '색', kind: '구성 방식', ex: '구별용 · 공유 · 의미 색', ops: '관제에선 "의미 색"만 써요. 그것도 비정상에만요.', link: ['#/dash/color', '02'] },
+  { g: '데이터 정보', kind: '구성 요소', ex: '값 하나 · 계산한 값 · 기준값', ops: '관제에서는 "기준값"이 핵심이에요. 값 옆에 정상 범위를 함께 둬요.', link: ['#/dash/context', '04'] },
+  { g: '메타 정보', kind: '구성 요소', ex: '데이터 출처 · 안내 문구 · 주석', ops: '"데이터에 대한 정보"예요. 관제에서는 마지막으로 값을 받은 시각과 통신 상태가 여기 들어가요. 화면이 멈췄을 때 알아채게 해 줘요.', link: ['#/dash/realtime', '05'] },
+  { g: '시각 표현', kind: '구성 요소', ex: '숫자 · 추세 화살표 · 표', ops: '숫자만 두지 않아요. 정상 범위가 그려진 막대(아날로그 막대)와 추세를 함께 붙여요.', link: ['#/dash/context', '04'] },
+  { g: '상호작용', kind: '구성 요소', ex: '탐색 · 이동 · 필터와 초점', ops: '관제에서는 "이동"이 가장 중요해요. 알람을 누르면 그 설비 화면으로 바로 가요.', link: ['#/dash/levels', '01'] },
+  { g: '화면 공간', kind: '구성 방식', ex: '한 화면에 맞춤 · 화면 밖으로 넘침 · 누르면 세부', ops: '벽면 화면은 스크롤 없이 한 화면에 다 들어가게 해요. 자세한 내용은 각자 화면에서 눌러서 봐요.', link: ['#/dash/room', '07'] },
+  { g: '구조', kind: '구성 방식', ex: '한 페이지 · 단계형(위계) · 나란히(병렬)', ops: '관제는 단계형이에요. 전체 → 구역 → 설비 → 진단 순서로 들어가요.', link: ['#/dash/levels', '01'] },
+  { g: '페이지 배치', kind: '구성 방식', ex: '열린 배치 · 표 배치 · 묶음 배치', ops: '변전소나 계통(서로 이어진 설비 묶음) 단위로 묶어 배치해요. 현장이 묶인 방식과 화면이 묶인 방식을 같게 해요.', link: ['#/dash/map', '06'] },
+  { g: '색', kind: '구성 방식', ex: '구별용 색 · 여러 차트 공통 색 · 뜻이 있는 색', ops: '관제에서는 뜻이 있는 색(의미 색)만 써요. 그것도 비정상일 때만요.', link: ['#/dash/color', '02'] },
 ]
 
 function BachGroups() {
@@ -370,7 +371,7 @@ function BachGroups() {
       <div className="in-bach-grid">
         {(['구성 요소', '구성 방식'] as const).map(k => (
           <div key={k} className="in-bach-col">
-            <div className="in-bach-k">{k === '구성 요소' ? '구성 요소 패턴 — 무엇을 보여주나' : '구성 방식 패턴 — 어떻게 엮나'}</div>
+            <div className="in-bach-k">{k === '구성 요소' ? '구성 요소 패턴 — 무엇을 보여주나' : '구성 방식 패턴 — 어떻게 배치하나'}</div>
             <div className="in-bach-cells">
               {BACH.map((x, i) => x.kind === k && (
                 <button key={x.g} type="button" className={'in-bach-c' + (i === sel ? ' on' : '')} aria-pressed={i === sel} onClick={() => setSel(i)}>
@@ -412,18 +413,19 @@ function Scenario() {
         </div>
       </Hmi>
       <div className="in-scn-side">
-        <p>이 영역의 모든 탭은 <b>{CENTER}</b> 하나로 설명해요. 변전소 3곳, 22.9kV 배전선로 9개, 그리고 몇 개의 알람이에요.</p>
+        <p><Term k="변전소" />는 큰 물탱크, <Term k="배전선로" />는 동네로 가는 수도관이라고 생각하면 쉬워요.</p>
+        <p>이 영역의 모든 탭은 <b>{CENTER}</b> 하나로 설명해요. 변전소 3곳, 22.9<Term k="kV" /> 배전선로 9개, 그리고 알람 몇 개가 나와요.</p>
         <div className="sys-table-wrap">
           <table className="sys-table">
-            <thead><tr><th>측정값</th><th>정상 범위</th><th>경보</th></tr></thead>
+            <thead><tr><th>측정값</th><th>정상 범위</th><th>경보가 울리는 값</th></tr></thead>
             <tbody>
-              <tr><td>부하율</td><td>{RANGES.load.normal.join('~')}%</td><td>95% 초과</td></tr>
-              <tr><td>전압</td><td>{RANGES.kv.normal.join('~')}kV</td><td>22.0 미만 · 23.8 초과</td></tr>
-              <tr><td>변압기 유온</td><td>{RANGES.temp.normal.join('~')}℃</td><td>90℃ 초과</td></tr>
+              <tr><td><Term k="부하율" /></td><td>{RANGES.load.normal.join('~')}%</td><td>95% 초과</td></tr>
+              <tr><td><Term k="전압" /></td><td>{RANGES.kv.normal.join('~')}kV</td><td>22.0 미만 · 23.8 초과</td></tr>
+              <tr><td>변압기 <Term k="유온" /></td><td>{RANGES.temp.normal.join('~')}℃</td><td>90℃ 초과</td></tr>
             </tbody>
           </table>
         </div>
-        <Note>예시 수치는 모두 가상이에요. 실제 설비의 기준값이 아니에요. 막대의 삼각형이 현재 값, 진한 띠가 정상 범위, 빗금이 경보 범위예요.</Note>
+        <Note>예시 수치는 모두 가상이에요. 실제 설비의 기준값이 아니에요. 막대 읽는 법: 삼각형은 지금 값, 진한 띠는 정상 범위, 빗금은 경보 범위예요.</Note>
       </div>
     </div>
   )
@@ -445,9 +447,9 @@ const TABS = [
 type Role = 'all' | 'design' | 'plan' | 'fe'
 const PATHS: Record<Role, { label: string; ids: string[]; why: string }> = {
   all: { label: '처음부터 전부', ids: TABS.map(t => t.id), why: '순서대로 읽으면 원리 → 구조 → 표시 → 알람 → 환경 → 실무로 이어져요.' },
-  design: { label: '디자이너', ids: ['intro', 'color', 'context', 'levels', 'alarm', 'realtime', 'map', 'room'], why: '색과 표시 방식부터 잡고, 위계와 알람으로 넓혀요.' },
-  plan: { label: '기획자', ids: ['intro', 'levels', 'alarm', 'ops', 'room', 'color'], why: '화면 목록(위계)과 알람 정의서가 기획 산출물의 중심이에요.' },
-  fe: { label: 'FE 개발자', ids: ['intro', 'realtime', 'fe', 'context', 'alarm', 'levels'], why: '갱신·끊김·대량 데이터가 구현에서 가장 자주 부딪히는 문제예요.' },
+  design: { label: '디자이너', ids: ['intro', 'color', 'context', 'levels', 'alarm', 'realtime', 'map', 'room'], why: '색과 표시 방식부터 익혀요. 그다음 화면 단계(위계)와 알람으로 넓혀요.' },
+  plan: { label: '기획자', ids: ['intro', 'levels', 'alarm', 'ops', 'room', 'color'], why: '기획자가 만드는 문서의 중심은 화면 목록(위계)과 알람 정의서예요.' },
+  fe: { label: 'FE 개발자', ids: ['intro', 'realtime', 'fe', 'context', 'alarm', 'levels'], why: '구현할 때 가장 자주 부딪히는 문제는 값 갱신, 연결 끊김, 많은 데이터 처리예요.' },
 }
 
 function TabMap() {
@@ -481,47 +483,55 @@ function TabMap() {
 export default function Tab() {
   return (
     <div data-dash="intro">
+      <TermList keys={['관제', '운영자', '상황 인식', 'HMI', '변전소', '배전선로', 'kV', '부하율', '정상 범위', '추세', '차단기', '트립', '절체', '유온']} />
       <SysGrid>
-        <Section id="dash-intro-what" wide title="관제 화면은 '보는' 화면이 아니라 '지키는' 화면이에요"
-          desc="대시보드라는 이름은 같아도, 관제 화면은 분석·경영 대시보드와 쓰는 사람도, 쓰는 시간도, 실패했을 때의 결과도 달라요.">
+        <Section id="dash-intro-what" wide title="관제 화면은 구경하는 화면이 아니라 지키는 화면이에요"
+          gist="관제 화면은 평소엔 조용하고, 이상이 생기면 바로 눈에 띄어야 해요."
+          desc={<>공항 관제탑을 떠올려 보세요. 하루 종일 지켜보다가, 문제가 생기면 바로 대응해요. <Term k="관제" /> 화면도 같아요. 이름은 똑같이 '대시보드'지만, 분석·경영 대시보드와는 쓰는 사람이 달라요. 보는 시간도, 잘못됐을 때의 피해도 달라요.</>}>
           <Compare />
-          <Note tone="tip"><b>제가 처음 관제 화면을 맡았을 때 가장 많이 틀린 부분</b>은 "예쁘고 정보가 많은 화면"을 만들려고 한 거예요. 관제 운영자에게 좋은 화면은 정보가 많은 화면이 아니라, <b>12시간 동안 피곤하지 않고 이상이 생기면 바로 보이는</b> 화면이에요.</Note>
+          <Note tone="tip"><b>제가 처음 관제 화면을 맡았을 때 가장 많이 한 실수</b>는 "예쁘고 정보가 많은 화면"을 만들려고 한 거예요. <Term k="운영자">관제 운영자</Term>에게 좋은 화면은 정보가 많은 화면이 아니에요. <b>12시간 동안 봐도 피곤하지 않고, 이상이 생기면 바로 보이는</b> 화면이에요.</Note>
         </Section>
 
-        <Section id="dash-intro-sa" wide title="상황 인식 3단계 — 지각, 이해, 예측"
-          desc={<>관제 화면이 도와야 하는 건 결국 운영자의 '상황 인식'이에요. Endsley는 이를 세 단계로 나눴어요<Cite n={1} />. 단계를 눌러 같은 정보가 어떻게 달라지는지 보고, 센서 오류를 넣어 보세요.</>}>
+        <Section id="dash-intro-sa" wide title="상황 인식 3단계 — 보고, 이해하고, 예측해요"
+          gist="처음 본 값이 틀리면 이해와 예측도 함께 틀려요. 화면은 세 단계를 다 도와야 해요."
+          desc={<>운전할 때를 떠올려 보세요. "앞차 브레이크등이 켜졌다(보기) → 앞차가 선다(이해) → 곧 부딪힌다(예측)". 운영자 머릿속에서도 이 세 단계가 돌아가요. 이걸 <Term k="상황 인식" />이라고 하고, Endsley가 세 단계로 나눴어요<Cite n={1} />. 관제 화면은 이 세 단계를 빠르게 밟도록 도와야 해요. 단계를 눌러 화면이 어떻게 달라지는지 보세요. 센서 오류도 넣어 보세요.</>}>
           <Finding src={<>Endsley (1995), Human Factors 37(1) — 한국어 요약</>}>
-            상황 인식은 요소를 <u>지각</u>하고(Level 1), 그 뜻을 <u>이해</u>하고(Level 2), 가까운 미래를 <u>예측</u>하는(Level 3) 세 단계로 쌓여요. 앞 단계가 틀리면 뒤 단계도 틀려요.
+            상황 인식은 세 단계로 쌓여요. 먼저 눈앞의 요소를 <u>지각</u>해요(1단계, 보기). 다음으로 그 뜻을 <u>이해</u>해요(2단계). 마지막으로 가까운 미래를 <u>예측</u>해요(3단계). 앞 단계가 틀리면 뒤 단계도 함께 틀려요.
           </Finding>
           <SituationAwareness />
-          <Note>숫자 83%만 보여주는 화면은 Level 1까지만 도와요. 이해(정상 범위 대비 어디인가)와 예측(언제 경보에 닿나)을 운영자 머릿속 계산에 맡기는 셈이에요. 정상 범위를 그리는 법은 <a href="#/dash/context">04 값보다 맥락</a>, 값의 품질과 멈춘 화면은 <a href="#/dash/realtime">05 실시간 갱신</a>에서 이어져요.</Note>
+          <Note>숫자 83%만 보여 주는 화면은 1단계(보기)까지만 도와요. '정상 범위에서 어디쯤인지'(이해)와 '언제 경보에 닿는지'(예측)는 운영자가 머릿속으로 계산해야 해요. <Term k="정상 범위" />를 그리는 법은 <a href="#/dash/context">04 값보다 맥락</a>에서 이어져요. 값이 믿을 만한지, 화면이 멈추지 않았는지는 <a href="#/dash/realtime">05 실시간 갱신</a>에서 다뤄요.</Note>
         </Section>
 
-        <Section id="dash-intro-day" wide title="관제 화면의 하루"
-          desc="낮 근무 12시간(08:00~20:00)을 예시로 만들었어요. 막대를 움직이거나 시간대를 눌러, 그 순간 화면이 무엇을 해줘야 하는지 보세요.">
+        <Section id="dash-intro-day" wide title="근무 12시간 동안 화면이 하는 일"
+          gist="근무 시간 대부분은 평온해요. 화면은 조용하다가 사고 때만 확 눈에 띄어야 해요."
+          desc="낮 근무 12시간(08:00~20:00)을 예로 들었어요. 막대를 움직이거나 시간대 버튼을 눌러 보세요. 그 순간 화면이 무엇을 해 줘야 하는지 나와요.">
           <DayTimeline />
         </Section>
 
-        <Section id="dash-intro-types" wide title="대시보드의 종류 중 관제는 어디에 있나"
-          desc={<>Sarikaya 등은 대시보드를 하나로 정의하는 대신 목적·대상·데이터 같은 설계 공간으로 여러 유형을 정리했어요. 의사결정 수준으로 전략·전술·운영으로 나누기도 해요<Cite n={2} />. 질문마다 어느 수준인지 골라 보세요.</>}>
+        <Section id="dash-intro-types" wide title="관제 화면은 '지금 당장'의 결정을 도와요"
+          gist="관제 화면은 '지금 무엇을 할까'에 답해요. 몇 년짜리 질문은 다른 화면에서 다뤄요."
+          desc={<>대시보드는 어떤 결정을 돕는지에 따라 나눌 수 있어요. 몇 년을 내다보는 결정은 전략, 몇 주 단위의 결정은 전술, 지금 당장의 결정은 운영이에요<Cite n={2} />. Sarikaya 등은 대시보드를 한 가지로 정의하지 않았어요. 목적, 보는 사람, 데이터에 따라 여러 유형으로 정리했어요. 아래 질문마다 어느 수준인지 골라 보세요.</>}>
           <DecisionQuiz />
-          <Note>같은 데이터라도 질문의 수준이 다르면 화면이 달라야 해요. "올해 정전 시간"을 관제 벽면에 크게 띄우면, 지금 생긴 이상을 볼 자리를 빼앗아요.</Note>
+          <Note>같은 데이터라도 질문의 수준이 다르면 화면도 달라야 해요. 예를 들어 "올해 정전 시간"을 관제 벽면에 크게 띄우면, 지금 생긴 이상을 보여 줄 자리가 줄어요.</Note>
         </Section>
 
-        <Section id="dash-intro-bach" wide title="대시보드 디자인 패턴 8그룹"
-          desc={<>Bach 등은 대시보드 144개를 분석해 디자인 패턴을 8개 그룹으로 정리했어요<Cite n={3} />. 그룹을 누르면 관제 화면에서 무엇을 뜻하는지 나와요.</>}>
+        <Section id="dash-intro-bach" wide title="대시보드를 만드는 8가지 패턴 — 관제에서는 이렇게 써요"
+          gist="관제에서는 기준값, 알람에서 바로 이동, 단계형 구조, 비정상에만 쓰는 색이 핵심이에요."
+          desc={<>Bach 등은 대시보드 144개를 분석했어요. 그리고 자주 쓰이는 디자인 방식(패턴)을 8개 그룹으로 정리했어요<Cite n={3} />. 그룹을 누르면 관제 화면에서는 어떻게 쓰는지 나와요.</>}>
           <BachGroups />
         </Section>
 
-        <Section id="dash-intro-scenario" title="이 영역의 공통 예시"
-          desc="가상의 배전 관제센터예요. 다른 탭에서도 같은 변전소와 선로 이름이 나와요.">
+        <Section id="dash-intro-scenario" title="모든 탭에서 쓰는 가상의 관제센터"
+          gist="변전소 3곳, 선로 9개짜리 가상 관제센터 하나로 모든 탭을 설명해요."
+          desc="가상의 배전 관제센터예요. 다른 탭에서도 같은 변전소와 선로 이름이 계속 나와요.">
           <Scenario />
         </Section>
 
-        <Section id="dash-intro-map" title="이 영역을 읽는 순서"
+        <Section id="dash-intro-map" title="내 역할에 맞는 읽는 순서"
+          gist="처음부터 다 읽지 않아도 돼요. 내 역할에 필요한 탭부터 읽어요."
           desc="역할을 고르면 먼저 읽을 탭에 순서 번호가 붙어요.">
           <TabMap />
-          <Note>표준은 고성능 HMI(사람-기계 인터페이스) 표준인 ISA-101을 자주 인용해요<Cite n={4} />. 공정 자동화 쪽 표준이지만 전력·교통·통신 관제에도 같은 원리가 통해요.</Note>
+          <Note>이 영역은 고성능 <Term k="HMI" /> 표준인 ISA-101을 자주 인용해요<Cite n={4} />. HMI는 사람이 기계를 보고 조작하는 화면이에요. 원래 공장 자동화 쪽 표준이지만, 전력·교통·통신 관제에도 같은 원리가 통해요.</Note>
         </Section>
 
         <Refs items={[
