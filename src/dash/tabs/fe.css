@@ -1,0 +1,201 @@
+/* 09 FE · 구현 — 모든 선택자는 [data-dash="fe"] 범위 */
+[data-dash="fe"] .fe-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+[data-dash="fe"] .fe-grow { flex: 1; }
+[data-dash="fe"] .fe-pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap: 12px; align-items: start; }
+[data-dash="fe"] .fe-scroll { overflow-x: auto; }
+[data-dash="fe"] .fe-p { margin: 0; font-size: 14.5px; line-height: 1.7; color: var(--text-2); }
+[data-dash="fe"] .fe-p b { color: var(--text); }
+[data-dash="fe"] code { font-family: ui-monospace, "SF Mono", Consolas, monospace; font-size: .9em; background: var(--surface-2); border-radius: 4px; padding: 1px 4px; }
+[data-dash="fe"] .fe-bad { color: var(--danger); }
+[data-dash="fe"] .dash-hmi .fe-bad { color: #a51d1d; }
+[data-dash="fe"] svg text { font-family: Pretendard, system-ui, sans-serif; }
+[data-dash="fe"] input[type="range"] { height: 4px; border-radius: 2px; background: linear-gradient(to right, var(--text-2) var(--p, 50%), var(--surface-3) var(--p, 50%)); }
+[data-dash="fe"] .fe-inline { display: inline-flex; align-items: center; gap: 10px; font-size: 14px; color: var(--text-2); flex-wrap: wrap; }
+[data-dash="fe"] .fe-inline b { color: var(--text); font-variant-numeric: tabular-nums; min-width: 44px; }
+[data-dash="fe"] .fe-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ---------- 1. 전송 ---------- */
+[data-dash="fe"] .fe-tr { display: flex; flex-direction: column; gap: 10px; }
+[data-dash="fe"] .fe-tr-svg { display: block; width: 100%; min-width: 720px; height: auto; }
+[data-dash="fe"] .fe-tr-svg .ln-n { font-size: 13px; font-weight: 800; fill: var(--text); }
+[data-dash="fe"] .fe-tr-svg .ln-s { font-size: 11.5px; fill: var(--text-3); }
+[data-dash="fe"] .fe-tr-svg .ax { font-size: 11.5px; fill: var(--text-3); }
+[data-dash="fe"] .fe-tr-svg .lane { stroke: var(--line); stroke-width: 2; }
+[data-dash="fe"] .fe-tr-svg .lane.conn { stroke: var(--text-3); }
+[data-dash="fe"] .fe-tr-svg .pipe { fill: var(--text); opacity: .05; }
+[data-dash="fe"] .fe-tr-svg .ar { stroke: var(--text-2); stroke-width: 1.5; }
+[data-dash="fe"] .fe-tr-svg .ar.k-req { stroke-dasharray: 4 3; }
+[data-dash="fe"] .fe-tr-svg .ar.k-hs { stroke: var(--text-3); stroke-dasharray: 2 3; }
+[data-dash="fe"] .fe-tr-svg .ar.k-push, [data-dash="fe"] .fe-tr-svg .ar.k-res { stroke: var(--text); stroke-width: 1.8; }
+[data-dash="fe"] .fe-tr-svg .ar.k-msg { stroke: var(--accent); stroke-width: 2; }
+[data-dash="fe"] .fe-tr-svg .ah { fill: var(--text-2); }
+[data-dash="fe"] .fe-tr-svg .ev { fill: var(--surface); stroke: var(--text); stroke-width: 1.6; }
+[data-dash="fe"] .fe-tr-svg .ev.done { fill: var(--text); }
+[data-dash="fe"] .fe-tr-svg .lat { stroke: var(--text-3); stroke-width: 4; opacity: .55; }
+[data-dash="fe"] .fe-tr-svg .now { stroke: var(--accent); stroke-width: 1.5; }
+[data-dash="fe"] .fe-tr-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+[data-dash="fe"] .fe-tr-stats > div { border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px; font-size: 13.5px; color: var(--text-2); }
+[data-dash="fe"] .fe-tr-stats > div > b { font-size: 15px; color: var(--text); margin-bottom: 2px; }
+[data-dash="fe"] .fe-tr-stats span b { color: var(--text); font-variant-numeric: tabular-nums; }
+[data-dash="fe"] .fe-tr-stats small { font-size: 12.5px; color: var(--text-3); }
+
+/* ---------- 2. 재연결 ---------- */
+[data-dash="fe"] .fe-herd { display: flex; flex-direction: column; gap: 10px; }
+[data-dash="fe"] .fe-herd-svg { display: block; width: 100%; min-width: 640px; height: auto; }
+[data-dash="fe"] .fe-herd-svg .down { fill: var(--text); opacity: .06; }
+[data-dash="fe"] .fe-herd-svg .try { fill: var(--text-3); }
+[data-dash="fe"] .fe-herd-svg .try.ok { fill: var(--text); }
+[data-dash="fe"] .fe-herd-svg .bin { fill: var(--text-2); }
+[data-dash="fe"] .fe-herd-svg .bin.rec { fill: var(--text); }
+[data-dash="fe"] .fe-herd-svg .axl { stroke: var(--text-3); }
+[data-dash="fe"] .fe-herd-svg .ax { font-size: 11px; fill: var(--text-3); }
+[data-dash="fe"] .fe-kv { display: flex; flex-wrap: wrap; gap: 6px 22px; font-size: 14px; color: var(--text-2); }
+[data-dash="fe"] .fe-kv b { color: var(--text); font-size: 17px; font-variant-numeric: tabular-nums; margin-left: 4px; }
+[data-dash="fe"] .fe-live { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; padding-top: 16px; border-top: 1px solid var(--line); }
+[data-dash="fe"] .fe-live-grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 12px; align-items: stretch; }
+[data-dash="fe"] .fe-live-svg { display: block; width: 100%; height: auto; background: var(--h-panel); border-radius: 6px; }
+[data-dash="fe"] .fe-live-svg .ln { fill: none; stroke: var(--h-text); stroke-width: 1.8; stroke-linejoin: round; }
+[data-dash="fe"] .fe-live-svg .late { fill: var(--h-panel); stroke: var(--h-text); stroke-width: 1.4; }
+[data-dash="fe"] .fe-live-svg .hatch { fill: var(--h-eq); opacity: .25; }
+[data-dash="fe"] .fe-live-svg.stale .ln { stroke: var(--h-eq); }
+[data-dash="fe"] .fe-log { list-style: none; margin: 0; padding: 8px 10px; background: var(--h-panel); border-radius: 6px; font: 12.5px/1.6 ui-monospace, "SF Mono", Consolas, monospace; color: var(--h-sub); display: flex; flex-direction: column; gap: 2px; min-height: 120px; }
+[data-dash="fe"] .fe-log li:first-child { color: var(--h-text); font-weight: 700; }
+
+/* ---------- 3. 벤치마크 ---------- */
+[data-dash="fe"] .fe-bench { display: flex; flex-direction: column; gap: 12px; }
+[data-dash="fe"] .fe-bench-ctl { display: flex; flex-wrap: wrap; gap: 12px 20px; }
+[data-dash="fe"] .fe-bench-ctl > div { display: flex; flex-direction: column; gap: 6px; }
+[data-dash="fe"] .fe-bench-ctl span { font-size: 12.5px; font-weight: 700; color: var(--text-3); }
+[data-dash="fe"] .fe-bench-stage { position: relative; background: var(--h-panel); border-radius: 6px; min-height: 80px; }
+[data-dash="fe"] .fe-bench-svg { width: 100%; height: auto; aspect-ratio: 800 / 220; }
+[data-dash="fe"] .fe-bench-svg path { fill: none; stroke: var(--h-text); stroke-width: 1.2; vector-effect: non-scaling-stroke; stroke-linejoin: round; }
+[data-dash="fe"] .fe-bench-cv { width: 100%; height: auto; aspect-ratio: 800 / 220; color: var(--h-text); }
+[data-dash="fe"] .fe-spike { position: absolute; right: 10px; top: 8px; font-size: 12.5px; font-weight: 700; background: var(--h-bg); color: var(--h-text); border: 1px solid var(--h-line); border-radius: 6px; padding: 3px 8px; }
+[data-dash="fe"] .fe-spike.lost { background: var(--p2); color: var(--p2-on); border-color: #1b1b19; }
+[data-dash="fe"] .fe-runs td { vertical-align: middle; font-variant-numeric: tabular-nums; white-space: nowrap; }
+[data-dash="fe"] .fe-runs td.num { text-align: right; }
+[data-dash="fe"] .fe-bar { display: flex; align-items: center; gap: 8px; min-width: 160px; }
+[data-dash="fe"] .fe-bar i { display: block; height: 10px; border-radius: 2px; background: var(--text-3); flex: none; max-width: 120px; }
+[data-dash="fe"] .fe-bar i.slow { background: var(--text); }
+[data-dash="fe"] .fe-bar b { color: var(--text); }
+
+/* ---------- 4. 묶기 ---------- */
+[data-dash="fe"] .fe-batch { display: flex; flex-direction: column; gap: 12px; }
+[data-dash="fe"] .fe-batch-grid { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 12px; align-items: start; }
+[data-dash="fe"] .fe-bars { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 5px; }
+[data-dash="fe"] .fe-bars li { display: grid; grid-template-columns: 64px minmax(0, 1fr) 40px; gap: 8px; align-items: center; font-size: 12.5px; }
+[data-dash="fe"] .fe-bars i { height: 10px; background: var(--h-panel); border-radius: 2px; overflow: hidden; }
+[data-dash="fe"] .fe-bars i b { display: block; height: 100%; background: var(--h-sub); }
+[data-dash="fe"] .fe-bars em { font-style: normal; text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+[data-dash="fe"] .fe-meter { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+[data-dash="fe"] .fe-meter > div { border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; display: flex; flex-direction: column; }
+[data-dash="fe"] .fe-meter small { font-size: 12px; color: var(--text-3); font-weight: 700; }
+[data-dash="fe"] .fe-meter b { font-size: 28px; font-variant-numeric: tabular-nums; }
+[data-dash="fe"] .fe-meter p { grid-column: 1 / -1; margin: 0; font-size: 14px; line-height: 1.65; color: var(--text-2); }
+
+/* ---------- 5. 시간 ---------- */
+[data-dash="fe"] .fe-clock { display: flex; flex-direction: column; gap: 12px; }
+[data-dash="fe"] .fe-clock-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; align-items: start; }
+[data-dash="fe"] .fe-ntp svg { width: 100%; height: auto; display: block; }
+[data-dash="fe"] .fe-ntp .lane { stroke: var(--line); stroke-width: 2; }
+[data-dash="fe"] .fe-ntp .ar { stroke: var(--text-2); stroke-width: 1.5; }
+[data-dash="fe"] .fe-ntp .ax { font-size: 11px; fill: var(--text-3); }
+[data-dash="fe"] .fe-ntp .tk { font-size: 12px; font-weight: 800; fill: var(--text); }
+[data-dash="fe"] .fe-ntp p { margin: 4px 0 0; font-size: 13.5px; line-height: 1.6; color: var(--text-2); }
+[data-dash="fe"] .fe-ntp p b { color: var(--text); font-variant-numeric: tabular-nums; }
+[data-dash="fe"] .fe-ago { display: flex; flex-direction: column; gap: 8px; }
+[data-dash="fe"] .fe-ago > div { background: var(--h-panel); border-radius: 8px; padding: 8px 10px; display: flex; flex-direction: column; border: 1px solid var(--h-line); }
+[data-dash="fe"] .fe-ago > div.bad { border-style: dashed; }
+[data-dash="fe"] .fe-ago small { font-size: 12px; color: var(--h-sub); font-weight: 700; }
+[data-dash="fe"] .fe-ago b { font-size: 20px; font-variant-numeric: tabular-nums; }
+[data-dash="fe"] .fe-ago span { font-size: 12px; color: var(--h-sub); font-variant-numeric: tabular-nums; }
+
+/* ---------- 6. 오래 켜 두기 ---------- */
+[data-dash="fe"] .fe-long-grid { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 14px; }
+[data-dash="fe"] .fe-fig { margin: 0; border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+[data-dash="fe"] .fe-fig figcaption { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4px 10px; font-size: 14px; }
+[data-dash="fe"] .fe-grow-svg { width: 100%; height: auto; display: block; }
+[data-dash="fe"] .fe-grow-svg .grid { stroke: var(--line); }
+[data-dash="fe"] .fe-grow-svg .ax { font-size: 11px; fill: var(--text-3); }
+[data-dash="fe"] .fe-grow-svg .leak { stroke: var(--text); stroke-width: 2.4; fill: none; }
+[data-dash="fe"] .fe-grow-svg .ring { stroke: var(--text-3); stroke-width: 2.4; stroke-dasharray: 6 4; fill: none; }
+[data-dash="fe"] .fe-grow-svg .lab { font-size: 12.5px; font-weight: 700; fill: var(--text); }
+[data-dash="fe"] .fe-ring { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+[data-dash="fe"] .fe-ring-svg { width: 100%; max-width: 230px; height: auto; }
+[data-dash="fe"] .fe-ring-svg .slot { fill: var(--surface-2); stroke: var(--line); stroke-width: 1.2; transition: fill .2s; }
+[data-dash="fe"] .fe-ring-svg .slot.new { fill: var(--text); stroke: var(--text); }
+[data-dash="fe"] .fe-ring-svg .slot.old { stroke: var(--text); stroke-width: 2; stroke-dasharray: 3 2; }
+[data-dash="fe"] .fe-ring-svg .slot.empty { fill: none; }
+[data-dash="fe"] .fe-ring-svg .sv { font-size: 8.5px; font-weight: 700; fill: var(--text-2); font-variant-numeric: tabular-nums; }
+[data-dash="fe"] .fe-ring-svg .slot.new + .sv { fill: var(--surface); }
+[data-dash="fe"] .fe-ring-svg .rc { font-size: 12px; font-weight: 800; fill: var(--text); }
+[data-dash="fe"] .fe-ring-svg .rc2 { font-size: 9.5px; fill: var(--text-3); }
+[data-dash="fe"] .fe-ring-leg { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12.5px; color: var(--text-2); justify-content: center; }
+[data-dash="fe"] .fe-ring-leg li { display: inline-flex; align-items: center; gap: 6px; }
+[data-dash="fe"] .fe-ring-leg i { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+[data-dash="fe"] .fe-ring-leg i.new { background: var(--text); }
+[data-dash="fe"] .fe-ring-leg i.old { border: 2px dashed var(--text); }
+[data-dash="fe"] .fe-leaks { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+[data-dash="fe"] .fe-leaks > div { background: var(--surface-2); border-radius: 12px; padding: 12px 14px; }
+[data-dash="fe"] .fe-leaks b { font-size: 14.5px; }
+[data-dash="fe"] .fe-leaks p { margin: 4px 0 0; font-size: 13.5px; line-height: 1.6; color: var(--text-2); }
+[data-dash="fe"] .fe-apis { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+[data-dash="fe"] .fe-api { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+[data-dash="fe"] .fe-api > small { font: 12px ui-monospace, "SF Mono", Consolas, monospace; color: var(--text-3); }
+[data-dash="fe"] .fe-api > b { font-size: 16px; }
+[data-dash="fe"] .fe-api > span { font-size: 13.5px; color: var(--text-2); }
+[data-dash="fe"] .fe-api p { margin: 0; font-size: 13.5px; line-height: 1.6; color: var(--text-2); }
+
+/* ---------- 7. 접근성 ---------- */
+[data-dash="fe"] .fe-a11y { display: flex; flex-direction: column; gap: 12px; position: relative; }
+[data-dash="fe"] .fe-raise { display: inline-flex; align-items: center; gap: 6px; }
+[data-dash="fe"] .fe-a11y-grid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 12px; align-items: start; }
+[data-dash="fe"] .fe-alist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; min-height: 120px; }
+[data-dash="fe"] .fe-alist li { display: flex; align-items: center; gap: 10px; background: var(--h-panel); border: 1.5px solid var(--h-line); border-radius: 8px; padding: 7px 10px; font-size: 13.5px; }
+[data-dash="fe"] .fe-alist li > .tx { flex: 1; min-width: 0; }
+[data-dash="fe"] .fe-alist li.empty { color: var(--h-sub); justify-content: center; border-style: dashed; }
+[data-dash="fe"] .fe-alist .tag { font-style: normal; font-size: 11.5px; font-weight: 800; color: var(--h-text); border: 1.5px solid var(--h-text); border-radius: 4px; padding: 0 5px; }
+[data-dash="fe"] .fe-alist .btn { background: var(--h-bg); color: var(--h-text); }
+[data-dash="fe"] .fe-alist li.ack { color: var(--h-sub); }
+[data-dash="fe"] .fe-alist li.unack { border-color: var(--h-text); border-width: 2.5px; }
+[data-dash="fe"] .fe-alist li.unack .dash-pri { animation: fe-blink 1s steps(2, jump-none) infinite; }
+[data-dash="fe"] .fe-alist.calm li.unack .dash-pri { animation: none; }
+@keyframes fe-blink { 0% { opacity: 1; } 100% { opacity: .2; } }
+[data-dash="fe"] .fe-said { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+[data-dash="fe"] .fe-said > b { font-size: 13.5px; color: var(--text-2); }
+[data-dash="fe"] .fe-said ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+[data-dash="fe"] .fe-said li { display: flex; gap: 8px; align-items: flex-start; font-size: 14px; }
+[data-dash="fe"] .fe-said li small { display: block; font-size: 12.5px; color: var(--text-3); }
+
+/* ---------- 8. 체크리스트 ---------- */
+[data-dash="fe"] .fe-check { display: flex; flex-direction: column; gap: 12px; }
+[data-dash="fe"] .fe-check-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+[data-dash="fe"] .fe-check-g { border: 1px solid var(--line); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+[data-dash="fe"] .fe-check-g > b { font-size: 14.5px; }
+[data-dash="fe"] .fe-check-g ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+[data-dash="fe"] .fe-check-g label { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 8px; font-size: 13.5px; line-height: 1.55; cursor: pointer; }
+[data-dash="fe"] .fe-check-g input { width: 16px; height: 16px; margin: 3px 0 0; accent-color: var(--text); }
+
+@media (prefers-reduced-motion: reduce) {
+  [data-dash="fe"] .fe-alist li.unack .dash-pri { animation: none; }
+  [data-dash="fe"] .fe-ring-svg .slot { transition: none; }
+}
+@media (max-width: 1100px) {
+  [data-dash="fe"] .fe-tr-stats, [data-dash="fe"] .fe-leaks, [data-dash="fe"] .fe-check-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  [data-dash="fe"] .fe-long-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 767px) {
+  [data-dash="fe"] .fe-live-grid, [data-dash="fe"] .fe-batch-grid, [data-dash="fe"] .fe-clock-grid, [data-dash="fe"] .fe-apis,
+  [data-dash="fe"] .fe-a11y-grid, [data-dash="fe"] .fe-leaks, [data-dash="fe"] .fe-check-grid { grid-template-columns: minmax(0, 1fr); }
+  [data-dash="fe"] .fe-tr-stats { grid-template-columns: 1fr 1fr; }
+  [data-dash="fe"] .fe-tr-svg { min-width: 860px; }
+  [data-dash="fe"] .fe-tr-svg .ln-n { font-size: 15px; }
+  [data-dash="fe"] .fe-tr-svg .ln-s, [data-dash="fe"] .fe-tr-svg .ax { font-size: 14px; }
+  [data-dash="fe"] .fe-herd-svg { min-width: 760px; }
+  [data-dash="fe"] .fe-herd-svg .ax { font-size: 15px; }
+  [data-dash="fe"] .fe-grow-svg .ax { font-size: 17px; }
+  [data-dash="fe"] .fe-grow-svg .lab { font-size: 19px; }
+  [data-dash="fe"] .fe-bench-ctl .seg-x { max-width: 100%; }
+  [data-dash="fe"] .fe-inline input[type="range"] { width: 100% !important; }
+  [data-dash="fe"] .fe-inline { display: flex; }
+}

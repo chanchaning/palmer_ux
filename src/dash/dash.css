@@ -1,0 +1,60 @@
+/* 관제 대시보드 공용 (탭 전용 스타일은 [data-dash="탭id"] 범위로 각 탭 css에) */
+.dashpage {
+  /* 알람 우선순위 색 — 비정상에만 써요 */
+  --p1: #c92a2a; --p1-on: #fff;
+  --p2: #e8590c; --p2-on: #1b1b19;
+  --p3: #f2c230; --p3-on: #1b1b19;
+  /* 상태 */
+  --stale: #868e96;
+}
+
+/* 근거 표기 */
+.dash-refs ol { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; counter-reset: ref; }
+.dash-refs li { counter-increment: ref; display: grid; grid-template-columns: 28px 86px minmax(0, 1fr); gap: 8px; align-items: baseline; font-size: 14px; line-height: 1.55; color: var(--text-2); }
+.dash-refs li::before { content: "[" counter(ref) "]"; font-weight: 700; color: var(--text-3); font-variant-numeric: tabular-nums; }
+.dash-refs a { color: var(--accent); text-underline-offset: 2px; }
+.dash-kind { font-size: 12px; font-weight: 700; color: var(--text-2); background: var(--surface-2); border-radius: 6px; padding: 2px 8px; text-align: center; white-space: nowrap; }
+.dash-kind.k-reported { color: var(--b); background: color-mix(in srgb, var(--b) 10%, var(--surface)); }
+.dash-cite { font-size: .78em; font-weight: 700; color: var(--accent); text-decoration: none; vertical-align: super; line-height: 0; margin-left: 1px; }
+.dash-finding { margin: 0; background: var(--surface-2); border-radius: 12px; padding: 16px 18px; display: flex; flex-direction: column; gap: 8px; }
+.dash-finding blockquote { margin: 0; font-size: 17px; font-weight: 700; line-height: 1.55; color: var(--text); word-break: keep-all; }
+.dash-finding figcaption { font-size: 13px; color: var(--text-3); }
+
+/* 우선순위 배지 */
+.dash-pri { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 700; vertical-align: middle; position: relative; }
+.dash-pri svg text { font: 800 11px/1 Pretendard, system-ui, sans-serif; }
+.dash-pri.p1 svg > :first-child { fill: var(--p1); } .dash-pri.p1 svg text { fill: var(--p1-on); }
+.dash-pri.p2 svg > :first-child { fill: var(--p2); } .dash-pri.p2 svg text { fill: var(--p2-on); }
+.dash-pri.p3 svg > :first-child { fill: var(--p3); } .dash-pri.p3 svg text { fill: var(--p3-on); }
+
+/* 스파크라인 */
+.dash-spark { display: block; overflow: visible; }
+.dash-spark path { fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linejoin: round; }
+.dash-spark circle { fill: currentColor; }
+.dash-spark .band { fill: currentColor; opacity: .1; }
+
+/* 아날로그 막대 */
+.dash-analog .track { position: relative; height: 12px; border-radius: 3px; background: color-mix(in srgb, currentColor 8%, transparent); }
+.dash-analog .nb { position: absolute; top: 0; bottom: 0; background: color-mix(in srgb, currentColor 22%, transparent); }
+.dash-analog .al { position: absolute; top: 0; bottom: 0; background: repeating-linear-gradient(135deg, color-mix(in srgb, currentColor 18%, transparent) 0 3px, transparent 3px 6px); }
+.dash-analog .ptr { position: absolute; top: -4px; width: 0; height: 0; margin-left: -6px; border: 6px solid transparent; border-top: 8px solid currentColor; border-bottom: 0; transition: left .4s; }
+.dash-analog.out .ptr { border-top-color: var(--p2); }
+.dash-analog.bad .ptr { border-top-color: var(--p1); }
+
+/* HMI 목업 프레임 — 관제 화면 자체의 팔레트 */
+.dash-hmi { --h-bg: #dcdcd8; --h-panel: #e9e9e6; --h-line: #b4b4ae; --h-text: #1b1b19; --h-sub: #4d4d48; --h-eq: #8a8a84;
+  background: var(--h-bg); color: var(--h-text); border-radius: 12px; overflow: hidden; border: 1px solid var(--line); min-width: 0; }
+.dash-hmi.dark { --h-bg: #2a2c2f; --h-panel: #34373a; --h-line: #4a4d51; --h-text: #e8e8e4; --h-sub: #b5b5ae; --h-eq: #7c7f84; }
+.dash-hmi-bar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 4px 10px; padding: 8px 12px; background: var(--h-panel); border-bottom: 1px solid var(--h-line); font-size: 13px; }
+.dash-hmi-bar span { color: var(--h-sub); font-variant-numeric: tabular-nums; }
+.dash-hmi-body { padding: 12px; }
+
+@media (max-width: 767px) {
+  .dash-refs li { grid-template-columns: 26px minmax(0, 1fr); }
+  .dash-refs li > :last-child { grid-column: 2; }
+  .dash-finding blockquote { font-size: 16px; }
+}
+
+/* 알람 색이 회색·어두운 배경에서 3:1 미만일 수 있어, 모양에 글자색 외곽선을 둘러 경계를 보장해요 */
+.dash-pri svg > :first-child { stroke: currentColor; stroke-width: 1.3; paint-order: stroke; }
+.dash-analog.out .ptr, .dash-analog.bad .ptr { filter: drop-shadow(0 0 .6px currentColor) drop-shadow(0 0 .6px currentColor); }

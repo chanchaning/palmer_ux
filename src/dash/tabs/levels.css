@@ -1,0 +1,215 @@
+/* 01 화면 위계 — 모든 선택자는 [data-dash="levels"] 범위 */
+[data-dash="levels"] .lv-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 14px; }
+[data-dash="levels"] .muted { color: var(--text-3); }
+[data-dash="levels"] code { font-family: ui-monospace, "SF Mono", Consolas, monospace; font-size: .92em; }
+
+/* 위계 피라미드 */
+[data-dash="levels"] .lv-why { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; align-items: center; }
+[data-dash="levels"] .lv-pyr { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+[data-dash="levels"] .lv-pyr li { background: var(--surface-2); border-radius: 8px; padding: 8px 12px; display: flex; align-items: baseline; gap: 8px; justify-content: center; font-size: 14px; flex-wrap: wrap; text-align: center; }
+[data-dash="levels"] .lv-pyr li:first-child { background: var(--surface-3); }
+[data-dash="levels"] .lv-pyr small { font-size: 12px; font-weight: 700; color: var(--text-3); }
+[data-dash="levels"] .lv-pyr span { color: var(--text-2); font-size: 13px; }
+
+/* 탐색기 */
+[data-dash="levels"] .lv-ex { display: flex; flex-direction: column; gap: 12px; }
+[data-dash="levels"] .lv-ex-ladder { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+[data-dash="levels"] .lv-step { text-align: left; border: 1.5px solid var(--line); background: var(--surface); color: var(--text); border-radius: 12px; padding: 10px 12px; display: flex; flex-direction: column; gap: 1px; transition: border-color .2s, background .2s, opacity .2s; }
+[data-dash="levels"] .lv-step small { font-size: 12px; font-weight: 700; color: var(--text-3); }
+[data-dash="levels"] .lv-step b { font-size: 16px; }
+[data-dash="levels"] .lv-step span { font-size: 12.5px; color: var(--text-2); }
+[data-dash="levels"] .lv-step:not(.off):not(.on):hover { border-color: var(--text-3); }
+[data-dash="levels"] .lv-step.on { border-color: var(--accent); background: var(--accent-soft); }
+[data-dash="levels"] .lv-step.off { opacity: .5; border-style: dashed; cursor: default; }
+[data-dash="levels"] .lv-ex-main { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 20px; align-items: start; }
+
+[data-dash="levels"] .lv-crumb { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; font-size: 13px; }
+[data-dash="levels"] .lv-crumb i { font-style: normal; color: var(--h-sub); margin: 0 4px; }
+[data-dash="levels"] .lv-crumb button { border: 0; background: none; padding: 2px 4px; border-radius: 4px; font: inherit; font-weight: 600; color: var(--h-text); text-decoration: underline; text-underline-offset: 2px; text-decoration-color: var(--h-eq); }
+[data-dash="levels"] .lv-crumb button:hover { background: var(--h-bg); }
+[data-dash="levels"] .lv-lvtag { font-weight: 700; color: var(--h-text); white-space: nowrap; }
+[data-dash="levels"] .lv-hmi .dash-hmi-body { padding: 0; }
+[data-dash="levels"] .lv-stage { position: relative; min-height: 330px; padding: 14px; overflow: hidden; }
+[data-dash="levels"] .lv-view { animation: lv-zin .32s var(--ease-std); }
+[data-dash="levels"] .lv-view.zout { animation-name: lv-zout; }
+@keyframes lv-zin { from { opacity: 0; transform: scale(.55); } to { opacity: 1; transform: none; } }
+@keyframes lv-zout { from { opacity: 0; transform: scale(1.25); } to { opacity: 1; transform: none; } }
+[data-dash="levels"] .lv-mini { display: flex; gap: 4px; margin-bottom: 10px; }
+[data-dash="levels"] .lv-mini button { position: relative; border: 1px solid var(--h-line); background: var(--h-panel); color: var(--h-sub); font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 4px; }
+[data-dash="levels"] .lv-mini button.on { color: var(--h-text); border-color: var(--h-text); background: var(--h-bg); box-shadow: inset 0 0 0 1px var(--h-text); }
+[data-dash="levels"] .lv-mini button i { position: absolute; top: -3px; right: -3px; width: 8px; height: 8px; }
+[data-dash="levels"] .lv-mini button i.p1 { background: var(--p1); }
+[data-dash="levels"] .lv-mini button i.p2 { background: var(--p2); clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+[data-dash="levels"] .lv-mini button i.p3 { background: var(--p3); border-radius: 50%; outline: 1px solid var(--h-text); }
+
+/* 공통 설비 박스 */
+[data-dash="levels"] .lv-l1-sub, [data-dash="levels"] .lv-eq, [data-dash="levels"] .lv-pt { font: inherit; color: var(--h-text); text-align: left; background: var(--h-panel); border: 1px solid var(--h-line); border-radius: 6px; transition: border-color .15s; }
+[data-dash="levels"] button.lv-l1-sub:hover, [data-dash="levels"] .lv-eq:hover, [data-dash="levels"] .lv-pt:hover { border-color: var(--h-text); }
+[data-dash="levels"] .lv-l1-sub.alarm, [data-dash="levels"] .lv-eq.alarm, [data-dash="levels"] .lv-pt.alarm { border: 2px solid var(--h-text); }
+[data-dash="levels"] .h { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+
+/* 레벨 1 */
+[data-dash="levels"] .lv-l1 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; padding-top: 30px; }
+[data-dash="levels"] .lv-l1-sub { padding: 14px; display: flex; flex-direction: column; gap: 12px; min-height: 200px; }
+[data-dash="levels"] .lv-l1-sub b { font-size: 16px; }
+[data-dash="levels"] .lv-l1-sub .bars { display: flex; align-items: flex-end; gap: 8px; height: 90px; border-bottom: 1px solid var(--h-line); }
+[data-dash="levels"] .lv-l1-sub .bars i { flex: 1; background: var(--h-eq); border-radius: 2px 2px 0 0; }
+[data-dash="levels"] .lv-l1-sub .bars i.bad { background: var(--p2); }
+[data-dash="levels"] .lv-l1-sub .bars i.trip { background: repeating-linear-gradient(135deg, var(--p1) 0 3px, transparent 3px 6px); border: 1.5px solid var(--p1); }
+[data-dash="levels"] .lv-l1-sub .s { font-size: 13px; color: var(--h-sub); font-weight: 600; }
+
+/* 레벨 2 */
+[data-dash="levels"] .lv-l2 { display: flex; flex-direction: column; align-items: center; }
+[data-dash="levels"] .lv-eq { padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; min-width: 0; }
+[data-dash="levels"] .lv-eq.tr { width: min(300px, 100%); }
+[data-dash="levels"] .lv-eq .row { display: grid; grid-template-columns: 30px minmax(0, 1fr) 46px; gap: 6px; align-items: center; color: var(--h-sub); }
+[data-dash="levels"] .lv-eq .row .dash-analog { width: 100% !important; }
+[data-dash="levels"] .lv-eq .row em { font-style: normal; text-align: right; color: var(--h-text); font-weight: 600; font-variant-numeric: tabular-nums; }
+[data-dash="levels"] .lv-eq .cb { color: var(--h-sub); }
+[data-dash="levels"] .lv-eq .cb b { color: var(--h-text); }
+[data-dash="levels"] .lv-l2-bus { width: 80%; height: 22px; border-left: 2px solid var(--h-eq); border-right: 2px solid var(--h-eq); border-top: 2px solid var(--h-eq); margin-top: 22px; position: relative; }
+[data-dash="levels"] .lv-l2-bus::before { content: ""; position: absolute; left: 50%; top: -24px; height: 22px; border-left: 2px solid var(--h-eq); }
+[data-dash="levels"] .lv-l2-bus::after { content: ""; position: absolute; left: 50%; top: 0; height: 22px; border-left: 2px solid var(--h-eq); }
+[data-dash="levels"] .lv-l2-feeders { width: 100%; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+
+/* 레벨 3 */
+[data-dash="levels"] .lv-l3 { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 12px; }
+[data-dash="levels"] .k { font-size: 12px; font-weight: 700; color: var(--h-sub); margin-bottom: 6px; }
+[data-dash="levels"] .lv-l3-pts { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+[data-dash="levels"] .lv-pt { display: grid; grid-template-columns: minmax(0, 1fr) 140px 56px 90px; gap: 10px; align-items: center; padding: 10px 12px; font-size: 13px; }
+[data-dash="levels"] .lv-pt .n { font-weight: 600; }
+[data-dash="levels"] .lv-pt em { font-style: normal; text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+[data-dash="levels"] .lv-pt .dash-spark { color: var(--h-text); }
+[data-dash="levels"] .lv-l3-st { background: var(--h-panel); border: 1px solid var(--h-line); border-radius: 6px; padding: 10px 12px; min-width: 0; }
+[data-dash="levels"] dl { margin: 0; display: flex; flex-direction: column; gap: 6px; font-size: 13px; }
+[data-dash="levels"] dl > div { display: flex; justify-content: space-between; gap: 10px; border-bottom: 1px solid var(--h-line); padding-bottom: 5px; }
+[data-dash="levels"] dl > div:last-child { border-bottom: 0; }
+[data-dash="levels"] dt { color: var(--h-sub); }
+[data-dash="levels"] dd { margin: 0; text-align: right; }
+
+/* 레벨 4 */
+[data-dash="levels"] .lv-l4 { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 12px; }
+[data-dash="levels"] .lv-l4-chart, [data-dash="levels"] .lv-l4-info { background: var(--h-panel); border: 1px solid var(--h-line); border-radius: 6px; padding: 10px 12px; min-width: 0; }
+[data-dash="levels"] .lv-l4-chart svg { width: 100%; height: auto; display: block; }
+[data-dash="levels"] .lv-l4-chart .band { fill: var(--h-text); opacity: .08; }
+[data-dash="levels"] .lv-l4-chart .al { stroke: var(--h-sub); stroke-dasharray: 5 4; }
+[data-dash="levels"] .lv-l4-chart .ax { font-size: 10.5px; fill: var(--h-sub); font-variant-numeric: tabular-nums; }
+[data-dash="levels"] .lv-l4-chart .line { fill: none; stroke: var(--h-text); stroke-width: 1.8; stroke-linejoin: round; }
+[data-dash="levels"] .lv-l4-info .k:not(:first-child) { margin-top: 10px; }
+[data-dash="levels"] .lv-l4-info ul { margin: 0; padding-left: 16px; font-size: 12.5px; line-height: 1.6; color: var(--h-sub); font-variant-numeric: tabular-nums; }
+
+/* 알람 줄 */
+[data-dash="levels"] .lv-alarms { border-top: 1px solid var(--h-line); background: var(--h-panel); padding: 8px 12px 10px; }
+[data-dash="levels"] .lv-alarms-h { display: flex; gap: 10px; align-items: baseline; font-size: 13px; margin-bottom: 6px; }
+[data-dash="levels"] .lv-alarms-h span { color: var(--h-sub); font-size: 12px; }
+[data-dash="levels"] .lv-alarms ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 12px; }
+[data-dash="levels"] .lv-alarms li button { width: 100%; display: flex; align-items: center; gap: 8px; border: 1px solid transparent; background: none; color: var(--h-text); padding: 4px 6px; border-radius: 4px; font-size: 12.5px; text-align: left; min-width: 0; }
+[data-dash="levels"] .lv-alarms li button:hover { background: var(--h-bg); border-color: var(--h-line); }
+[data-dash="levels"] .lv-alarms li button.here { border-color: var(--h-text); }
+[data-dash="levels"] .lv-alarms li b { white-space: nowrap; }
+[data-dash="levels"] .lv-alarms li span:last-child { color: var(--h-sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+
+/* 옆 설명 */
+[data-dash="levels"] .lv-ex-side { display: flex; flex-direction: column; gap: 6px; font-size: 14px; }
+[data-dash="levels"] .lv-side-h small { display: block; font-size: 12px; font-weight: 700; color: var(--text-3); }
+[data-dash="levels"] .lv-side-h b { font-size: 21px; }
+[data-dash="levels"] .lv-side-where { color: var(--text-2); }
+[data-dash="levels"] .lv-side-k { font-size: 12px; font-weight: 700; color: var(--text-3); margin-top: 8px; }
+[data-dash="levels"] .lv-ex-side ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 4px; }
+[data-dash="levels"] .lv-ex-side li { position: relative; padding-left: 20px; line-height: 1.55; color: var(--text-2); }
+[data-dash="levels"] .lv-ex-side li::before { position: absolute; left: 0; font-weight: 800; }
+[data-dash="levels"] .lv-ex-side .do li::before { content: "✓"; color: var(--ok); }
+[data-dash="levels"] .lv-ex-side .dont li::before { content: "✕"; color: var(--text-3); }
+[data-dash="levels"] .lv-side-moves { margin-top: 10px; border-top: 1px solid var(--line); padding-top: 10px; display: flex; flex-direction: column; gap: 6px; align-items: flex-start; color: var(--text-2); font-size: 13.5px; line-height: 1.55; }
+[data-dash="levels"] .lv-side-moves b { color: var(--text); font-variant-numeric: tabular-nums; }
+
+/* 이동 경주 */
+[data-dash="levels"] .lv-race { display: flex; flex-direction: column; gap: 12px; }
+[data-dash="levels"] .lv-race-task { font-size: 15px; }
+[data-dash="levels"] .lv-race-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+[data-dash="levels"] .lv-race-col { border: 1px solid var(--line); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+[data-dash="levels"] .lv-race-h { display: flex; justify-content: space-between; align-items: baseline; font-size: 15px; }
+[data-dash="levels"] .lv-race-h .muted { font-size: 13px; font-variant-numeric: tabular-nums; }
+[data-dash="levels"] .lv-menu-path { font-size: 13px; color: var(--text-2); margin-bottom: 6px; min-height: 20px; word-break: keep-all; }
+[data-dash="levels"] .lv-menu ul { list-style: none; margin: 0; padding: 0; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+[data-dash="levels"] .lv-menu li + li { border-top: 1px solid var(--line); }
+[data-dash="levels"] .lv-menu li button { width: 100%; display: flex; justify-content: space-between; border: 0; background: var(--surface); color: var(--text); padding: 9px 12px; font-size: 14px; text-align: left; }
+[data-dash="levels"] .lv-menu li button:hover { background: var(--surface-2); }
+[data-dash="levels"] .lv-menu li button i { font-style: normal; color: var(--text-3); }
+[data-dash="levels"] .lv-menu-miss { min-height: 20px; font-size: 13px; color: var(--danger); margin-top: 4px; }
+[data-dash="levels"] .lv-jump { display: flex; flex-direction: column; gap: 8px; }
+[data-dash="levels"] .lv-jump p { margin: 0; font-size: 13px; }
+[data-dash="levels"] .lv-jump-a { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; border: 1px solid var(--line); background: var(--surface); color: var(--text); border-radius: 10px; padding: 10px 12px; font-size: 14px; text-align: left; }
+[data-dash="levels"] .lv-jump-a:hover { border-color: var(--text-3); }
+[data-dash="levels"] .lv-jump-a span { color: var(--text-2); }
+[data-dash="levels"] .lv-race-ok { background: color-mix(in srgb, var(--ok) 10%, var(--surface)); color: var(--ok); font-weight: 700; border-radius: 10px; padding: 12px; font-size: 14px; }
+[data-dash="levels"] .lv-race-res { font-size: 14px; color: var(--text-2); font-variant-numeric: tabular-nums; }
+[data-dash="levels"] .lv-race-res b { font-size: 22px; color: var(--text); margin-right: 2px; }
+[data-dash="levels"] .lv-rules { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 10px; }
+[data-dash="levels"] .lv-rules > div { background: var(--surface-2); border-radius: 12px; padding: 12px 14px; }
+[data-dash="levels"] .lv-rules b { font-size: 15px; }
+[data-dash="levels"] .lv-rules p { margin: 4px 0 0; font-size: 14px; line-height: 1.6; color: var(--text-2); }
+
+/* 만트라 */
+[data-dash="levels"] .lv-mantra { display: flex; flex-direction: column; gap: 12px; }
+[data-dash="levels"] .lv-mantra-steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+[data-dash="levels"] .lv-mantra-steps button { width: 100%; height: 100%; border: 1.5px solid var(--line); background: var(--surface); color: var(--text); border-radius: 10px; padding: 8px 10px; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; text-align: left; }
+[data-dash="levels"] .lv-mantra-steps button small { font-size: 12px; color: var(--text-3); font-weight: 700; }
+[data-dash="levels"] .lv-mantra-steps button b { font-size: 14.5px; word-break: keep-all; }
+[data-dash="levels"] .lv-mantra-steps button.on { border-color: var(--accent); background: var(--accent-soft); }
+[data-dash="levels"] .lv-mantra-d { margin: 0; color: var(--text-2); font-size: 14.5px; }
+[data-dash="levels"] .lv-mantra-stack { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+[data-dash="levels"] .lv-mantra-stack div { border-radius: 8px; padding: 7px 10px; font-size: 13.5px; background: var(--surface-2); color: var(--text-3); text-align: center; transition: background .2s, color .2s; }
+[data-dash="levels"] .lv-mantra-stack div small { font-weight: 700; }
+[data-dash="levels"] .lv-mantra-stack div.on { background: var(--accent); color: var(--accent-text); font-weight: 700; }
+
+/* 화면 배치 */
+[data-dash="levels"] .lv-scr { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 8px 0; }
+[data-dash="levels"] .lv-scr small { display: block; font-size: 11.5px; color: var(--text-3); font-weight: 600; }
+[data-dash="levels"] .lv-scr b { font-size: 14px; }
+[data-dash="levels"] .lv-scr-wall { width: 90%; border: 2px solid var(--text); border-radius: 6px; padding: 18px 12px; text-align: center; background: var(--surface-2); }
+[data-dash="levels"] .lv-scr-desk { display: grid; grid-template-columns: 1fr 1.2fr 1fr; gap: 6px; width: 76%; margin-top: 18px; }
+[data-dash="levels"] .lv-scr-desk div { border: 1.5px solid var(--text-2); border-radius: 4px; padding: 10px 6px; text-align: center; }
+[data-dash="levels"] .lv-scr-desk .main { border-color: var(--accent); background: var(--accent-soft); }
+[data-dash="levels"] .lv-scr-cap { width: 80%; border-top: 6px solid var(--surface-3); padding-top: 6px; text-align: center; font-size: 12.5px; color: var(--text-3); }
+
+/* 나쁜 예 */
+[data-dash="levels"] .lv-bad { display: flex; flex-direction: column; gap: 10px; }
+[data-dash="levels"] .lv-bad-wrap { overflow-x: auto; }
+[data-dash="levels"] .lv-bad-t { width: 100%; min-width: 640px; border-collapse: collapse; font-size: 11.5px; font-variant-numeric: tabular-nums; }
+[data-dash="levels"] .lv-bad-t th, [data-dash="levels"] .lv-bad-t td { border: 1px solid var(--h-line); padding: 3px 5px; text-align: right; white-space: nowrap; }
+[data-dash="levels"] .lv-bad-t th { background: var(--h-panel); font-weight: 600; color: var(--h-sub); }
+[data-dash="levels"] .lv-bad-t td:nth-child(-n+2) { text-align: left; }
+[data-dash="levels"] .lv-bad-tr { font-size: 11.5px; color: var(--h-sub); margin-top: 6px; font-variant-numeric: tabular-nums; min-width: 640px; }
+[data-dash="levels"] .lv-bad .lv-l1 { padding-top: 0; }
+[data-dash="levels"] .lv-bad-q { margin: 0; font-size: 14px; }
+
+@media (prefers-reduced-motion: reduce) {
+  [data-dash="levels"] * { animation: none !important; transition: none !important; }
+}
+@media (max-width: 1100px) {
+  [data-dash="levels"] .lv-ex-main { grid-template-columns: minmax(0, 1fr); }
+  [data-dash="levels"] .lv-why { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 767px) {
+  [data-dash="levels"] .lv-ex-ladder { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  [data-dash="levels"] .lv-step span { display: none; }
+  [data-dash="levels"] .lv-stage { padding: 10px; min-height: 0; }
+  [data-dash="levels"] .lv-l1 { grid-template-columns: minmax(0, 1fr); padding-top: 0; gap: 8px; }
+  [data-dash="levels"] .lv-l1-sub { min-height: 0; flex-direction: row; align-items: center; flex-wrap: wrap; gap: 10px; }
+  [data-dash="levels"] .lv-l1-sub .h { flex: 1 1 100%; }
+  [data-dash="levels"] .lv-l1-sub .bars { height: 40px; width: 90px; }
+  [data-dash="levels"] .lv-l2-bus { display: none; }
+  [data-dash="levels"] .lv-eq.tr { width: 100%; margin-bottom: 8px; }
+  [data-dash="levels"] .lv-l2-feeders, [data-dash="levels"] .lv-l3, [data-dash="levels"] .lv-l4 { grid-template-columns: minmax(0, 1fr); }
+  [data-dash="levels"] .lv-pt { grid-template-columns: minmax(0, 1fr) 56px; }
+  [data-dash="levels"] .lv-pt .dash-analog { grid-column: 1 / -1; grid-row: 2; width: 100% !important; }
+  [data-dash="levels"] .lv-pt .dash-spark { display: none; }
+  [data-dash="levels"] .lv-alarms ul { grid-template-columns: minmax(0, 1fr); }
+  [data-dash="levels"] .lv-race-grid { grid-template-columns: minmax(0, 1fr); }
+  [data-dash="levels"] .lv-mantra-steps { grid-template-columns: minmax(0, 1fr); }
+  [data-dash="levels"] .lv-scr-wall, [data-dash="levels"] .lv-scr-desk { width: 100%; }
+}
+@media (max-width: 767px) {
+  [data-dash="levels"] .lv-l4-chart .ax { font-size: 19px; }
+}

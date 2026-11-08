@@ -4,6 +4,7 @@ import { Home } from './components/Home'
 import { Search } from './components/Search'
 import { SystemPage } from './system/SystemPage'
 import { PLAN_TABS, PlanPage } from './plan/PlanPage'
+import { DASH_TABS, DashPage } from './dash/DashPage'
 import { groups, guides } from './guides/registry'
 import { useSlowMotion } from './lib/motion'
 import { IconDoc, IconGrid, IconHome, IconSearch, IconSlow, IconTheme } from './components/icons'
@@ -59,7 +60,8 @@ export default function App() {
   const route = useHashRoute()
   const isSystem = route.g === 'system'
   const isPlan = route.g === 'plan'
-  const guide = isSystem || isPlan ? null : guides.find(g => g.id === route.g) ?? null
+  const isDash = route.g === 'dash'
+  const guide = isSystem || isPlan || isDash ? null : guides.find(g => g.id === route.g) ?? null
   const [search, setSearch] = useState(false)
 
   // ⌘K / Ctrl+K / '/' 로 검색 열기
@@ -84,7 +86,7 @@ export default function App() {
     setDrawer(false)
     document.title = guide ? `${guide.nav} · Palmer의 웹 도감` : 'Palmer의 웹 도감 · 경험 노하우'
     requestAnimationFrame(() => window.dispatchEvent(new Event('resize')))
-  }, [guide, isSystem, isPlan, (isSystem || isPlan) && route.c])
+  }, [guide, isSystem, isPlan, isDash, (isSystem || isPlan || isDash) && route.c])
 
   // 스크롤 진행 막대 · 맨 위로 버튼
   useEffect(() => {
@@ -108,7 +110,7 @@ export default function App() {
       <aside className={'side' + (drawer ? ' open' : '')}>
         <a className="brand" href="#/"><Logo /><div><b>Palmer</b><small>경험 노하우 웹 도감</small></div></a>
         <nav className="side-nav">
-          <a href="#/" title="홈" className={!guide && !isSystem && !isPlan ? 'on' : ''}><span className="ico"><IconHome /></span><span className="txt">홈</span></a>
+          <a href="#/" title="홈" className={!guide && !isSystem && !isPlan && !isDash ? 'on' : ''}><span className="ico"><IconHome /></span><span className="txt">홈</span></a>
           <div className="side-area">디자인</div>
           <a href="#/system" title="디자인 시스템" className={isSystem ? 'on' : ''}><span className="ico"><IconGrid /></span><span className="txt">디자인 시스템</span></a>
           {groups.map(gr => (
@@ -127,6 +129,12 @@ export default function App() {
               <span className="ico">{t.id === 'map' ? <IconDoc /> : t.num}</span><span className="txt">{t.name}</span>
             </a>
           ))}
+          <div className="side-area">대시보드</div>
+          {DASH_TABS.map(t => (
+            <a key={t.id} href={'#/dash/' + t.id} title={t.name} className={isDash && (route.c || 'intro') === t.id ? 'on' : ''}>
+              <span className="ico">{t.num}</span><span className="txt">{t.name}</span>
+            </a>
+          ))}
         </nav>
         <div className="side-foot">{guides.length}개 가이드 · 계속 추가 중</div>
       </aside>
@@ -136,7 +144,7 @@ export default function App() {
         <header className="topbar">
           <button className="menu-btn" aria-label="메뉴 열기" onClick={() => setDrawer(true)}>☰</button>
           <h1><a href="#/">Palmer의 웹 도감</a></h1>
-          {(guide || isSystem || isPlan) && <span className="crumb">{guide ? guide.nav : isSystem ? '디자인 시스템' : '기획 노트'}</span>}
+          {(guide || isSystem || isPlan || isDash) && <span className="crumb">{guide ? guide.nav : isSystem ? '디자인 시스템' : isDash ? '관제 대시보드' : '기획 노트'}</span>}
           <div className="top-actions">
             <button className="pill-btn search-btn" onClick={() => setSearch(true)}><IconSearch /> <span className="lbl">검색</span><kbd>⌘K</kbd></button>
             {guide?.motion && (
@@ -147,7 +155,9 @@ export default function App() {
           <div className="scroll-progress" ref={bar} />
         </header>
         <div className="content">
-          {isPlan
+          {isDash
+            ? <DashPage tab={route.c} />
+            : isPlan
             ? <PlanPage tab={route.c} />
             : isSystem
             ? <SystemPage tab={route.c} />

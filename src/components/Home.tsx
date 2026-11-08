@@ -1,6 +1,7 @@
 import { groups, guides } from '../guides/registry'
 import { IconArrow, IconSearch } from './icons'
 import { PLAN_TABS } from '../plan/PlanPage'
+import { DASH_TABS } from '../dash/DashPage'
 
 /** 첫 화면: 소개 + 검색 + 그룹별 가이드 목차 */
 export function Home({ onSearch, logo }: { onSearch: () => void; logo: React.ReactNode }) {
@@ -68,6 +69,20 @@ export function Home({ onSearch, logo }: { onSearch: () => void; logo: React.Rea
         <div className="home-grid">
           {PLAN_TABS.map(t => (
             <a className="home-tile" href={'#/plan/' + t.id} key={t.id}>
+              <span className="kicker-num" aria-hidden="true">{t.num}</span>
+              <b>{t.name}</b>
+              <p>{t.desc}</p>
+              <span className="home-go">읽어보기 <IconArrow /></span>
+            </a>
+          ))}
+        </div>
+      </div>
+      <h3 className="home-area">대시보드</h3>
+      <div className="home-group">
+        <h3 className="home-group-name">관제 대시보드<span>{DASH_TABS.length}</span></h3>
+        <div className="home-grid">
+          {DASH_TABS.map(t => (
+            <a className="home-tile" href={'#/dash/' + t.id} key={t.id}>
               <span className="kicker-num" aria-hidden="true">{t.num}</span>
               <b>{t.name}</b>
               <p>{t.desc}</p>

@@ -45,7 +45,7 @@
 .sys-table td a { color: var(--text); }
 
 /* ---------- 굵은 선 정리: 슬라이더는 얇고 차분하게 ---------- */
-.syspage input[type="range"], .planpage input[type="range"] { height: 4px; border-radius: 2px; background: linear-gradient(to right, var(--text-2) var(--p, 50%), var(--surface-3) var(--p, 50%)); }
+.syspage input[type="range"], .planpage input[type="range"], .dashpage input[type="range"] { height: 4px; border-radius: 2px; background: linear-gradient(to right, var(--text-2) var(--p, 50%), var(--surface-3) var(--p, 50%)); }
 
 /* ---------- 모바일 가독성 ---------- */
 @media (max-width: 767px) {
