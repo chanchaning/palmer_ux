@@ -95,8 +95,8 @@
 [data-page="platforms"] .pf-tbl colgroup .k { width: 104px; }
 [data-page="platforms"] .pf-tbl td { color: var(--text-2); }
 [data-page="platforms"] .pf-tbl td b { color: var(--text); }
-[data-page="platforms"] .pf-tbl td.m { box-shadow: inset 3px 0 0 color-mix(in srgb, var(--accent) 50%, transparent); }
-[data-page="platforms"] .pf-tbl td.h { box-shadow: inset 3px 0 0 color-mix(in srgb, var(--b) 50%, transparent); }
+[data-page="platforms"] .pf-tbl td.m { border-left: 1px solid var(--line); }
+[data-page="platforms"] .pf-tbl td.h { border-left: 1px solid var(--line); }
 @media (max-width: 560px) { [data-page="platforms"] .pf-tbl colgroup .k, [data-page="platforms"] .pf-tbl tbody th { width: 62px; } [data-page="platforms"] .pf-tbl th, [data-page="platforms"] .pf-tbl td { padding: 8px 7px; font-size: 13px; } }
 [data-page="platforms"] .pf-tbl small { display: block; color: var(--text-3); font-size: 12px; margin-top: 2px; }
 [data-page="platforms"] .pf-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap: 12px; padding: 12px 14px 18px; }
@@ -105,7 +105,7 @@
 [data-page="platforms"] .pf-tile h3 small { font-weight: 500; color: var(--text-3); font-size: 13px; }
 [data-page="platforms"] .pf-two { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 @container (max-width: 330px) { [data-page="platforms"] .pf-two { grid-template-columns: 1fr; } }
-[data-page="platforms"] .pf-half { background: var(--surface); border-radius: 12px; padding: 10px; display: flex; flex-direction: column; gap: 8px; min-width: 0; border-top: 3px solid var(--c); }
+[data-page="platforms"] .pf-half { background: var(--surface); border-radius: 12px; padding: 10px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
 [data-page="platforms"] .pf-half .hd { font-size: 12px; font-weight: 700; color: var(--c); display: flex; justify-content: space-between; gap: 6px; }
 [data-page="platforms"] .pf-half .hd span { color: var(--text-3); font-weight: 500; }
 [data-page="platforms"] .pf-half .v { font-size: 18px; font-weight: 700; letter-spacing: -.01em; line-height: 1.25; }

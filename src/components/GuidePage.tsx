@@ -8,7 +8,10 @@ export function GuidePage({ guide }: { guide: Guide }) {
     <section className="page on" data-page={guide.id} key={guide.id}>
       <div className="page-head">
         <div>
-          <div className="eyebrow">{guide.eyebrow}</div>
+          <div className="kicker">
+            <span className="kicker-num" aria-hidden="true">{guide.num}</span>
+            <span className="kicker-group">{guide.group}</span>
+          </div>
           <h2 className="page-title">{guide.title}</h2>
           <p className="page-desc">{guide.desc}</p>
         </div>
