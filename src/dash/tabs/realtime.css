@@ -158,3 +158,49 @@
 [data-dash="realtime"] .dash-hmi-bar { flex-wrap: wrap; row-gap: 2px; }
 [data-dash="realtime"] .rt-banner.calm { background: transparent; border: 1px dashed var(--h-line); color: var(--h-sub); animation: none; }
 [data-dash="realtime"] .rt-ro-none { font-size: 12.5px; color: var(--h-sub); }
+
+/* ---------- 0. 흔한 실수 ---------- */
+[data-dash="realtime"] .rt-cases { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: start; }
+[data-dash="realtime"] .rt-mk { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+[data-dash="realtime"] .rt-mk .dash-hmi-body { display: flex; flex-direction: column; gap: 10px; min-height: 150px; }
+[data-dash="realtime"] .rt-mk-cap { margin: 0; font-size: 13.5px; line-height: 1.6; color: var(--text-2); min-height: 3.2em; }
+
+/* 흔한 화면 프레임: 남색 바탕 · 초록 램프 */
+[data-dash="realtime"] .dash-hmi.rt-bad { --h-bg: #0c1522; --h-panel: #14223a; --h-line: #263a5a; --h-text: #e4ebf4; --h-sub: #93a7c0; --h-eq: #6b80a0; border-color: #263a5a; }
+[data-dash="realtime"] .rt-lamp { display: inline-block; flex: none; width: 10px; height: 10px; border-radius: 50%; background: #34d47a; box-shadow: 0 0 8px #34d47a; margin-right: 6px; animation: rt-lamp 1s steps(2, jump-none) infinite; }
+@keyframes rt-lamp { from { opacity: 1; } to { opacity: .3; } }
+[data-dash="realtime"] .rt-bad-tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+[data-dash="realtime"] .rt-bad-tile { background: var(--h-panel); border: 1px solid var(--h-line); border-radius: 6px; padding: 8px 10px; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+[data-dash="realtime"] .rt-bad-tile span { font-size: 12px; color: var(--h-sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+[data-dash="realtime"] .rt-bad-tile b { font-size: 24px; color: var(--h-text); }
+[data-dash="realtime"] .rt-bad-tile b small { font-size: 12px; color: var(--h-sub); margin-left: 2px; }
+[data-dash="realtime"] .rt-bad-tile em { display: inline-flex; align-items: center; font-style: normal; font-size: 12.5px; font-weight: 800; color: #34d47a; }
+[data-dash="realtime"] .rt-bad-foot { font-size: 10px; color: var(--h-eq); text-align: right; margin-top: auto; }
+[data-dash="realtime"] .rt-bad-live { display: inline-flex; align-items: center; color: #34d47a; font-weight: 800; }
+
+/* 업그레이드 화면 */
+[data-dash="realtime"] .rt-bad-tiles.up .rt-tile { padding: 8px 10px; gap: 4px; }
+[data-dash="realtime"] .rt-bad-tiles.up .rt-tile .top { font-size: 12px; min-height: 20px; flex-wrap: wrap; }
+[data-dash="realtime"] .rt-bad-tiles.up .rt-tile .top span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+[data-dash="realtime"] .rt-bad-tiles.up .rt-tile .v b { font-size: 24px; }
+[data-dash="realtime"] .rt-mk-banner { flex: none; animation: none; }
+[data-dash="realtime"] .rt-mk-age { font-size: 12px; color: var(--h-sub); }
+[data-dash="realtime"] .rt-tile.stale .rt-mk-age { color: var(--h-text); font-weight: 800; }
+[data-dash="realtime"] .rt-mk-alarm { display: flex; flex-wrap: wrap; gap: 2px 8px; align-items: center; padding: 8px 10px; background: var(--h-panel); border: 1px solid var(--h-line); border-radius: 6px; font-size: 13px; }
+[data-dash="realtime"] .rt-mk-alarm > span:last-child { flex-basis: 100%; color: var(--h-sub); line-height: 1.5; }
+[data-dash="realtime"] .rt-mk-tb { width: 100%; border-collapse: collapse; font-size: 13px; }
+[data-dash="realtime"] .rt-mk-tb th { text-align: left; font-size: 12px; font-weight: 700; color: var(--h-sub); padding: 4px 6px; border-bottom: 1px solid var(--h-line); }
+[data-dash="realtime"] .rt-mk-tb td { padding: 7px 6px; border-bottom: 1px solid var(--h-line); color: var(--h-text); }
+[data-dash="realtime"] .rt-bad .rt-mk-tb td:last-child { color: #ff6b6b; font-weight: 700; }
+
+@media (prefers-reduced-motion: reduce) {
+  [data-dash="realtime"] .rt-lamp { animation: none; }
+}
+@media (max-width: 1280px) {
+  [data-dash="realtime"] .rt-cases { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 767px) {
+  [data-dash="realtime"] .rt-bad-tiles { grid-template-columns: minmax(0, 1fr); }
+  [data-dash="realtime"] .rt-mk-tb { font-size: 12px; }
+  [data-dash="realtime"] .rt-mk-tb th, [data-dash="realtime"] .rt-mk-tb td { padding: 5px 4px; }
+}

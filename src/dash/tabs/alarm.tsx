@@ -1,16 +1,19 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Range, Seg } from '../../components/ui'
 import { Note, Section, SysGrid } from '../../system/ui'
-import { AnalogBar, Cite, Finding, Hmi, PriBadge, Refs, useVisibleInterval, type RefItem } from '../ui'
-import { ALARMS, PRI, RANGES, rng, type Pri } from '../data'
+import { AnalogBar, CaseCard, Cite, Finding, Hmi, PriBadge, Refs, useVisibleInterval, type RefItem } from '../ui'
+import { PRI, SAFE_ALARMS, SAFE_PLACE, SAFE_RANGES, rng, type Pri } from '../data'
 import { Term, TermList } from '../../components/Term'
 import './alarm.css'
 
 /* 사전(src/lib/glossary.ts)에 없는 말 — 이 탭에서만 풀어 써요 */
 const XT = {
-  '재폐로': '차단기가 전기를 끊은 뒤 잠시 있다가 자동으로 다시 붙여 보는 동작이에요. 두꺼비집이 내려갔을 때 한 번 올려 보는 것과 같아요. 다시 붙지 않으면 ‘재폐로 실패’예요.',
   '채터링': '값이 경보선 바로 근처에서 오르내리며 알람이 울렸다 꺼졌다를 반복하는 것이에요. 문턱에 걸린 문이 계속 덜컹거리는 것과 비슷해요.',
   '연관 억제': '원인 알람 하나가 울리면, 그 때문에 당연히 따라오는 결과 알람은 원인 아래로 접어 두는 방법이에요. 지우는 게 아니라 눌러서 펼쳐 볼 수 있어요.',
+  '%LEL': '가스가 불붙어 터질 수 있는 가장 낮은 농도를 100으로 볼 때, 지금 농도가 얼마인지예요. 10%LEL이면 그 위험선의 10분의 1이에요.',
+  '오경보': '실제로는 위험이 없는데 울린 알람이에요. 먼지 때문에 연기 감지기가 울리는 경우가 대표적이에요. ‘헛알람’이라고도 해요.',
+  '정상 복귀': '알람을 울린 값이 다시 정상 범위로 돌아온 상태예요. 값은 돌아왔어도, 사람이 아직 못 봤다면 알람은 끝나지 않은 거예요.',
+  '웨어러블': '작업자가 몸에 차는 작은 장치예요. 넘어짐이나 오래 움직이지 않음을 감지해서 상황실로 알려요.',
 }
 
 /* 참고 문헌 번호 — Refs 순서와 같아요 */
@@ -19,7 +22,10 @@ const R = { isa182: 1, isa182kpi: 2, eemua: 3, sendel: 4, child: 5, isa101: 6, h
 const pad = (n: number) => String(n).padStart(2, '0')
 /** 분(소수) → 시각 문자열. base 는 시작 시각(분) */
 const clock = (min: number, base = 13 * 60 + 30) => { const m = Math.floor(base + min); return `${pad(Math.floor(m / 60) % 24)}:${pad(m % 60)}` }
-const alarmById = (id: string) => ALARMS.find(a => a.id === id)!
+const alarmById = (id: string) => SAFE_ALARMS.find(a => a.id === id)!
+/** 초 → 'hh:mm:ss' */
+const hms = (s: number) => `${pad(Math.floor(s / 3600) % 24)}:${pad(Math.floor(s / 60) % 60)}:${pad(Math.floor(s) % 60)}`
+const T0 = 14 * 3600 + 5 * 60 + 40 // 목업 속 '지금' 14:05:40
 
 /** 요소 너비 (차트를 글자 크기 그대로 반응형으로 그리려고) */
 function useWidth<T extends HTMLElement>(init = 640) {
@@ -33,6 +39,258 @@ function useWidth<T extends HTMLElement>(init = 640) {
     return () => ro.disconnect()
   }, [])
   return [ref, w] as const
+}
+
+/* ================= 0. 흔한 실수 — before/after 목업 ================= */
+/** 화면에 보일 때만 ms 마다 1씩 오르는 카운터 */
+function useTick(ms: number) {
+  const [k, setK] = useState(0)
+  const ref = useVisibleInterval(() => setK(x => x + 1), ms)
+  return [ref, k] as const
+}
+/** 흔한 안전관리 화면 프레임 — 남색 바탕, 초록 램프, 빨강 글자 */
+function BadHmi({ title, right, children }: { title: ReactNode; right?: ReactNode; children: ReactNode }) {
+  return <Hmi dark className="al-bad" title={title} right={right}>{children}</Hmi>
+}
+const Lamp = () => <i className="al-lamp" aria-hidden="true" />
+const RtnMark = () => <span className="al-ghost" title="정상 복귀 · 미확인"><svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true"><rect x="2" y="2" width="16" height="16" rx="2" /></svg>복귀</span>
+
+/* A. 해제된 알람이 사라짐 */
+function VanishBefore() {
+  return (
+    <div className="al-mk">
+      <BadHmi title="통합 안전 모니터링" right={hms(T0)}>
+        <div className="al-bad-ok"><Lamp />이상 없음 · 현재 알람 0건</div>
+        <div className="al-bad-empty">표시할 알람이 없습니다</div>
+        <div className="al-bad-foot">오늘 처리 이력 0건</div>
+      </BadHmi>
+      <p className="al-mk-cap">14:05:21에 ‘지하 밀폐공간 · 작업자 무응답’이 떴어요. 12초 뒤 움직임이 다시 잡히자 알람이 저절로 지워졌어요. 그사이 전화를 받던 근무자는 이 일이 있었는지 알 길이 없어요.</p>
+    </div>
+  )
+}
+function VanishAfter() {
+  const [ack, setAck] = useState(false)
+  return (
+    <div className="al-mk">
+      <Hmi title="알람 목록 · 신축 현장" right={hms(T0)}>
+        {!ack ? (
+          <div className="al-mk-row">
+            <RtnMark />
+            <time>14:05:21</time>
+            <span className="w">지하 밀폐공간</span>
+            <span className="x">작업자 무응답 12초 → 14:05:33 움직임 다시 감지</span>
+            <button type="button" className="btn sm al-mk-btn" onClick={() => setAck(true)}>확인</button>
+          </div>
+        ) : (
+          <div className="al-mk-done">
+            <span>목록이 비었어요.</span>
+            <span className="log"><time>{hms(T0)}</time> 근무자 2 확인 · 작업자와 통화, 이상 없음</span>
+            <button type="button" className="btn sm ghost al-mk-btn" onClick={() => setAck(false)}>되돌리기</button>
+          </div>
+        )}
+      </Hmi>
+      <p className="al-mk-cap">값이 돌아와도 줄은 ‘복귀 · 미확인’으로 남아요. 색은 빼고 테두리만 남겨 급한 알람과 헷갈리지 않게 해요. ‘확인’을 눌러 보세요. 그때 사라지고, 이력이 남아요.</p>
+    </div>
+  )
+}
+
+/* B. 최신순 + 자동 넘김 */
+const ATIME: Record<string, string> = { 'S-101': '14:02:05', 'S-102': '14:03:40', 'S-103': '14:04:10', 'S-104': '14:04:30', 'S-105': '14:05:02', 'S-106': '14:05:18' }
+const NEWEST = [...SAFE_ALARMS].sort((a, b) => ATIME[b.id].localeCompare(ATIME[a.id]))
+const BY_PRI = [...SAFE_ALARMS].sort((a, b) => a.pri - b.pri || ATIME[b.id].localeCompare(ATIME[a.id]))
+function RotateBefore() {
+  const [ref, k] = useTick(3000)
+  const i = k % NEWEST.length, a = NEWEST[i]
+  return (
+    <div className="al-mk" ref={ref}>
+      <BadHmi title="실시간 알람" right={<>최신순 · 3초마다 자동 넘김</>}>
+        <div className="al-bad-card" aria-live="off">
+          <span className="no">알람 {i + 1} / {NEWEST.length}</span>
+          <b className="al-red">[경고] {a.what}</b>
+          <span className="al-red w">{a.where}</span>
+          <time>{ATIME[a.id]}</time>
+        </div>
+        <div className="al-bad-dots" aria-hidden="true">{NEWEST.map((x, j) => <i key={x.id} className={j === i ? 'on' : ''} />)}</div>
+      </BadHmi>
+      <p className="al-mk-cap">화재(도장 부스)는 가장 먼저 났어요. 그래서 맨 뒤 6번째예요. 한 바퀴 18초 중 3초만 화면에 있어요. 지금 보이는 건 {i === NEWEST.length - 1 ? '마침 화재예요.' : `${i + 1}번째 알람이에요. 화재가 나오려면 ${(NEWEST.length - 1 - i) * 3}초 남았어요.`}</p>
+    </div>
+  )
+}
+function RotateAfter() {
+  return (
+    <div className="al-mk">
+      <Hmi title="알람 목록 · 우선순위순" right="자동 넘김 없음">
+        <ol className="al-mk-list">
+          {BY_PRI.map(a => (
+            <li key={a.id} className={a.id === 'S-101' ? 'top' : ''}><PriBadge p={a.pri} /><time>{ATIME[a.id].slice(0, 5)}</time><span className="w">{a.where}</span><span className="x">{a.what}</span></li>
+          ))}
+        </ol>
+      </Hmi>
+      <p className="al-mk-cap">우선순위가 먼저, 같은 우선순위 안에서는 최신이 위예요. 화재는 처음부터 맨 위에 있고, 확인할 때까지 그 자리에 있어요.</p>
+    </div>
+  )
+}
+
+/* C. 확인·보류 없음, 오경보 기록 없음, 절차 안 맞음 */
+function AckBefore() {
+  const [gone, setGone] = useState(false)
+  return (
+    <div className="al-mk">
+      <BadHmi title="이벤트 알림" right="14:04:10">
+        {!gone ? (
+          <div className="al-bad-pop">
+            <b className="al-red">[경고] 가스 감지 — 화학물질 창고</b>
+            <span>가연성 가스 12</span>
+            <span className="sop">연결된 절차: 화재 대응 매뉴얼(공통) — 1. 소화기 위치 확인 2. 119 신고</span>
+            <div className="btns">
+              <button type="button" onClick={() => setGone(true)}>닫기</button>
+              <button type="button" onClick={() => setGone(true)}>오경보 처리</button>
+            </div>
+          </div>
+        ) : (
+          <div className="al-bad-empty">표시할 이벤트가 없습니다<small>처리 이력: 없음</small></div>
+        )}
+      </BadHmi>
+      <p className="al-mk-cap">{gone ? '어느 버튼을 눌러도 창이 사라지고, 아무 기록도 남지 않았어요. ' : '‘닫기’나 ‘오경보 처리’를 눌러 보세요. '}{gone && <button type="button" className="al-mk-link" onClick={() => setGone(false)}>다시 띄우기</button>}</p>
+    </div>
+  )
+}
+type AckSt = 'unack' | 'ack' | 'shelved'
+function AckAfter() {
+  const [st, setSt] = useState<AckSt>('unack')
+  const [review, setReview] = useState(false)
+  const [log, setLog] = useState<string[]>([])
+  const sec = useRef(14 * 3600 + 4 * 60 + 22)
+  const add = (txt: string) => { sec.current += 9; setLog(l => [`${hms(sec.current)} 근무자 2 · ${txt}`, ...l].slice(0, 4)) }
+  const reset = () => { setSt('unack'); setReview(false); setLog([]); sec.current = 14 * 3600 + 4 * 60 + 22 }
+  const g = alarmById('S-103')
+  return (
+    <div className="al-mk">
+      <Hmi title="알람 상세 · 제2공장" right="14:04:10 발생">
+        <div className={'al-mk-detail st-' + st}>
+          <div className="head">
+            {st === 'unack' ? <span className="al-blink"><PriBadge p={2} /></span> : <PriBadge p={2} />}
+            <b>{g.where}</b>
+            <span className="tag">{st === 'unack' ? '미확인' : st === 'ack' ? '확인함' : '보류 · 30분 뒤 자동 해제'}{review ? ' · 오경보 검토 중' : ''}</span>
+          </div>
+          <p className="what">{g.what}</p>
+          <div className="sop"><span>가스 이상 대응 절차</span><ol><li>환기 장치 가동 확인</li><li>누출 점검 요청</li><li>정상으로 돌아올 때까지 구역 출입 제한</li></ol></div>
+          <div className="btns">
+            <button type="button" className="btn sm" disabled={st !== 'unack'} onClick={() => { setSt('ack'); add('확인') }}>확인</button>
+            <button type="button" className="btn sm ghost" disabled={st === 'shelved'} onClick={() => { setSt('shelved'); add('보류 30분 · 이유: 센서 교정 작업 중') }}>보류 30분</button>
+            <button type="button" className="btn sm ghost" disabled={review} onClick={() => { setReview(true); if (st === 'unack') setSt('ack'); add('오경보 보고 · 이유: 센서 오염 의심 → 설비팀 점검 요청') }}>오경보 보고</button>
+            <button type="button" className="btn sm ghost" onClick={reset}>처음으로</button>
+          </div>
+          <ol className="log" aria-label="조치 이력" aria-live="polite">
+            {log.length === 0 ? <li className="none">조치 이력이 아직 없어요.</li> : log.map(l => <li key={l}>{l}</li>)}
+          </ol>
+        </div>
+      </Hmi>
+      <p className="al-mk-cap">버튼마다 하는 일이 달라요. 누를 때마다 시각·근무자·이유가 이력에 남아요. 오경보 보고는 알람을 지우지 않고 ‘검토 중’ 표시만 붙여요.</p>
+    </div>
+  )
+}
+
+/* D. 값이 바뀔 때마다 소리 */
+const GAS_STEPS = [12, 13, 13, 14, 15, 15, 16]
+function ResoundBefore() {
+  const [ref, k] = useTick(2000)
+  const v = GAS_STEPS[k % GAS_STEPS.length]
+  const rings = 1 + k
+  return (
+    <div className="al-mk" ref={ref}>
+      <BadHmi title="가스 감시 · 화학물질 창고" right="값이 오면 바로 갱신">
+        <div className="al-bad-gas">
+          <b className="al-red">가연성 가스 {v}%LEL</b>
+          <span className="snd"><span className="al-wave" aria-hidden="true"><i /><i /><i /></span>삐— 같은 알람에서 {rings}번째 울림</span>
+        </div>
+      </BadHmi>
+      <p className="al-mk-cap">숫자가 바뀔 때마다 소리가 처음부터 다시 울려요(실제 소리는 나지 않아요). 30분이면 수백 번이에요. 근무자는 결국 스피커 볼륨을 줄여요.</p>
+    </div>
+  )
+}
+function ResoundAfter() {
+  const [ref, k] = useTick(2000)
+  const v = GAS_STEPS[k % GAS_STEPS.length]
+  return (
+    <div className="al-mk" ref={ref}>
+      <Hmi title="가스 감시 · 화학물질 창고" right="2초마다 갱신">
+        <div className="al-mk-gas">
+          <div className="top"><PriBadge p={2} /><span>가연성 가스</span><b>{v}<small>%LEL</small></b></div>
+          <AnalogBar value={v} min={SAFE_RANGES.lel.min} max={SAFE_RANGES.lel.max} normal={SAFE_RANGES.lel.normal} alarm={SAFE_RANGES.lel.alarm} unit="%LEL" name="화학물질 창고 가연성 가스" w="100%" />
+          <span className="snd">소리: 14:04:10에 1번 울림 · 확인해서 멈춤 · 값이 바뀌어도 다시 울리지 않음</span>
+        </div>
+      </Hmi>
+      <p className="al-mk-cap">값은 화면에서 계속 바뀌어요. 소리는 새 알람이 생길 때와 우선순위가 오를 때(예: 25%LEL을 넘어 긴급으로)만 다시 울려요.</p>
+    </div>
+  )
+}
+
+/* E. 잘한 예 — 알람이 뜨면 CCTV 순환 멈춤 */
+const CAMS = ['프레스 라인 1', '상하차장 2', '지게차 통로 1', '도장 부스 2', '타워크레인 1', '고소작업 3', '화학물질 창고 1', '정문 게이트']
+function CamBox({ name, hot = false, big = false }: { name: string; hot?: boolean; big?: boolean }) {
+  return <div className={'al-cam' + (hot ? ' hot' : '') + (big ? ' big' : '')}><span>CCTV · {name}</span>{hot && <em>연기 감지 구역</em>}</div>
+}
+function CamBefore() {
+  const [ref, k] = useTick(3000)
+  const page = k % 2
+  return (
+    <div className="al-mk" ref={ref}>
+      <BadHmi title="CCTV · 자동 순환 3초" right={<span className="al-red">화재 알람 · 도장 부스</span>}>
+        <div className="al-cam-grid">{CAMS.slice(page * 4, page * 4 + 4).map(c => <CamBox key={c} name={c} hot={c === '도장 부스 2'} />)}</div>
+      </BadHmi>
+      <p className="al-mk-cap">알람이 떠도 순환은 계속돼요. 도장 부스 카메라는 두 장 중 한 장에만 있어서, 3초 보이고 3초 사라져요.</p>
+    </div>
+  )
+}
+function CamAfter() {
+  return (
+    <div className="al-mk">
+      <Hmi title="CCTV · 순환 멈춤 — 알람 카메라 고정" right={<><PriBadge p={1} /> 도장 부스 화재 · 미확인</>}>
+        <div className="al-cam-focus">
+          <CamBox name="도장 부스 2 (알람 연결)" hot big />
+          <div className="al-cam-side">{['도장 부스 1', '도장 부스 출입구', '제2공장 비상구 2'].map(c => <CamBox key={c} name={c} />)}</div>
+        </div>
+      </Hmi>
+      <p className="al-mk-cap">알람 구역 카메라를 크게, 바로 옆 카메라를 작게 붙여요. 근무자가 알람을 확인하면 순환이 다시 돌아요.</p>
+    </div>
+  )
+}
+
+function Mistakes() {
+  return (
+    <div className="al-cases">
+      <CaseCard sev="치명" title="정상으로 돌아온 알람이 몇 초 뒤 흔적 없이 사라져요"
+        before={<VanishBefore />} after={<VanishAfter />}
+        now={<>값이 정상으로 돌아오면 알람 줄을 바로 지워요. 화면에는 초록 ‘이상 없음’만 남아요.</>}
+        why={<>이건 안전관리 화면이 해서는 안 되는 일이에요. 작업자가 쓰러졌다가 12초 만에 일어났어도, 그 12초는 사고예요. 알람 관리 표준은 이런 경우를 <b>‘정상 복귀 · 미확인’</b>이라는 별도 상태로 둬요 <Cite n={R.isa182} />. 사람이 보기 전까지 알람은 끝난 게 아니에요. 지워 버리면 근무자는 무슨 일이 있었는지조차 몰라요.</>}
+        fix={<>값이 돌아와도 줄을 <b>‘복귀 · 미확인’</b>으로 남겨요. 근무자가 <b>확인</b>을 눌러야 사라지고, 누가 언제 봤는지 이력에 남겨요. 작업자 무응답처럼 사람에 관한 알람은, 확인할 때 작업자에게 연락해 상태를 묻게 해요.</>} />
+
+      <CaseCard sev="치명" title="우선순위를 매겨 놓고, 목록은 최신순으로 몇 초마다 넘어가요"
+        before={<RotateBefore />} after={<RotateAfter />}
+        now={<>알람 카드가 3초마다 자동으로 넘어가요. 순서는 들어온 순서(최신순)예요. 우선순위가 있어도 순서에는 쓰지 않고, 모든 글자가 빨강이에요.</>}
+        why={<>우선순위는 ‘무엇부터 볼지’ 정하려고 매겨요 <Cite n={R.eemua} />. 최신순이면 가장 먼저 난 화재가 맨 뒤로 밀려요. 자동 넘김까지 겹치면 화재는 18초 중 3초만 화면에 있어요. 근무자가 마침 그 3초에 보고 있어야 해요. 운에 맡기는 화면이에요.</>}
+        fix={<>목록은 <b>우선순위 → 시각</b> 순으로 세워요. 자동 넘김은 없애요. 긴급은 맨 위에, 확인할 때까지 고정해요. 긴급이 아닌 새 알람은 ‘새 알람 n건’으로 모아 둬요(<a href="#/dash/realtime">05 실시간 갱신</a>).</>} />
+
+      <CaseCard sev="높음" title="‘확인’도 ‘보류’도 없고, ‘오경보 처리’는 눌러도 기록이 안 남아요"
+        before={<AckBefore />} after={<AckAfter />}
+        now={<>알람 창에 ‘닫기’와 ‘오경보 처리’ 버튼만 있어요. 둘 다 누르면 창이 사라지고 기록이 없어요. 대응 절차는 이벤트 종류와 상관없이 ‘화재 대응’ 하나가 붙어 있어요.</>}
+        why={<>‘닫기’는 알람을 끄는 버튼이지, ‘봤다’는 표시가 아니에요. 표준은 <b>확인과 보류를 다른 상태</b>로 나눠요 <Cite n={R.isa182} />. 기록이 없으면 다음 근무자는 이 가스 알람이 처리됐는지 묻혔는지 알 수 없어요. 오경보도 기록이 쌓여야 고칠 센서를 찾을 수 있어요 <Cite n={R.practice} />. 가스 이상에 화재 절차가 뜨면, 근무자는 절차를 무시하는 법부터 배워요.</>}
+        fix={<><b>확인 · 보류(시간 + 이유) · 오경보 보고(이유)</b>를 따로 둬요. 누를 때마다 시각·근무자·이유를 이력에 남겨요. 오경보 보고는 알람을 지우지 않고 ‘검토 중’만 붙여요. 대응 절차는 이벤트 종류마다 따로 연결해요(<a href="#/dash/ops">08 기획 · 운영 정의</a>).</>} />
+
+      <CaseCard sev="높음" title="같은 알람인데 값이 바뀔 때마다 소리가 다시 울려요"
+        before={<ResoundBefore />} after={<ResoundAfter />}
+        now={<>가스 농도가 12, 13, 14%LEL로 바뀔 때마다 알람이 ‘새로 갱신’돼요. 그때마다 소리도 처음부터 다시 울려요.</>}
+        why={<>소리는 화면을 안 보는 사람까지 부르는 가장 강한 신호예요. 같은 일로 계속 부르면 헛알람과 똑같이 피로가 쌓여요 <Cite n={R.sendel} />. 근무자가 볼륨을 줄이는 순간, 진짜 화재 소리도 같이 작아져요. 위 이야기에서 현장이 알람을 꺼 버린 것과 같은 길이에요.</>}
+        fix={<>소리는 <b>새 알람이 생길 때</b>와 <b>우선순위가 오를 때</b>만 울려요. 값이 바뀌는 건 화면 숫자와 막대로만 알려요. 확인하면 소리가 멈추고, ‘소리만 끄기’와 ‘확인’은 따로 둬요(아래 소리 섹션).</>} />
+
+      <CaseCard good sev="보통" title="알람이 뜨면 CCTV 자동 순환을 멈추고 그 카메라를 앞으로 가져와요"
+        before={<CamBefore />} after={<CamAfter />}
+        now={<>평소에는 CCTV 화면이 여러 카메라를 돌아가며 보여 줘요. 화재 알람이 뜨면 순환을 멈추고, 그 구역 카메라를 크게 띄워요. 확인을 누른 뒤에 순환을 다시 켜요.</>}
+        why={<>알람을 받은 근무자가 가장 먼저 하는 일은 ‘진짜인지 눈으로 보기’예요. 순환이 계속 돌면 그 카메라가 다시 올 때까지 기다리거나, 손으로 찾아야 해요. 알람과 화면이 같은 곳을 가리키면 바로 판단할 수 있어요 <Cite n={R.practice} />.</>}
+        fix={<>화면 위에 ‘순환 멈춤 · 알람 카메라 고정’처럼 <b>왜 멈췄는지</b> 적어요. 알람이 두 개 이상이면 우선순위가 높은 카메라부터 띄워요.</>} />
+    </div>
+  )
 }
 
 /* ================= 1. 알람 피로 ================= */
@@ -68,7 +326,7 @@ function Fatigue() {
         <div className="al-fat-side">
           <div className="al-fat-num"><span>100번 중 진짜 할 일이 있던 알람</span><b>{real}번</b><Cite n={f.cite} /></div>
           <p>나머지 <b>{fake}번</b>은 달려가 봐도 할 일이 없었어요. 이런 일이 반복되면 사람은 알람이 울려도 ‘또 별일 아니겠지’ 하게 돼요. 양치기 소년 이야기와 같아요.</p>
-          <p>관제 화면도 똑같아요. 헛알람이 많을수록 진짜 알람을 놓쳐요.</p>
+          <p>안전관리 화면도 똑같아요. 헛알람이 많을수록 진짜 화재나 쓰러짐 알람을 놓쳐요.</p>
           <p className="muted">{f.kind === '보고된 수치' ? `여러 병원 연구를 모은 리뷰 논문에 실린 범위예요(헛알람 ${f.pct}%). 원래 연구를 옮겨 인용한 값이에요(보고된 수치).` : `한 어린이 병원에서 환자 모니터(심장 박동·호흡 등) 알람을 지켜본 연구예요. 헛알람 비율 ${f.pct}%를 100번 기준으로 반올림했어요.`}</p>
         </div>
       </div>
@@ -84,14 +342,14 @@ const ST: Record<S, { name: string; sub: string; screen: string; sound: string; 
   ACKED: { name: '비정상 · 확인함', sub: '색은 그대로, 깜빡임 멈춤', screen: '운영자가 봤다는 표시로 깜빡임만 멈춰요. 값은 아직 비정상이라 색은 남아요.', sound: '멈춰요', list: '목록에 남아요(확인함 표시).' },
   RTNUN: { name: '정상 복귀 · 미확인', sub: '값은 돌아옴, 확인 대기', screen: '값은 정상으로 돌아왔지만, 운영자가 아직 못 봤어요. 색은 빼고 테두리만 남겨 확인을 기다려요. 표시 방법은 시스템마다 달라요.', sound: '없음', list: '목록에 ‘복귀’로 남아요. 확인하면 사라져요.' },
   SHLVD: { name: '보류', sub: '운영자가 잠시 미룸', screen: '회색 ‘보류’ 표시와 남은 시간이 붙어요. 시간이 지나면 저절로 풀려요.', sound: '없음', list: '알람 목록에서 빠지고 ‘보류 목록’으로 가요.' },
-  DSUPR: { name: '설계상 억제', sub: '시스템이 조건 보고 막음', screen: '회색 ‘억제’ 표시와 이유가 붙어요. 예를 들어 미리 계획한 절체 작업 중이면, 값이 잠깐 넘는 건 예상된 일이에요.', sound: '없음', list: '‘억제 목록’에서 이유와 함께 보여요.' },
+  DSUPR: { name: '설계상 억제', sub: '시스템이 조건 보고 막음', screen: '회색 ‘억제’ 표시와 이유가 붙어요. 예를 들어 프레스를 막 켠 뒤 2분 동안은 진동이 잠깐 높은 게 예상된 일이에요.', sound: '없음', list: '‘억제 목록’에서 이유와 함께 보여요.' },
   OOSRV: { name: '서비스 제외', sub: '정비 중이라 뺌', screen: '센서를 정비하는 중이라 값 자체를 믿을 수 없어요. 그래서 값도 회색 빗금으로 흐리게 보여요.', sound: '없음', list: '‘서비스 제외 목록’에서 보여요.' },
 }
 type Ev = 'abn' | 'nrm' | 'ack' | 'shelve' | 'unshelve' | 'sup' | 'unsup' | 'oos' | 'ret'
 const EV: Record<Ev, { label: string; who: string }> = {
-  abn: { label: '부하율 95% 넘김', who: '측정값' }, nrm: { label: '부하율 정상으로', who: '측정값' },
+  abn: { label: '진동 4.5mm/s 넘김', who: '측정값' }, nrm: { label: '진동 정상으로', who: '측정값' },
   ack: { label: '확인', who: '운영자' }, shelve: { label: '보류 30분', who: '운영자' }, unshelve: { label: '보류 해제', who: '운영자' },
-  sup: { label: '절체 작업 시작', who: '시스템' }, unsup: { label: '절체 작업 끝', who: '시스템' },
+  sup: { label: '설비 가동 시작(2분)', who: '시스템' }, unsup: { label: '가동 안정됨', who: '시스템' },
   oos: { label: '센서 정비 시작', who: '정비' }, ret: { label: '정비 끝, 복귀', who: '정비' },
 }
 const BASE: S[] = ['NORM', 'UNACK', 'ACKED', 'RTNUN']
@@ -138,7 +396,7 @@ function StateDiagram() {
     setLast({ from: s, to: r.s }); setS(r.s); setAbn(r.abn)
   }
   const reset = () => { setS('NORM'); setAbn(false); setLast(null); setLog([]) }
-  const value = abn ? 97 : 83
+  const value = abn ? 5.1 : 3.2
   const groups: [string, Ev[]][] = [['측정값', ['abn', 'nrm']], ['운영자', ['ack', 'shelve', 'unshelve']], ['시스템 · 정비', ['sup', 'unsup', 'oos', 'ret']]]
   const suppressed = s === 'SHLVD' || s === 'DSUPR' || s === 'OOSRV'
   const st = ST[s]
@@ -194,21 +452,21 @@ function StateDiagram() {
         </div>
 
         <div className="al-sd-side">
-          <Hmi title="강변 변전소 · 선로 운전" right={log[0]?.t ?? '14:02:11'}>
+          <Hmi title="제2공장 · 프레스 라인" right={log[0]?.t ?? '14:02:11'}>
             <div className={'al-sd-tile st-' + s}>
               <div className="al-sd-tile-top">
-                <span className="nm">강변 1선 부하율</span>
+                <span className="nm">3호기 모터 진동</span>
                 <span className="ind" aria-live="polite">
-                  {s === 'UNACK' && <span className="al-blink"><PriBadge p={2} /></span>}
-                  {s === 'ACKED' && <PriBadge p={2} />}
-                  {s === 'RTNUN' && <span className="al-ghost" title="정상 복귀 · 미확인"><svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2 18.5 17.5H1.5z" /></svg>복귀</span>}
+                  {s === 'UNACK' && <span className="al-blink"><PriBadge p={3} /></span>}
+                  {s === 'ACKED' && <PriBadge p={3} />}
+                  {s === 'RTNUN' && <span className="al-ghost" title="정상 복귀 · 미확인"><svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" /></svg>복귀</span>}
                   {s === 'SHLVD' && <span className="al-tag">보류 · 30분 뒤 자동 해제</span>}
-                  {s === 'DSUPR' && <span className="al-tag">억제 · 절체 작업 중</span>}
+                  {s === 'DSUPR' && <span className="al-tag">억제 · 가동 시작 2분</span>}
                   {s === 'OOSRV' && <span className="al-tag">서비스 제외 · 정비</span>}
                 </span>
               </div>
-              <div className={'al-sd-val' + (s === 'OOSRV' ? ' oos' : '')}><b>{value}</b>%</div>
-              <AnalogBar value={value} min={RANGES.load.min} max={RANGES.load.max} normal={RANGES.load.normal} alarm={RANGES.load.alarm} unit="%" name="강변 1선 부하율" w={220} />
+              <div className={'al-sd-val' + (s === 'OOSRV' ? ' oos' : '')}><b>{value}</b>mm/s</div>
+              <AnalogBar value={value} min={SAFE_RANGES.vib.min} max={SAFE_RANGES.vib.max} normal={SAFE_RANGES.vib.normal} alarm={SAFE_RANGES.vib.alarm} unit="mm/s" name="3호기 모터 진동" w={220} />
             </div>
             <dl className="al-sd-dl">
               <div><dt>소리</dt><dd className={st.sound === '울려요' ? 'loud' : ''}>{st.sound === '울려요' ? <><span className="al-wave" aria-hidden="true"><i /><i /><i /></span>울리는 중</> : st.sound}</dd></div>
@@ -221,7 +479,7 @@ function StateDiagram() {
             <p>{st.screen}</p>
           </div>
           <ol className="al-sd-log" aria-label="상태 변화 기록">
-            {log.length === 0 && <li className="muted">버튼을 눌러 보세요. ‘부하율 95% 넘김’부터 시작하면 돼요.</li>}
+            {log.length === 0 && <li className="muted">버튼을 눌러 보세요. ‘진동 4.5mm/s 넘김’부터 시작하면 돼요.</li>}
             {log.map((l, i) => <li key={log.length - i}><time>{l.t}</time><span><b>{EV[l.e].label}</b> · {ST[l.from].name} → {ST[l.to].name}</span></li>)}
           </ol>
         </div>
@@ -235,31 +493,31 @@ interface FEv { t: number; where: string; what: string; pri0: Pri; pri1: Pri; gr
 function makeFlood(): FEv[] {
   const r = rng(182)
   const E: FEv[] = [
-    { t: 6.2, where: '북부 변전소', what: '출입문 개방', pri0: 2, pri1: 3 },
-    { t: 19.5, where: '북부 2선', what: '전압 22.4kV 미만', pri0: 1, pri1: 3 },
-    { t: 27.0, where: '강변 2선 R/C-12', what: '개폐기 통신 두절', pri0: 1, pri1: 3 },
-    { t: 32.0, where: '산단 1선', what: '선로 고장 — 차단기 트립', pri0: 1, pri1: 1, grp: 'trip', root: true },
-    { t: 32.0, where: '산단 1선', what: '보호 계전기 동작(과전류)', pri0: 1, pri1: 1, grp: 'trip' },
-    { t: 32.6, where: '산단 1선', what: '재폐로 실패', pri0: 1, pri1: 1, grp: 'trip' },
-    { t: 32.5, where: '산단 1선', what: '부하율 0% (저부하)', pri0: 2, pri1: 3, cons: true },
-    { t: 32.7, where: '산업단지 변전소 주변압기', what: '부하 급감', pri0: 2, pri1: 3, cons: true },
-    { t: 41.0, where: '산업단지 변전소 주변압기', what: '유온 90℃ 초과', pri0: 1, pri1: 2 },
-    { t: 88.0, where: '강변 1선', what: '부하율 95% 초과 15분 지속', pri0: 1, pri1: 2 },
-    { t: 110.4, where: '북부 변전소', what: '출입문 개방', pri0: 2, pri1: 3 },
+    { t: 6.2, where: '물류센터 · 상하차장', what: '안전모 미착용 1명', pri0: 2, pri1: 3 },
+    { t: 19.5, where: '제2공장 · 프레스 3호기', what: '모터 진동 5.1mm/s', pri0: 1, pri1: 3 },
+    { t: 27.0, where: '신축 현장 · 고소작업', what: 'CCTV 3번 영상 끊김', pri0: 1, pri1: 3 },
+    { t: 32.0, where: '제2공장 · 도장 부스', what: '화재 — 연기 + 온도 급상승', pri0: 1, pri1: 1, grp: 'fire', root: true },
+    { t: 32.0, where: '제2공장 · 도장 부스', what: '불꽃 감지기 동작', pri0: 1, pri1: 1, grp: 'fire' },
+    { t: 32.6, where: '제2공장 · 도장 부스', what: '자동 소화 설비 작동', pri0: 1, pri1: 1, grp: 'fire' },
+    { t: 32.5, where: '제2공장 · 도장 부스', what: '배기팬 정지 (화재 연동)', pri0: 2, pri1: 3, cons: true },
+    { t: 32.7, where: '제2공장 · 정문 게이트', what: '출입 통제 해제 (대피 연동)', pri0: 2, pri1: 3, cons: true },
+    { t: 41.0, where: '제2공장 · 화학물질 창고', what: '실내 온도 빠르게 오름 (옆 구역 화재)', pri0: 1, pri1: 2 },
+    { t: 88.0, where: '신축 현장 · 타워크레인', what: '인양 중 작업자 반경 진입', pri0: 1, pri1: 2 },
+    { t: 110.4, where: '물류센터 · 상하차장', what: '안전모 미착용 1명', pri0: 2, pri1: 3 },
   ]
-  for (let k = 1; k <= 14; k++) E.push({ t: 32.1 + r() * 1.6, where: `산단 1선 R/C-${pad(k)}`, what: '개폐기 통신 두절', pri0: 1, pri1: 3, grp: 'rc', cons: true })
-  for (let k = 1; k <= 8; k++) E.push({ t: 32.2 + r() * 1.8, where: `산단 1선 ${k}구간`, what: '무전압', pri0: 1, pri1: 3, grp: 'uv', cons: true })
+  for (let k = 1; k <= 14; k++) E.push({ t: 32.1 + r() * 1.6, where: `제2공장 · 연기 감지기 ${pad(k)}번`, what: '연기 감지', pri0: 1, pri1: 3, grp: 'smoke', cons: true })
+  for (let k = 1; k <= 8; k++) E.push({ t: 32.2 + r() * 1.8, where: `제2공장 · 비상구 ${k}번`, what: '비상문 열림 (대피 중)', pri0: 1, pri1: 3, grp: 'door', cons: true })
   let t = 39.4
-  for (let k = 0; k < 18; k++) { E.push({ t, where: '산단 2선', what: '부하율 95% 초과', pri0: 1, pri1: 2, chat: true }); t += 1.4 + r() * 1.2 }
-  ;[3, 5, 6].forEach((g, i) => E.push({ t: 44 + i * 1.3 + r() * 0.4, where: `산단 2선 ${g}구간`, what: '전압 22.4kV 미만', pri0: 1, pri1: 3, grp: 'lv2' }))
+  for (let k = 0; k < 18; k++) { E.push({ t, where: '제2공장 · 도장 부스 CCTV 2번', what: '연기 감지', pri0: 1, pri1: 2, chat: true }); t += 1.4 + r() * 1.2 }
+  ;[3, 5, 6].forEach((g, i) => E.push({ t: 44 + i * 1.3 + r() * 0.4, where: `제2공장 · 혼합실 가스 센서 ${g}번`, what: '가연성 가스 10%LEL 초과', pri0: 1, pri1: 2, grp: 'gas2' }))
   return E.sort((a, b) => a.t - b.t)
 }
 const FLOOD = makeFlood()
 type Fix = 'dedupe' | 'cons' | 'deadband' | 'repri'
 const FIX: { id: Fix; name: string; desc: string }[] = [
   { id: 'dedupe', name: '중복 묶기', desc: '같은 일을 여러 곳이 알리면 한 줄로 묶어요. 옆에 ‘×14’처럼 개수만 붙여요.' },
-  { id: 'cons', name: '원인 알람만 표시', desc: '차단기가 내려가면 그 아래 정전(무전압)과 통신 두절은 당연히 따라와요. 원인 하나만 보여 주고 결과는 접어 둬요(연관 억제).' },
-  { id: 'deadband', name: '지연 · 히스테리시스', desc: '값이 경보선 근처를 오르내리면 알람이 울렸다 꺼졌다 해요(채터링). 일정 시간 넘어 있어야 울리고, 충분히 내려가야 풀리게 해요.' },
+  { id: 'cons', name: '원인 알람만 표시', desc: '도장 부스에 불이 나면 주변 연기 감지기와 비상문 열림 알람은 당연히 따라와요. 원인(화재) 하나만 보여 주고 결과는 접어 둬요(연관 억제).' },
+  { id: 'deadband', name: '지연 · 히스테리시스', desc: 'CCTV 연기 감지는 연기가 오락가락하면 울렸다 꺼졌다 해요(채터링). 일정 시간 넘어 있어야 울리고, 충분히 사라져야 풀리게 해요.' },
   { id: 'repri', name: '우선순위 다시 매기기', desc: '처음에 ‘일단 다 긴급’으로 둔 설정을 다시 매겨요. 기준은 얼마나 심각한지, 얼마나 빨리 대응해야 하는지예요. 알람 수는 그대로고, 무엇부터 볼지가 달라져요.' },
 ]
 interface Row { e: FEv; n: number; hidden?: number }
@@ -376,14 +634,14 @@ function FloodSim() {
         <b className="al-fl-time">{clock(tc)}</b>
       </div>
 
-      <Hmi title="알람 목록 · 산업단지 변전소 담당" right={`${clock(tc)} · ${shown.length}줄`} className="al-fl-hmi">
+      <Hmi title="알람 목록 · 제2공장 담당" right={`${clock(tc)} · ${shown.length}줄`} className="al-fl-hmi">
         <ol className="al-fl-list" aria-label="알람 목록">
-          {shown.length === 0 && <li className="empty">조용해요. 14:02에 산단 1선이 트립돼요.</li>}
+          {shown.length === 0 && <li className="empty">조용해요. 14:02에 도장 부스에서 불이 나요.</li>}
           {[...shown].reverse().slice(0, 60).map((r, i) => (
             <li key={r.e.t + r.e.where + i} className={r.e.root ? 'root' : ''}>
               <time>{clock(r.e.t)}</time>
               <PriBadge p={pri(r.e)} />
-              <span className="w">{r.n > 1 && on.dedupe ? r.e.where.replace(/ (R\/C-\d+|\d구간)$/, '') : r.e.where}</span>
+              <span className="w">{r.n > 1 && on.dedupe ? r.e.where.replace(/ \d+번$/, ' 여러 곳') : r.e.where}</span>
               <span className="x">{r.e.what}{r.n > 1 && <b className="cnt">×{r.n}</b>}{r.hidden ? <small>연관 알람 {r.hidden}건 접힘</small> : null}</span>
             </li>
           ))}
@@ -394,21 +652,21 @@ function FloodSim() {
 }
 
 /* ================= 4. 우선순위 분포 ================= */
-const POOL = ['북부 1선 부하율 80% 초과', '북부 2선 전압 22.4kV 미만', '강변 2선 R/C-12 통신 두절', '북부 변전소 출입문 개방', '강변 3선 R/C-04 통신 두절', '산단 2선 부하율 80% 초과', '강변 변전소 주변압기 유온 75℃ 초과', '북부 3선 전압 23.4kV 초과', '산단 3선 R/C-07 배터리 전압 낮음', '강변 1선 부하율 80% 초과', '북부 변전소 냉각팬 1대 정지', '산단 2선 R/C-02 통신 두절', '강변 2선 전압 22.4kV 미만', '산업단지 변전소 출입문 개방', '북부 2선 R/C-09 통신 두절', '강변 3선 부하율 80% 초과', '산단 3선 전압 22.4kV 미만', '북부 1선 R/C-03 통신 두절', '강변 변전소 출입문 개방']
+const POOL = ['물류센터 상하차장 안전모 미착용', '제2공장 프레스 3호기 진동 4.5mm/s 초과', '신축 현장 고소작업 CCTV 3번 영상 끊김', '제2공장 화학물질 창고 출입문 열림', '물류센터 지게차 통로 보행자 접근', '신축 현장 게이트 보호조끼 미착용', '제2공장 프레스 1호기 모터 온도 70℃ 초과', '물류센터 상하차장 일산화탄소 25ppm 초과', '신축 현장 웨어러블 배터리 낮음', '제2공장 가스 센서 7번 통신 끊김', '물류센터 비상구 앞 적재물 감지', '신축 현장 출입 게이트 안전화 미착용', '제2공장 도장 부스 배기 풍량 낮음', '물류센터 고층 랙 구역 출입문 열림', '신축 현장 지하 조명 고장', '제2공장 프레스 2호기 진동 4.5mm/s 초과', '물류센터 CCTV 5번 영상 끊김', '신축 현장 타워크레인 CCTV 화질 낮음', '제2공장 정문 게이트 출입 카드 오류']
 function PriorityMix() {
   const [n, setN] = useState<Record<Pri, number>>({ 1: 45, 2: 35, 3: 20 })
   const sum = n[1] + n[2] + n[3] || 1
   const share = (p: Pri) => (n[p] / sum) * 100
   const REC: Record<Pri, number> = { 1: 5, 2: 15, 3: 80 }
   const preset = (a: number, b: number, c: number) => setN({ 1: a, 2: b, 3: c })
-  // 한 근무 시간의 알람 20건: 진짜 급한 트립은 가장 먼저 났고, 그 뒤로 다른 알람이 쌓였어요
+  // 한 근무 시간의 알람 20건: 진짜 급한 화재는 가장 먼저 났고, 그 뒤로 다른 알람이 쌓였어요
   const list = useMemo(() => {
     const k1 = Math.max(1, Math.round((n[1] / sum) * 20)), k2 = Math.round((n[2] / sum) * 20)
     const r = rng(11)
     const items = POOL.map((w, i) => ({ w, t: 40 + i * 6 + Math.floor(r() * 4), p: 3 as Pri, real: false }))
     const order = items.map((_, i) => i).sort((a, b) => ((a * 7) % 19) - ((b * 7) % 19))
     order.forEach((idx, j) => { items[idx].p = j < k1 - 1 ? 1 : j < k1 - 1 + k2 ? 2 : 3 })
-    const all = [{ w: '산단 1선 선로 고장 — 차단기 트립', t: 32, p: 1 as Pri, real: true }, ...items]
+    const all = [{ w: '제2공장 도장 부스 화재 — 연기 + 온도 급상승', t: 32, p: 1 as Pri, real: true }, ...items]
     return all.sort((a, b) => a.p - b.p || b.t - a.t)
   }, [n, sum])
   const rank = list.findIndex(x => x.real) + 1
@@ -451,11 +709,12 @@ function PriorityMix() {
               <li key={x.w} className={x.real ? 'real' : ''}><span className="i">{i + 1}</span><PriBadge p={x.p} /><span>{x.w}</span><time>{clock(x.t, 13 * 60 + 30)}</time></li>
             ))}
           </ol>
-          <div className="al-pm-more">{rank > VIS ? `아래로 ${list.length - VIS}건 더 · 진짜 급한 트립은 ${rank}번째에 있어요` : `아래로 ${list.length - VIS}건 더`}</div>
+          <div className="al-pm-more">{rank > VIS ? `아래로 ${list.length - VIS}건 더 · 진짜 급한 화재는 ${rank}번째에 있어요` : `아래로 ${list.length - VIS}건 더`}</div>
         </Hmi>
         <div className="al-pm-verdict">
           <b className="big">{rank}<small>번째</small></b>
-          <p>진짜 급한 <b>산단 1선 트립</b>이 목록에서 몇 번째인지예요. 트립은 가장 먼저 났어요. 그 뒤로 ‘긴급’ 알람이 쌓이면 트립은 첫 화면 밖으로 밀려나요.</p>
+          <p>진짜 급한 <b>도장 부스 화재</b>가 목록에서 몇 번째인지예요. 화재는 가장 먼저 났어요. 그 뒤로 ‘긴급’ 알람이 쌓이면 화재는 첫 화면 밖으로 밀려나요.</p>
+          <p>안전모 미착용과 화재가 같은 ‘긴급’이면, 근무자는 둘을 같은 속도로 처리하게 돼요.</p>
           <p className="muted">한 화면에 보이는 줄은 {VIS}줄이에요. {rank > VIS ? '스크롤해야 찾을 수 있어요.' : '지금은 첫 화면에서 보여요.'}</p>
         </div>
       </div>
@@ -467,10 +726,10 @@ function PriorityMix() {
 type Slot = 'where' | 'what' | 'how' | 'act'
 const SLOT: Record<Slot, string> = { where: '어디', what: '무엇', how: '얼마나', act: '무엇을 하라' }
 const TEXTS: { bad: string; miss: Partial<Record<Slot, string>>; id: string; what: string; how: string; p: Pri }[] = [
-  { bad: 'CB_I1_52 TRIP', id: 'A-101', what: '선로 고장 — 차단기 트립', how: '14:02 · 재폐로 실패', p: 1, miss: { where: '설비 코드뿐이라 어느 선로인지 외우고 있어야 해요.', how: '자동으로 다시 붙었는지(재폐로) 알 수 없어요.', act: '할 일이 없어요.' } },
-  { bad: 'FDR R1 LOAD HI', id: 'A-102', what: '부하율 높음', how: '95% 초과 15분 지속 (지금 97%)', p: 2, miss: { where: '약어라 처음 온 근무자는 못 읽어요.', how: '얼마나 높은지, 얼마나 오래인지 없어요.', act: '할 일이 없어요.' } },
-  { bad: 'TX02 OT ALM', id: 'A-103', what: '유온 높음', how: '90℃ 초과 (지금 92℃)', p: 2, miss: { where: '어느 변전소의 변압기인지 없어요.', what: '‘OT’가 무슨 뜻인지 알아야 읽을 수 있어요.', how: '기준과 지금 값이 없어요.', act: '할 일이 없어요.' } },
-  { bad: '통신 이상', id: 'A-105', what: '개폐기 통신 두절', how: '12분째 응답 없음', p: 3, miss: { where: '어디인지가 통째로 없어요.', how: '언제부터인지 없어요.', act: '할 일이 없어요.' } },
+  { bad: 'FD_F2_03 ALM', id: 'S-101', what: '화재 — 연기 감지 + 온도 급상승', how: '14:02 · 감지기 2개 함께 동작', p: 1, miss: { where: '감지기 코드뿐이라 어느 구역인지 외우고 있어야 해요.', what: '‘FD’가 화재 감지기라는 걸 알아야 읽을 수 있어요.', how: '감지기 하나인지, 여러 개가 함께 울렸는지 알 수 없어요.', act: '할 일이 없어요.' } },
+  { bad: 'GAS HI', id: 'S-103', what: '가연성 가스 높음', how: '12%LEL (정상 10%LEL 이하) · 20분째 오르는 중', p: 2, miss: { where: '어느 현장, 어느 센서인지 없어요.', how: '얼마나 높은지, 오르는 중인지 없어요.', act: '할 일이 없어요.' } },
+  { bad: 'TAG-0412 NO MOTION', id: 'S-102', what: '작업자 무응답', how: '30초째 움직임 없음 · 밀폐공간 작업 중', p: 1, miss: { where: '태그 번호뿐이라 어디인지 몰라요. 밀폐공간인지 아닌지에 따라 대응이 달라져요.', how: '얼마나 오래 움직임이 없었는지 없어요.', act: '할 일이 없어요.' } },
+  { bad: '위험구역 침입', id: 'S-104', what: '인양 중 작업자 반경 진입', how: '크레인 인양 중 · 반경 안 1명', p: 2, miss: { where: '어느 위험구역인지가 통째로 없어요.', how: '지금 인양 중인지, 몇 명인지 없어요.', act: '할 일이 없어요.' } },
 ]
 function AlarmText() {
   const [i, setI] = useState(0)
@@ -572,7 +831,7 @@ function Sound() {
           <button type="button" className="btn sm ghost" disabled={!ring} onClick={() => setMute(true)}>소리만 끄기</button>
           <button type="button" className="btn sm" disabled={!un.length} onClick={() => { setQ(x => x.map(y => ({ ...y, ack: true }))); setMute(false) }}>모두 확인</button>
         </div>
-        <Hmi title="콘솔 스피커" right={ring ? '울리는 중' : '조용함'}>
+        <Hmi title="상황실 스피커" right={ring ? '울리는 중' : '조용함'}>
           <div className="al-snd-state" aria-live="polite">
             {ring ? <><span className="al-wave big" aria-hidden="true"><i /><i /><i /></span><span><b>{PRI[top!].name} 소리</b> 반복 중 — 아직 확인 안 한 알람 {un.length}건</span></>
               : top !== null && mute ? <span><b>무음</b> — 소리는 껐지만 미확인 {un.length}건은 계속 깜빡여요. 새 알람이 오면 다시 울려요.</span>
@@ -580,7 +839,7 @@ function Sound() {
                   : <span className="muted">미확인 알람이 없어요.</span>}
           </div>
           <ul className="al-snd-q">
-            {q.map(x => <li key={x.id} className={x.ack ? 'ack' : ''}><span className={x.ack ? '' : 'al-blink'}><PriBadge p={x.p} /></span>{x.p === 1 ? '산단 1선 선로 고장 — 차단기 트립' : '북부 변전소 출입문 개방'}<small>{x.ack ? '확인됨' : '미확인'}</small></li>)}
+            {q.map(x => <li key={x.id} className={x.ack ? 'ack' : ''}><span className={x.ack ? '' : 'al-blink'}><PriBadge p={x.p} /></span>{x.p === 1 ? '제2공장 도장 부스 — 화재' : '물류센터 상하차장 — 안전모 미착용'}<small>{x.ack ? '확인됨' : '미확인'}</small></li>)}
           </ul>
         </Hmi>
       </div>
@@ -592,7 +851,7 @@ function Sound() {
 const QS: { q: string; no: ReactNode; yes?: ReactNode }[] = [
   { q: '이게 울리면 운영자가 해야 할 행동이 정해져 있나요?', no: <>알람이 아니라 <b>기록(이벤트)</b>으로 남겨요. 할 일이 없는 알람은 피로만 쌓아요.</> },
   { q: '알람을 본 뒤에 그 행동을 할 시간이 충분한가요?', no: <>너무 늦게 알려 주는 거예요. <b>더 일찍 울리게</b> 다시 설계해요. 기준값을 앞당기거나, 값이 오르는 추세를 보고 울리게 해요.</> },
-  { q: '다른 알람이 같은 일을 이미 알려 주지 않나요?', no: <>원인 알람 하나만 남겨요. 나머지는 <b>묶거나, 원인 아래로 접어(<Term k="연관 억제" d={XT['연관 억제']} />)</b> 둬요. 차단기 트립 뒤에 따라오는 정전(무전압) 알람이 대표적이에요.</> },
+  { q: '다른 알람이 같은 일을 이미 알려 주지 않나요?', no: <>원인 알람 하나만 남겨요. 나머지는 <b>묶거나, 원인 아래로 접어(<Term k="연관 억제" d={XT['연관 억제']} />)</b> 둬요. 화재 뒤에 따라오는 주변 연기 감지기·비상문 열림 알람이 대표적이에요.</> },
   { q: '평소에는 거의 울리지 않나요?', no: <>울렸다 꺼졌다를 반복한다면(<Term k="채터링" d={XT['채터링']} />) <b>지연 시간</b>이나 <Term k="히스테리시스" />를 넣어요. 특정 작업 중에만 울린다면 그 조건에서는 <Term k="설계상 억제"><b>설계상 억제</b></Term>해요.</> },
   { q: '우선순위를 ‘얼마나 심각한지 × 얼마나 빨리 대응해야 하는지’로 정했나요?', no: <>‘일단 긴급’으로 두면 안 돼요. 두 기준을 함께 보고 매겨요. 정의서 양식은 <a href="#/dash/ops">08 기획 · 운영 정의</a>에 있어요.</>, yes: <>좋아요. 이 알람은 넣어도 돼요. 정의서에 이 알람을 넣은 이유와 <Term k="대응 절차" />를 함께 적어 두세요.</> },
 ]
@@ -646,14 +905,14 @@ const REFS: RefItem[] = [
 export default function Tab() {
   return (
     <div data-dash="alarm">
-      <TermList keys={['알람 피로', '알람 폭주', '트립', '차단기', '개폐기', '무전압', '재폐로', '확인', '보류', '설계상 억제', '서비스 제외', '채터링', '히스테리시스', '우선순위']} extra={XT} />
+      <TermList keys={['알람 피로', '알람 폭주', '확인', '보류', '정상 복귀', '오경보', '설계상 억제', '서비스 제외', '채터링', '히스테리시스', '연관 억제', '우선순위', '대응 절차', '%LEL', '웨어러블']} extra={XT} />
       <SysGrid>
         <Section id="dash-alarm-why" wide title="알람이 많으면 알람을 안 믿게 돼요"
           gist="헛알람이 많으면 진짜 알람도 무시해요. 개수보다 믿을 수 있는지가 먼저예요."
           desc="양치기 소년 이야기와 같아요. ‘늑대다!’가 계속 거짓말이면, 진짜 늑대가 와도 아무도 안 믿어요. 알람도 너무 많으면 사람들이 무시하게 돼요. 놓친 알람보다 이게 더 흔한 문제예요. 병원 연구가 이 현상을 가장 잘 보여 줘요.">
           <Fatigue />
           <Finding src={<>Sendelbach & Funk (2013) 및 어린이 병원 관찰 연구 요약 <Cite n={R.sendel} /><Cite n={R.child} /></>}>
-            알람 대부분이 헛걸음이면 사람은 알람을 덜 믿게 돼요. 이걸 <Term k="알람 피로" />라고 해요. 전력 <Term k="관제">관제실</Term>도 똑같아요.
+            알람 대부분이 헛걸음이면 사람은 알람을 덜 믿게 돼요. 이걸 <Term k="알람 피로" />라고 해요. 공장·물류센터·건설 현장을 지켜보는 안전관리 <Term k="관제">상황실</Term>도 똑같아요.
           </Finding>
           <figure className="al-story">
             <blockquote>
@@ -668,6 +927,12 @@ export default function Tab() {
             </div>
             <figcaption>— Palmer <Cite n={R.palmer} /></figcaption>
           </figure>
+        </Section>
+
+        <Section id="dash-alarm-mistakes" wide title="흔한 실수 — 알람을 지우고, 섞고, 계속 울려요"
+          gist="알람은 사람이 볼 때까지 남고, 급한 순서로 서고, 한 번만 울려야 해요."
+          desc={<>업계에서 흔히 보는 안전관리 화면의 알람 문제예요. 사람의 실수가 아니라 화면 설계의 문제예요. 카드마다 ‘흔한 화면’과 ‘업그레이드하면’을 눌러 비교해 보세요. 예시 현장({SAFE_PLACE})과 수치는 모두 가상이에요.</>}>
+          <Mistakes />
         </Section>
 
         <Section id="dash-alarm-states" wide title="알람은 일곱 가지 상태를 오가요"
@@ -685,7 +950,7 @@ export default function Tab() {
 
         <Section id="dash-alarm-flood" wide title="고장 하나가 알람 수십 개가 돼요"
           gist="고장 하나가 알람 수십 개를 만들어요. 묶고 걸러야 진짜 원인이 보여요."
-          desc={<>아파트 한 동이 정전되면 집집마다 관리실에 전화하는 것과 같아요. 원인은 하나인데 전화는 수십 통이에요. 14:02, 산단 1선의 <Term k="차단기" />가 <Term k="트립">트립돼요</Term>. 그러면 그 아래 <Term k="개폐기" />들이 ‘통신 두절’ 알람을 올려요. 고장 난 구간마다 ‘전기 끊김(<Term k="무전압" />)’ 알람도 한꺼번에 떠요. 끊긴 동네에 옆 선로로 전기를 대 주자(<Term k="역송" />), 이번엔 산단 2선 부하 알람이 울렸다 꺼졌다를 반복해요. 아래 개선 방법을 하나씩 켜 보세요.</>}>
+          desc={<>아파트 한 동에 불이 나면 집집마다 관리실에 전화하는 것과 같아요. 원인은 하나인데 전화는 수십 통이에요. 14:02, 제2공장 도장 부스에서 불이 나요. 연기가 퍼지면서 주변 연기 감지기 14개가 차례로 울려요. 사람들이 대피하면서 비상문 8개의 ‘열림’ 알람도 한꺼번에 떠요. 연기가 오락가락하자 CCTV 연기 감지는 울렸다 꺼졌다를 반복해요(<Term k="채터링" d={XT['채터링']} />). 안전관리 화면에서는 이 모든 게 화재 하나 때문이에요. 아래 개선 방법을 하나씩 켜 보세요.</>}>
           <div className="al-std">
             <div><b>10분에 1개</b><span>평소 운영자 1명이 받는 목표량이에요. 한 시간에 6개, 하루 약 150개 미만이에요</span></div>
             <div><b>10분에 10개 초과</b><span><Term k="알람 폭주" />예요. 이만큼 쏟아지면 사람은 목록을 다 읽지 못해요</span></div>
@@ -694,19 +959,19 @@ export default function Tab() {
           </div>
           <p className="muted al-std-src">모두 알람 관리 표준(ISA-18.2, EEMUA 191)을 설명한 2차 자료에 보고된 수치예요 <Cite n={R.isa182kpi} /><Cite n={R.eemua} />.</p>
           <FloodSim />
-          <Note tone="tip"><b>‘원인 알람만 표시’는 결과 알람을 지우는 게 아니에요.</b> 트립 줄 아래에 ‘연관 알람 25건 접힘’처럼 접어 두고, 누르면 펼쳐져요. 폭주 중에는 원인 하나를 먼저 봐요. 복구할 때 접힌 알람을 하나씩 확인해요. 이 실험의 알람 흐름은 설명용으로 만든 가상 사례예요.</Note>
+          <Note tone="tip"><b>‘원인 알람만 표시’는 결과 알람을 지우는 게 아니에요.</b> 화재 줄 아래에 ‘연관 알람 24건 접힘’처럼 접어 두고, 누르면 펼쳐져요. 접힌 연기 감지기 수가 늘면 불이 번지고 있다는 뜻이라, 개수는 원인 줄에 계속 보여 줘요. 번지는 범위는 <a href="#/dash/map">06 지도 · 계통도</a>에서 봐요. 이 실험의 알람 흐름은 설명용으로 만든 가상 사례예요.</Note>
         </Section>
 
         <Section id="dash-alarm-priority" wide title="모두가 긴급이면 아무것도 긴급이 아니에요"
           gist="‘긴급’이 많을수록 진짜 급한 알람이 목록 아래로 묻혀요."
-          desc={<>응급실에서 모든 환자에게 ‘가장 급함’ 표시를 붙이면, 정말 위독한 사람을 먼저 볼 수 없어요. 알람 <Term k="우선순위" />도 같아요. ‘무엇부터 볼지’ 정하는 도구인데, 높은 단계가 많을수록 쓸모가 없어져요. 슬라이더로 우리 시스템의 한 달 알람 비율을 넣어 보세요.</>}>
+          desc={<>응급실에서 모든 환자에게 ‘가장 급함’ 표시를 붙이면, 정말 위독한 사람을 먼저 볼 수 없어요. 알람 <Term k="우선순위" />도 같아요. ‘무엇부터 볼지’ 정하는 도구인데, 높은 단계가 많을수록 쓸모가 없어져요. 안전관리 화면에서는 안전모 미착용과 화재가 같은 ‘긴급’이 되는 일이 흔해요. 슬라이더로 우리 시스템의 한 달 알람 비율을 넣어 보세요.</>}>
           <PriorityMix />
           <Note>우선순위 단계는 3~4개까지만 둬요 <Cite n={R.eemua} />. 단계마다 색·모양·숫자를 함께 쓰는 이유는 <a href="#/dash/color">02 회색이 기본, 색은 신호</a>에서 다뤄요. 이 탭에서 정한 대응 시간은 긴급 {PRI[1].respond}, 높음 {PRI[2].respond}, 주의 {PRI[3].respond}예요(가상).</Note>
         </Section>
 
         <Section id="dash-alarm-text" title="알람 문구에는 네 가지가 들어가요"
           gist="‘어디·무엇·얼마나·할 일’이 다 있어야 처음 온 사람도 바로 움직여요."
-          desc="119에 ‘불났어요’만 말하면 출동할 수 없어요. 어디서, 무엇이, 얼마나인지 말해야 해요. 알람 한 줄도 같아요. 어디·무엇·얼마나·무엇을 하라에 답해야 해요. 위의 나쁜 문구를 하나씩 눌러 보세요.">
+          desc="119에 ‘불났어요’만 말하면 출동할 수 없어요. 어디서, 무엇이, 얼마나인지 말해야 해요. 알람 한 줄도 같아요. 어디·무엇·얼마나·무엇을 하라에 답해야 해요. 안전관리 화면에서는 ‘어디’가 특히 중요해요. 같은 가스 알람도 밀폐공간이면 대응이 달라지니까요. 위의 나쁜 문구를 하나씩 눌러 보세요.">
           <AlarmText />
         </Section>
 

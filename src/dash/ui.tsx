@@ -123,3 +123,43 @@ export function useVisibleInterval(fn: () => void, ms: number, on = true) {
   }, [ms, on])
   return ref
 }
+
+/* ---------- 흔한 실수 카드: 흔한 대시보드는 → 왜 문제인가 → 이렇게 올려요 ---------- */
+export type Sev = '치명' | '높음' | '보통'
+/** 탭마다 '흔한 실수' 섹션 안에서 써요. before/after 를 주면 '흔한 화면 ↔ 업그레이드' 토글이 생겨요. */
+export function CaseCard({ sev, title, now, why, fix, before, after, good = false }: {
+  sev: Sev; title: ReactNode
+  /** 흔한 대시보드가 하는 방식 */
+  now: ReactNode
+  /** 어떤 원칙을 어기나 (근거 Cite 포함) */
+  why: ReactNode
+  /** 업그레이드 안 */
+  fix: ReactNode
+  before?: ReactNode; after?: ReactNode
+  /** 잘한 예면 true */
+  good?: boolean
+}) {
+  const [v, setV] = useState<'now' | 'up'>('now')
+  return (
+    <article className={'neo-case' + (good ? ' good' : '')}>
+      <header>
+        <span className={'neo-sev s-' + (good ? 'good' : sev)}>{good ? '잘한 예' : sev}</span>
+        <h4>{title}</h4>
+      </header>
+      {(before || after) && (
+        <div className="neo-vs">
+          <div className="seg-x neo-vs-tog" role="radiogroup" aria-label="흔한 화면과 업그레이드 비교">
+            <button type="button" role="radio" aria-checked={v === 'now'} className={v === 'now' ? 'on' : ''} onClick={() => setV('now')}>흔한 화면</button>
+            <button type="button" role="radio" aria-checked={v === 'up'} className={v === 'up' ? 'on' : ''} onClick={() => setV('up')}>업그레이드하면</button>
+          </div>
+          <div className="neo-vs-stage">{v === 'now' ? before : after}</div>
+        </div>
+      )}
+      <dl className="neo-case-dl">
+        <div><dt>{good ? '이렇게 해요' : '흔한 화면은'}</dt><dd>{now}</dd></div>
+        <div><dt>{good ? '왜 좋은가' : '왜 문제인가'}</dt><dd>{why}</dd></div>
+        <div><dt>{good ? '더 살리려면' : '이렇게 올려요'}</dt><dd>{fix}</dd></div>
+      </dl>
+    </article>
+  )
+}

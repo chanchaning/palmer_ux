@@ -5,22 +5,28 @@ import { CodeBlock, Note, Section, SysGrid } from '../../system/ui'
 import { Term, TermList } from '../../components/Term'
 import { contrast, fmtRatio, luminance, simulate, toHex, type RGB, type Vision } from '../../guides/20-contrast/lib'
 import { VisionFilters } from '../../guides/20-contrast/shared'
-import { PRI, SUBSTATIONS, rng, type Pri } from '../data'
-import { Cite, Finding, Hmi, PriBadge, Refs, useVisibleInterval } from '../ui'
+import { PRI, SAFE_ALARMS, SAFE_CENTER, SAFE_RANGES, SAFE_SITES, rng, type Pri } from '../data'
+import { CaseCard, Cite, Finding, Hmi, PriBadge, Refs, useVisibleInterval } from '../ui'
 import './color.css'
 
 /* ---------- 공용 ---------- */
 const hexRgb = (h: string): RGB => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)) as RGB
 const ALARM_HEX: Record<Pri, string> = { 1: '#c92a2a', 2: '#e8590c', 3: '#f2c230' }
-const FEEDERS = SUBSTATIONS.flatMap(s => s.feeders.map(f => ({ ...f, sub: s.name })))
+/** 가람산업(가상) 현장 3곳의 구역 9개 */
+const ZONES = SAFE_SITES.flatMap(s => s.zones.map(z => ({ ...z, site: s.name })))
+const zone = (id: string) => ZONES.find(z => z.id === id)!
+const alarm = (id: string) => SAFE_ALARMS.find(a => a.id === id)!
 const sec = (ms: number) => (ms / 1000).toFixed(1)
 
 /* 공용 사전(glossary.ts)에 없는 말 — 이 탭에서만 쓰는 쉬운 뜻 */
 const EXTRA: Record<string, string> = {
   '고성능 HMI': '평소엔 회색으로 조용하고, 이상이 생긴 곳에만 색을 쓰는 관제 화면 설계 방식이에요. 국제 표준 ISA-101이 정리한 원칙이에요.',
-  '투입': '차단기나 스위치를 닫아서 전기가 흐르게 한 상태예요. 반대로 열어서 끊은 상태는 ‘개방’이라고 해요.',
-  '3상': '전기를 세 가닥에 나눠 실어 보내는 방식이에요. 세 가닥이 고르게 일하는지 막대 세 개로 보여주곤 해요.',
-  '색각 이상': '빨강과 초록처럼 특정 색끼리 잘 구분하지 못하는 시각 특성이에요. 생각보다 흔해서 관제실 동료 중에도 있을 수 있어요.',
+  '%LEL': '불이 붙어 폭발할 수 있는 가장 낮은 가스 농도를 100으로 볼 때, 지금 농도가 얼마인지예요. 10%LEL이면 그 농도의 10분의 1이에요.',
+  'CO': '일산화탄소예요. 색도 냄새도 없어서 센서로만 알 수 있어요. 지게차·트럭 배기가스나 덜 탄 불에서 나와요.',
+  'ppm': '백만분의 1을 뜻하는 단위예요. 공기 알갱이 100만 개 중 몇 개가 그 가스인지예요.',
+  '보호구': '안전모, 안전화, 보호조끼처럼 작업자가 몸을 지키려고 입고 쓰는 장비예요.',
+  '펄스': '램프가 숨 쉬듯 밝아졌다 어두워졌다를 되풀이하는 효과예요. 움직임이라 눈이 저절로 끌려가요.',
+  '색각 이상': '빨강과 초록처럼 특정 색끼리 잘 구분하지 못하는 시각 특성이에요. 생각보다 흔해서 상황실 동료 중에도 있을 수 있어요.',
   '대비': '두 색의 밝기가 얼마나 다른지를 비율로 나타낸 값이에요. 숫자가 클수록 잘 구분돼요. 웹 접근성 기준(WCAG)은 아이콘·모양에 3:1 이상을 요구해요.',
   'ASM 컨소시엄': '정유·화학 회사와 연구 기관이 모여, 관제실에서 생기는 사고와 실수를 줄이는 방법을 함께 연구하는 모임이에요.',
   '팔레트': '한 화면에서 쓰기로 정해 둔 색 목록이에요. 그림 그릴 때 쓰는 물감 판과 같아요.',
@@ -41,49 +47,161 @@ function Shape({ p, size = 22, outline }: { p: Pri; size?: number; outline?: str
   )
 }
 
+/* ================= 0. 흔한 실수 목업 ================= */
+/* before = 흔한 안전관리 화면(어두운 남색, 초록 램프, 빨강 장식), after = 이 탭 원칙을 적용한 화면 */
+
+/** 정상 = 초록 펄스 */
+function MkGreen({ up }: { up: boolean }) {
+  const fire = alarm('S-101')
+  if (!up) return (
+    <Hmi dark className="cl-mk-old" title="전체 현장 개요" right="실시간">
+      <div className="cl-mk-zones">
+        {ZONES.map(z => {
+          const bad = z.id === 'F2'
+          return (
+            <div key={z.id} className={'cl-mk-z' + (bad ? ' bad' : '')}>
+              <span className="nm">{z.name}</span>
+              <span className={'cl-mk-lamp' + (bad ? ' red' : '')}><i />{bad ? '이상' : '정상'}</span>
+            </div>
+          )
+        })}
+      </div>
+    </Hmi>
+  )
+  return (
+    <Hmi title="전체 현장 개요" right="마지막 수신 14:05:12">
+      <div className="cl-mk-zones">
+        {ZONES.map(z => {
+          const bad = z.id === 'F2'
+          return (
+            <div key={z.id} className={'cl-mk-z' + (bad ? ' bad' : '')}>
+              <span className="nm">{z.name}</span>
+              {bad
+                ? <span className="st"><PriBadge p={fire.pri} size={16} />{fire.what.split(' + ')[0]}</span>
+                : <span className="st q">{z.workers}명</span>}
+            </div>
+          )
+        })}
+      </div>
+    </Hmi>
+  )
+}
+
+/** 빨강을 녹화 표시·로고·버튼에도 씀 */
+const CAMS = ['F2', 'F1', 'W3', 'W1'].map(zone)
+function MkRed({ up }: { up: boolean }) {
+  const fire = alarm('S-101')
+  if (!up) return (
+    <Hmi dark className="cl-mk-old" title={<span className="cl-mk-logo"><i aria-hidden="true" />통합 안전관리</span>} right={<span className="cl-mk-sos old">긴급 호출</span>}>
+      <div className="cl-mk-cams">
+        {CAMS.map((z, i) => (
+          <div key={z.id} className={'cl-mk-cam' + (z.id === 'F2' ? ' fire' : '')}>
+            <span className="rec"><i aria-hidden="true" />녹화</span>
+            <span className="nm">카메라 {i + 1} · {z.name}</span>
+          </div>
+        ))}
+      </div>
+    </Hmi>
+  )
+  return (
+    <Hmi title="CCTV 4분할" right={<span className="cl-mk-sos">긴급 호출</span>}>
+      <div className="cl-mk-cams">
+        {CAMS.map((z, i) => (
+          <div key={z.id} className={'cl-mk-cam' + (z.id === 'F2' ? ' fire' : '')}>
+            <span className="rec">녹화 중</span>
+            {z.id === 'F2' && <span className="al"><PriBadge p={fire.pri} size={16} />{fire.id} 연기 감지</span>}
+            <span className="nm">카메라 {i + 1} · {z.name}</span>
+          </div>
+        ))}
+      </div>
+    </Hmi>
+  )
+}
+
+/** 같은 '경고'가 화면마다 다른 색, '예정'에도 경고색 */
+const OLD_WARN = ['#ffa94d', '#ffe066', '#f76707']
+function MkPalette({ up }: { up: boolean }) {
+  const gas = alarm('S-103')
+  const warn = (i: number, t: string) => up
+    ? <span className="cl-mk-w"><PriBadge p={2} size={16} label /></span>
+    : <span className="cl-mk-chip" style={{ background: OLD_WARN[i] }}>{t}</span>
+  const plan: [string, string, string][] = [['도장 작업', '예정', '#fcc419'], ['배관 교체', '준비 중', '#ff922b'], ['크레인 점검', '진행 중', '#40c057']]
+  return (
+    <Hmi dark={!up} className={up ? '' : 'cl-mk-old'} title="통합 안전관리" right={up ? '경고 = 세모 2, 어디서나 같음' : '화면마다 다른 경고색'}>
+      <div className="cl-mk-panels">
+        <div className="cl-mk-p"><h5>현장 지도</h5><p>물류센터 · 상하차장 {warn(0, '경고')}</p></div>
+        <div className="cl-mk-p"><h5>알람 목록</h5><p>{gas.id} 가스 12%LEL {warn(1, '경고')}</p></div>
+        <div className="cl-mk-p"><h5>오늘 통계</h5><p>경고 3건 {warn(2, '경고')}</p></div>
+        <div className="cl-mk-p"><h5>작업 일정</h5>
+          {plan.map(([n, s, c]) => <p key={n}>{n} {up ? <span className="cl-mk-plain">{s}</span> : <span className="cl-mk-chip" style={{ background: c }}>{s}</span>}</p>)}
+        </div>
+      </div>
+    </Hmi>
+  )
+}
+
+/** 우선순위를 색 점으로만 */
+const DOTS = ['S-101', 'S-103', 'S-105'].map(alarm)
+const OLD_DOT: Record<Pri, string> = { 1: '#fa5252', 2: '#ff922b', 3: '#ffd43b' }
+function MkDots({ up }: { up: boolean }) {
+  const list = (sim: boolean) => (
+    <ul className="cl-mk-list" style={sim ? { filter: 'url(#clmk-deutan)' } : undefined}>
+      {DOTS.map(a => (
+        <li key={a.id}>
+          {up ? <PriBadge p={a.pri} size={18} /> : <i className="dot" style={{ background: OLD_DOT[a.pri] }} />}
+          <b>{a.where.split(' · ')[1]}</b><span>{a.what}</span>
+        </li>
+      ))}
+    </ul>
+  )
+  return (
+    <Hmi dark={!up} className={up ? '' : 'cl-mk-old'} title="알람 목록" right={up ? '색 + 모양 + 숫자' : '색 점만'}>
+      <VisionFilters prefix="clmk" />
+      <div className="cl-mk-two">
+        <figure><figcaption>정상 시각</figcaption>{list(false)}</figure>
+        <figure><figcaption>녹색맹 시뮬레이션</figcaption>{list(true)}</figure>
+      </div>
+    </Hmi>
+  )
+}
+
 /* ================= 1. 숨은 이상 찾기 ================= */
 type Mode = 'trad' | 'hp'
-type Metric = 'load' | 'kv' | 'temp'
-interface Board { vals: { load: number; kv: number; temp: number }[]; target: number; metric: Metric; phase: number[][] }
+type Metric = 'lel' | 'co'
+interface Board { vals: { lel: number; co: number }[]; target: number; metric: Metric; ppe: number[][] }
 
 function makeBoard(seed: number, withTarget: boolean): Board {
   const r = rng(seed)
   const between = (a: number, b: number, d = 0) => +(a + r() * (b - a)).toFixed(d)
-  const vals = FEEDERS.map(() => ({ load: between(46, 76), kv: between(22.5, 23.2, 1), temp: between(50, 70) }))
-  const phase = FEEDERS.map(() => [0, 1, 2].map(() => 0.55 + r() * 0.4))
-  const target = withTarget ? Math.floor(r() * FEEDERS.length) : -1
-  const metric = (['load', 'kv', 'temp'] as Metric[])[Math.floor(r() * 3)]
+  const vals = ZONES.map(() => ({ lel: between(0, 6), co: between(2, 18) }))
+  const ppe = ZONES.map(() => [0, 1, 2].map(() => 0.7 + r() * 0.3))
+  const target = withTarget ? Math.floor(r() * ZONES.length) : -1
+  const metric: Metric = r() < 0.5 ? 'lel' : 'co'
   if (target >= 0) {
-    if (metric === 'load') vals[target].load = between(96, 99)
-    if (metric === 'kv') vals[target].kv = between(21.8, 21.9, 1)
-    if (metric === 'temp') vals[target].temp = between(91, 94)
+    if (metric === 'lel') vals[target].lel = between(SAFE_RANGES.lel.alarm[1] + 1, SAFE_RANGES.lel.alarm[1] + 7)
+    if (metric === 'co') vals[target].co = between(SAFE_RANGES.co.alarm[1] + 2, SAFE_RANGES.co.alarm[1] + 14)
   }
-  return { vals, target, metric, phase }
+  return { vals, target, metric, ppe }
 }
 
-const MET: { k: Metric; name: string; unit: string; fmt: (v: number) => string }[] = [
-  { k: 'load', name: '부하율', unit: '%', fmt: v => String(v) },
-  { k: 'kv', name: '전압', unit: 'kV', fmt: v => v.toFixed(1) },
-  { k: 'temp', name: '유온', unit: '℃', fmt: v => String(v) },
+const MET: { k: Metric; name: string; full: string; unit: string }[] = [
+  { k: 'lel', name: '가스', full: '가연성 가스', unit: '%LEL' },
+  { k: 'co', name: 'CO', full: '일산화탄소', unit: 'ppm' },
 ]
 
-function FeederCard({ i, b, mode, onPick, state }: { i: number; b: Board; mode: Mode; onPick: (i: number) => void; state: '' | 'hit' | 'miss' | 'reveal' }) {
-  const f = FEEDERS[i], v = b.vals[i], bad = b.target === i
+function ZoneCard({ i, b, mode, onPick, state }: { i: number; b: Board; mode: Mode; onPick: (i: number) => void; state: '' | 'hit' | 'miss' | 'reveal' }) {
+  const z = ZONES[i], v = b.vals[i], bad = b.target === i
   return (
-    <button type="button" className={'cl-fd' + (state ? ' is-' + state : '')} onClick={() => onPick(i)} aria-label={f.name}>
+    <button type="button" className={'cl-fd' + (state ? ' is-' + state : '')} onClick={() => onPick(i)} aria-label={`${z.site} ${z.name}`}>
       <span className="cl-fd-top">
-        <b>{f.name}</b>
+        <b>{z.name}</b>
         {mode === 'trad'
-          ? <span className={'cl-lamp' + (bad ? ' red' : '')}><i />{bad ? '이상' : '운전'}</span>
+          ? <span className={'cl-lamp' + (bad ? ' red' : '')}><i />{bad ? '이상' : '정상'}</span>
           : <span className="cl-hp-state">{bad ? <PriBadge p={2} size={16} /> : null}</span>}
       </span>
-      <span className="cl-fd-line" aria-hidden="true">
-        <svg viewBox="0 0 120 14" preserveAspectRatio="none">
-          <line x1="0" y1="7" x2="120" y2="7" className="ln" />
-          <rect x="22" y="2" width="12" height="10" className="cb" />
-          <circle cx="96" cy="7" r="4" className="sw" />
-        </svg>
-        <span className="cb-tx">투입</span>
+      <span className="cl-fd-cam" aria-hidden="true">
+        <span className="rec"><i />{mode === 'trad' ? '녹화' : 'CCTV'}</span>
+        <span className="ppl">{z.workers}명</span>
       </span>
       <span className="cl-fd-vals">
         {MET.map(m => {
@@ -91,13 +209,13 @@ function FeederCard({ i, b, mode, onPick, state }: { i: number; b: Board; mode: 
           return (
             <span key={m.k} className={'cl-v ' + m.k + (out ? ' out' : '')}>
               <span className="nm">{m.name}</span>
-              <span className="nv">{mode === 'hp' && out && <PriBadge p={2} size={14} />}{m.fmt(v[m.k])}<small>{m.unit}</small></span>
+              <span className="nv">{mode === 'hp' && out && <PriBadge p={2} size={14} />}{v[m.k]}<small>{m.unit}</small></span>
             </span>
           )
         })}
       </span>
       <span className="cl-fd-phase" aria-hidden="true">
-        {b.phase[i].map((p, k) => <i key={k} className={'ph' + k} style={{ height: p * 100 + '%' }} />)}
+        {b.ppe[i].map((p, k) => <i key={k} className={'ph' + k} style={{ height: p * 100 + '%' }} />)}
       </span>
     </button>
   )
@@ -132,12 +250,14 @@ function HuntGame() {
   const cnt = (m: Mode) => recs.filter(r => r.mode === m).length
   const maxAvg = Math.max(avg('trad'), avg('hp'), 1)
   const elapsed = run ? performance.now() - run.t0 : done ? done.ms : 0
-  const tgt = FEEDERS[board.target]
+  const tgt = ZONES[board.target]
+  const met = MET.find(m => m.k === board.metric)!
+  const lim = SAFE_RANGES[board.metric].alarm[1]
 
   return (
     <div className="cl-hunt">
       <div className="cl-hunt-ctl">
-        <Seg value={mode} onChange={changeMode} options={[['trad', '전통형 화면'], ['hp', '고성능형 화면']] as const} />
+        <Seg value={mode} onChange={changeMode} options={[['trad', '흔한 화면'], ['hp', '고성능형 화면']] as const} />
         <button type="button" className="btn sm" onClick={start}>{run ? '새 문제로 다시' : done ? '한 번 더' : '시작'}</button>
         {run && <button type="button" className="btn sm ghost" onClick={giveUp}>정답 보기</button>}
         <div ref={watch} className={'cl-watch' + (run ? ' on' : '')} aria-live="off">
@@ -145,22 +265,22 @@ function HuntGame() {
         </div>
       </div>
       <p className="cl-hunt-msg" role="status">
-        {!run && !done && <>시작을 누르면 9개 선로 중 한 곳에 <b>경보 범위를 넘은 값 1개</b>가 숨어요. 찾으면 그 선로 칸을 눌러 주세요.</>}
-        {run && (last && !last.ok ? <>{FEEDERS[last.i].name}은 정상이에요. 계속 찾아보세요. (헛짚음 {run.miss}번)</> : <>찾는 중이에요. 이상이 있는 선로를 누르세요.</>)}
-        {done && !done.gave && <><b>{sec(done.ms)}초</b> 만에 찾았어요 ({mode === 'trad' ? '전통형' : '고성능형'}, 헛짚음 {done.miss}번). {tgt.name} {MET.find(m => m.k === board.metric)!.name}이 경보 범위를 넘었어요. 이번엔 화면 방식을 바꿔서 해 보세요.</>}
-        {done?.gave && <>정답은 <b>{tgt.name}</b>의 {MET.find(m => m.k === board.metric)!.name}이에요. 기록에는 넣지 않았어요.</>}
+        {!run && !done && <>시작을 누르면 9개 구역 중 한 곳에 <b>경보 기준을 넘은 가스 값 1개</b>가 숨어요. 찾으면 그 구역 칸을 눌러 주세요.</>}
+        {run && (last && !last.ok ? <>{ZONES[last.i].name}은 정상이에요. 계속 찾아보세요. (헛짚음 {run.miss}번)</> : <>찾는 중이에요. 이상이 있는 구역을 누르세요.</>)}
+        {done && !done.gave && <><b>{sec(done.ms)}초</b> 만에 찾았어요 ({mode === 'trad' ? '흔한 화면' : '고성능형'}, 헛짚음 {done.miss}번). {tgt.site} {tgt.name}의 {met.full} 값이 경보 기준({lim}{met.unit})을 넘었어요. 이번엔 화면 방식을 바꿔서 해 보세요.</>}
+        {done?.gave && <>정답은 <b>{tgt.site} {tgt.name}</b>의 {met.full}이에요. 기록에는 넣지 않았어요.</>}
       </p>
 
-      <Hmi className={'cl-board ' + mode} title={mode === 'trad' ? '전체 개요 · 전통형' : '전체 개요 · 고성능형'} right="누리시 배전 관제센터">
+      <Hmi className={'cl-board ' + mode} title={mode === 'trad' ? '전체 현장 개요 · 흔한 화면' : '전체 현장 개요 · 고성능형'} right={SAFE_CENTER}>
         <div className="cl-board-grid">
-          {SUBSTATIONS.map((s, si) => (
+          {SAFE_SITES.map((s, si) => (
             <div key={s.id} className="cl-sub">
-              <div className="cl-sub-name"><span className="bus" aria-hidden="true" />{s.name}</div>
+              <div className="cl-sub-name"><span className="mk" aria-hidden="true" />{s.name}</div>
               <div className="cl-sub-fds">
-                {s.feeders.map((_, fi) => {
-                  const i = si * 3 + fi
+                {s.zones.map((_, zi) => {
+                  const i = si * 3 + zi
                   const st = last?.i === i ? (last.ok ? 'hit' : 'miss') : done?.gave && board.target === i ? 'reveal' : ''
-                  return <FeederCard key={i} i={i} b={board} mode={mode} onPick={pick} state={st} />
+                  return <ZoneCard key={i} i={i} b={board} mode={mode} onPick={pick} state={st} />
                 })}
               </div>
             </div>
@@ -172,7 +292,7 @@ function HuntGame() {
         <div className="cl-rec-bars" aria-label="방식별 평균 시간">
           {(['trad', 'hp'] as Mode[]).map(m => (
             <div key={m} className={'cl-rec-row ' + m}>
-              <span>{m === 'trad' ? '전통형' : '고성능형'} <small className="muted">{cnt(m)}번</small></span>
+              <span>{m === 'trad' ? '흔한 화면' : '고성능형'} <small className="muted">{cnt(m)}번</small></span>
               <span className="bar"><i style={{ width: (avg(m) / maxAvg) * 100 + '%' }} /></span>
               <b>{cnt(m) ? sec(avg(m)) + '초' : '–'}</b>
             </div>
@@ -180,7 +300,7 @@ function HuntGame() {
         </div>
         <div className="cl-rec-side">
           {cnt('trad') && cnt('hp') ? (
-            <p>지금까지 평균으로 보면 고성능형이 전통형보다 <b>{avg('trad') / avg('hp') >= 1.1 ? `${(avg('trad') / avg('hp')).toFixed(1)}배 빨랐어요` : '크게 빠르지 않았어요'}</b>. 한 사람이 몇 번 해 본 기록이라 정식 실험은 아니에요. 그래도 왜 차이가 나는지는 직접 느낄 수 있어요.</p>
+            <p>지금까지 평균으로 보면 고성능형이 흔한 화면보다 <b>{avg('trad') / avg('hp') >= 1.1 ? `${(avg('trad') / avg('hp')).toFixed(1)}배 빨랐어요` : '크게 빠르지 않았어요'}</b>. 한 사람이 몇 번 해 본 기록이라 정식 실험은 아니에요. 그래도 왜 차이가 나는지는 직접 느낄 수 있어요.</p>
           ) : <p className="muted">두 방식을 각각 3번쯤 해 보면 평균을 비교할 수 있어요.</p>}
           {recs.length > 0 && <button type="button" className="btn sm ghost" onClick={() => setRecs([])}>기록 지우기</button>}
         </div>
@@ -290,11 +410,7 @@ function PopField({ base, title, sub }: { base: 'green' | 'gray'; title: string;
 
 /* ================= 4. 색각 이상 ================= */
 const VIS: [Vision, string][] = [['normal', '정상 시각'], ['protan', '적색맹 시뮬레이션'], ['deutan', '녹색맹 시뮬레이션'], ['achroma', '흑백']]
-const LIST: { p: Pri; where: string; what: string }[] = [
-  { p: 1, where: '산단 1선', what: '차단기 트립' },
-  { p: 2, where: '강변 1선', what: '부하율 95% 초과' },
-  { p: 3, where: '북부 2선', what: '전압 22.4kV 미만' },
-]
+const LIST: { p: Pri; where: string; what: string }[] = DOTS.map(a => ({ p: a.pri, where: a.where.split(' · ')[1], what: a.what }))
 function CvdDemo() {
   const [v, setV] = useState<Vision>('deutan')
   const sim = (h: string) => toHex(simulate(hexRgb(h), v))
@@ -305,11 +421,11 @@ function CvdDemo() {
       <Seg value={v} onChange={setV} options={VIS} />
       <div className="cl-cvd-grid" style={{ filter: v === 'normal' ? undefined : `url(#dcol-${v})` }}>
         <div className="cl-cvd-box">
-          <h4>정상은 초록, 고장은 빨강</h4>
+          <h4>정상은 초록, 사고는 빨강</h4>
           <div className="cl-cvd-lamps">
-            <span><i style={{ background: '#2f9e44' }} />북부 3선</span>
-            <span><i style={{ background: '#c92a2a' }} />산단 1선</span>
-            <span><i style={{ background: '#2f9e44' }} />강변 3선</span>
+            <span><i style={{ background: '#2f9e44' }} />프레스 라인</span>
+            <span><i style={{ background: '#c92a2a' }} />도장 부스</span>
+            <span><i style={{ background: '#2f9e44' }} />상하차장</span>
           </div>
         </div>
         <div className="cl-cvd-box">
@@ -372,7 +488,7 @@ function BgDemo() {
       </div>
       <div className="cl-bg-wrap">
         <div className="cl-bg-panel" style={{ background: toHex(bg), color: toHex(txt) }}>
-          <div className="row"><b>강변 1선</b><span>부하율 83%</span></div>
+          <div className="row"><b>화학물질 창고</b><span>가스 8%LEL</span></div>
           <div className="row shapes">
             {([1, 2, 3] as Pri[]).map(p => <span key={p}><Shape p={p} size={30} outline={outline ? ol : undefined} />{PRI[p].name}</span>)}
           </div>
@@ -409,7 +525,7 @@ const TOKENS = `/* 관제 화면 색 토큰 — 기본은 회색, 알람 색은 
   --hmi-bg: #dcdcd8;      /* 배경. 흰색보다 살짝 어둡게 해서 눈부심을 줄여요 */
   --hmi-panel: #e9e9e6;   /* 패널·카드 */
   --hmi-line: #b4b4ae;    /* 구분선, 꺼진 설비 */
-  --hmi-equip: #8a8a84;   /* 정상 운전 중인 설비(배관·선로·차단기) */
+  --hmi-equip: #8a8a84;   /* 정상인 구역·설비·센서 */
   --hmi-text: #1b1b19;    /* 값과 이름 */
 
   /* 알람 우선순위 색: 이 세 개는 알람 표시 컴포넌트에서만 써요 */
@@ -419,40 +535,73 @@ const TOKENS = `/* 관제 화면 색 토큰 — 기본은 회색, 알람 색은 
   --alarm-outline: var(--hmi-text); /* 밝은 배경에서 노랑·주황 모양의 경계가 보이게 하는 테두리 */
 }
 
-/* 금지: 버튼·로고·차트 범주에는 --alarm-* 를 쓰지 않아요.
+/* 금지: 버튼·로고·차트 범주·CCTV 녹화 표시·작업 일정 상태에는 --alarm-* 를 쓰지 않아요.
    린트 규칙으로 막아 두면 실수를 줄일 수 있어요 (예: stylelint 의 declaration-property-value-disallowed-list) */
 .btn-primary { background: var(--hmi-text); }   /* 강조 버튼도 회색 안에서 골라요 */
 .chart-series-1 { stroke: var(--hmi-text); }
-.chart-series-2 { stroke: var(--hmi-equip); stroke-dasharray: 4 3; }`
+.chart-series-2 { stroke: var(--hmi-equip); stroke-dasharray: 4 3; }
+.cctv-rec { color: var(--hmi-text); }            /* CCTV 녹화 표시는 회색 글자로 */`
+
 
 /* ================= 탭 ================= */
 export default function Tab() {
   return (
     <div data-dash="color">
       <TermList
-        keys={['관제', 'HMI', '고성능 HMI', '선로', '차단기', '투입', '3상', '부하율', '유온', '경보 범위', '우선순위', '전주의 처리', '색각 이상', '대비']}
+        keys={['관제', 'HMI', '고성능 HMI', '%LEL', 'CO', 'ppm', '보호구', '경보 범위', '우선순위', '전주의 처리', '펄스', '색각 이상', '대비']}
         extra={EXTRA}
       />
       <SysGrid>
         <Section id="dash-color-why" wide title="평소 화면은 조용해야 이상이 보여요"
           gist="정상은 회색으로 두고, 색은 이상이 생긴 곳에만 써요."
-          desc={<>조용한 도서관에서는 작은 기침 소리도 바로 들려요. 관제 화면도 같아요. <Term k="관제" /> 화면은 하루 대부분 ‘아무 일 없음’을 보여줘요. 그동안 화면이 조용해야, 가끔 생기는 이상 하나가 저절로 눈에 띄어요.</>}>
+          desc={<>조용한 도서관에서는 작은 기침 소리도 바로 들려요. 관제 화면도 같아요. 안전관리 <Term k="관제" /> 화면은 하루 대부분 ‘아무 일 없음’을 보여줘요. 그동안 화면이 조용해야, 가끔 생기는 화재나 가스 이상 하나가 저절로 눈에 띄어요.</>}>
           <Finding src={<>ANSI/ISA-101.01-2015 고성능 HMI 원칙 요약 <Cite n={1} /></>}>
             화면은 기본적으로 회색으로 그려요. 색은 무언가 잘못됐을 때만 써요. 정상 상태에는 색을 칠하지 않아요.
           </Finding>
           <div className="cl-why">
-            <div><b>정상은 조용히</b><p>정상인 선로마다 초록 램프를 켜 두면 화면 대부분이 초록이 돼요. 그러면 <Term k="운영자" /> 눈에 초록은 그냥 ‘배경’이 돼 버려요.</p></div>
-            <div><b>색 하나에 뜻 하나</b><p>빨강이 ‘긴급 알람’이라면 로고, 버튼, 차트에도 빨강을 쓰면 안 돼요. 그래야 빨강을 보자마자 고민 없이 ‘알람이다’ 하고 알아채요.</p></div>
+            <div><b>정상은 조용히</b><p>정상인 구역마다 초록 램프를 켜 두면 화면 대부분이 초록이 돼요. 그러면 <Term k="운영자" /> 눈에 초록은 그냥 ‘배경’이 돼 버려요.</p></div>
+            <div><b>색 하나에 뜻 하나</b><p>빨강이 ‘긴급 알람’이라면 로고, 버튼, CCTV 녹화 표시에도 빨강을 쓰면 안 돼요. 그래야 빨강을 보자마자 고민 없이 ‘사고다’ 하고 알아채요.</p></div>
             <div><b>색만 믿지 않기</b><p>색을 잘 구분하지 못하는 동료도 같은 화면을 봐요. 그래서 <Term k="우선순위" />는 색, 모양, 숫자를 함께 써서 보여줘요 <Cite n={6} />.</p></div>
           </div>
-          <Note>이 탭의 선로 이름과 수치는 설명을 위해 만든 가상 예시예요. 실제 설비의 기준값이 아니에요.</Note>
+          <Note>이 탭의 예시는 가상의 가람산업(제2공장 · 물류센터 · 신축 현장)이에요. 구역 이름과 수치는 설명을 위해 만든 값이에요. 법정 기준값이나 실제 설비 기준이 아니에요.</Note>
+        </Section>
+
+        <Section id="dash-color-mistakes" wide title="흔한 실수 — 색이 신호가 아니라 장식이 된 안전관리 화면"
+          gist="정상에 초록, 장식에 빨강을 쓰면 진짜 사고가 묻혀요."
+          desc={<>안전관리 대시보드에서 아주 흔하게 보는 색 실수 네 가지예요. 카드마다 ‘흔한 화면’과 ‘업그레이드하면’을 눌러 비교해 보세요. 탓할 대상은 화면을 보는 사람이 아니라 화면 설계예요.</>}>
+          <div className="cl-cases">
+            <CaseCard sev="치명" title="정상을 초록으로, 그것도 숨 쉬듯 반짝이게 칠해요"
+              now={<>구역마다 초록 ‘정상’ 램프가 켜져 있어요. 화면이 살아 있다는 느낌을 주려고 램프가 천천히 반짝여요(<T k="펄스" />). 화면 전체가 초록으로 움직여요.</>}
+              why={<>이건 안전관리 화면이 해서는 안 되는 일이에요. 색과 움직임은 눈이 0.2초 만에 저절로 끌려가는 신호예요 <Cite n={5} />. 그 신호를 정상 구역 여덟 곳에 다 써 버리면, 도장 부스 화재 램프는 아홉 개 중 하나로 묻혀요. ISA-101은 정상 상태에 색을 칠하지 않는다고 정해 두었어요 <Cite n={1} />.</>}
+              fix={<>정상 구역은 회색으로 두고 움직이지 않게 해요. 색과 움직임은 이상이 생긴 구역에만 써요. ‘화면이 살아 있다’는 표시는 반짝이는 램프 대신 <b>마지막 수신 14:05:12</b> 같은 글자로 보여줘요(<a href="#/dash/realtime">05 실시간 갱신</a>).</>}
+              before={<MkGreen up={false} />} after={<MkGreen up />} />
+            <CaseCard sev="높음" title="빨강이 로고, 호출 버튼, CCTV 녹화 표시에도 있어요"
+              now={<>로고, ‘긴급 호출’ 버튼, 카메라 화면마다 붙은 ‘● 녹화’ 점이 모두 빨강이에요. 진짜 화재 알람 테두리도 같은 빨강이에요.</>}
+              why={<>‘빨강 = 긴급 알람’이라는 약속이 깨져요. 녹화 점 네 개, 로고, 버튼, 화재 테두리가 모두 빨강이면 눈은 일곱 곳을 다 확인해야 해요. 정작 불이 난 카메라는 그중 하나일 뿐이에요. 알람 색은 비정상에만 쓰는 게 고성능 HMI의 기본이에요 <Cite n={1} /><Cite n={2} />.</>}
+              fix={<>녹화 표시는 회색 글자 ‘녹화 중’으로 바꿔요. 로고와 버튼은 회색 계열에서 골라요. 빨강은 불이 난 카메라 한 곳에만 쓰고, 네모 모양 ‘1’ 배지와 알람 번호(S-101)를 함께 붙여요.</>}
+              before={<MkRed up={false} />} after={<MkRed up />} />
+            <CaseCard sev="높음" title="같은 ‘경고’가 화면마다 다른 색이고, ‘예정’에도 경고색을 써요"
+              now={<>지도는 연한 주황, 알람 목록은 노랑, 통계는 진한 주황으로 ‘경고’를 칠해요. 작업 일정에서는 ‘예정’이 노랑, ‘준비 중’이 주황이에요.</>}
+              why={<>같은 뜻에 색이 세 벌이면, 색만 보고 뜻을 알 수 없어요. 매번 글자를 읽어야 해요. ‘예정’처럼 아무 문제 없는 상태에 경고색을 쓰면, 진짜 가스 경고와 섞여요. 색이 비정상에만 쓰인다는 원칙이 무너진 거예요 <Cite n={1} />.</>}
+              fix={<>경고색은 <T k="토큰" /> 하나(<code>--alarm-2</code>)로만 정해요. 지도, 목록, 통계가 모두 같은 세모 ‘2’ 배지를 불러 써요. ‘예정·준비 중’은 회색 글자로 써요. 색이 아니라 글자가 상태를 알려줘요.</>}
+              before={<MkPalette up={false} />} after={<MkPalette up />} />
+            <CaseCard sev="높음" title="우선순위를 색 점 하나로만 구분해요"
+              now={<>알람 목록 맨 앞에 빨강·주황·노랑 점 하나로만 우선순위를 표시해요.</>}
+              why={<>녹색맹 시뮬레이션으로 보면 빨강과 주황 점이 거의 같아 보여요. 화재와 가스 경고를 같은 급으로 읽을 수 있다는 뜻이에요. WCAG는 색만으로 정보를 전하지 말라고 해요 <Cite n={6} />.</>}
+              fix={<>우선순위는 색 + 모양 + 숫자로 보여줘요. 긴급은 네모 1, 높음은 세모 2, 주의는 동그라미 3이에요. 오른쪽 녹색맹 시뮬레이션에서도 그대로 읽혀요.</>}
+              before={<MkDots up={false} />} after={<MkDots up />} />
+            <CaseCard good sev="보통" title="깜빡임은 ‘아직 아무도 안 본 알람’에만, 초당 3회 이하로"
+              now={<>새 긴급 알람만 1초에 한 번쯤 천천히 깜빡여요. 운영자가 확인을 누르면 깜빡임이 멈추고 색과 모양만 남아요. 움직임 줄이기 설정을 켠 사람에게는 처음부터 깜빡이지 않아요.</>}
+              why={<>깜빡임이 ‘미확인 알람’이라는 뜻 하나로만 쓰여서, 움직이는 곳이 곧 아직 안 본 곳이에요 <Cite n={7} />. 초당 3회를 넘는 깜빡임은 광과민성 발작을 일으킬 수 있어 WCAG가 막고 있어요 <Cite n={6} />.</>}
+              fix={<>깜빡이는 알람이 여러 개면 모두 같은 박자로 맞춰요. 제각각 깜빡이면 화면이 어지러워요. 정상 구역의 ‘살아 있음’ 표시에는 깜빡임을 쓰지 않아요.</>} />
+          </div>
         </Section>
 
         <Section id="dash-color-hunt" wide title="직접 해 보기: 숨은 이상 하나 찾기"
           gist="회색이 기본인 화면에서 이상 하나를 훨씬 빨리 찾아요."
-          desc={<>두 화면은 같은 9개 <Term k="선로" />, 같은 값을 보여줘요. 색을 칠하는 방식만 달라요. 시작을 누르고, <Term k="경보 범위" />를 넘은 값이 있는 선로를 찾아 눌러 보세요.</>}>
+          desc={<>두 화면은 같은 9개 구역, 같은 값을 보여줘요. 색을 칠하는 방식만 달라요. 시작을 누르고, <Term k="경보 범위" />를 넘은 가스 값(<T k="%LEL" /> 또는 <T k="CO" /> <T k="ppm" />)이 있는 구역을 찾아 눌러 보세요.</>}>
           <HuntGame />
-          <Note tone="tip"><b>전통형에서는 왜 오래 걸렸을까요?</b> 전통형은 <Term k="차단기" />의 ‘<T k="투입">투입</T>’ 표시와 <T k="3상" /> 막대에 이미 빨강을 쓰고 있어요. 그래서 이상 램프의 빨강이 그 사이에 묻혀요. 고성능형은 정상 설비가 모두 회색이라, 색이 보이는 곳이 곧 봐야 할 곳이에요. 전통형 화면은 흔히 보이는 방식을 모아 조금 과장해서 만든 예시예요.</Note>
+          <Note tone="tip"><b>흔한 화면에서는 왜 오래 걸렸을까요?</b> 흔한 화면은 정상 구역마다 초록 램프를 켜 두었어요. CCTV ‘녹화’ 점과 <T k="보호구" /> 착용률 막대에도 이미 빨강을 쓰고 있어요. 그래서 이상 램프의 빨강이 그 사이에 묻혀요. 고성능형은 정상인 것이 모두 회색이라, 색이 보이는 곳이 곧 봐야 할 곳이에요. 흔한 화면은 업계에서 자주 보는 방식을 모아 조금 과장해서 만든 예시예요.</Note>
         </Section>
 
         <Section id="dash-color-asm" wide title="실제 실험에서는 얼마나 달랐나"
@@ -462,7 +611,7 @@ export default function Tab() {
           <Finding src={<>Hollifield 외, The High Performance HMI Handbook (2008) 및 ASM 컨소시엄 실험 — 업체 요약에서 확인한 보고된 수치 <Cite n={2} /><Cite n={3} /></>}>
             고성능 화면을 쓴 운전원은 세 가지가 나아졌다고 보고됐어요. 알람이 울리기 전에 이상을 더 자주 알아챘어요. 대응에 더 자주 성공했어요. 처리도 더 빨리 끝냈어요.
           </Finding>
-          <Note tone="warn"><b>읽을 때 주의할 점</b> 한 산업에서 한 번 한 실험이고, 그 결과를 업체 문서가 요약한 값이에요. 원래 논문의 실험 조건은 확인하지 못했어요. 그러니 “회색으로 바꾸면 41% 빨라진다”처럼 그대로 약속하지 마세요. 어느 쪽이 나은지 방향을 잡는 근거로만 써 주세요.</Note>
+          <Note tone="warn"><b>읽을 때 주의할 점</b> 한 산업에서 한 번 한 실험이고, 그 결과를 업체 문서가 요약한 값이에요. 원래 논문의 실험 조건은 확인하지 못했어요. 이 실험은 화학 공장 운전 화면으로 한 것이라, 안전관리 화면에 같은 크기의 효과가 난다는 보장도 없어요. 그러니 “회색으로 바꾸면 41% 빨라진다”처럼 그대로 약속하지 마세요. 어느 쪽이 나은지 방향을 잡는 근거로만 써 주세요.</Note>
         </Section>
 
         <Section id="dash-color-pop" wide title="빨강은 주변이 회색일 때 가장 잘 보여요"
@@ -472,7 +621,7 @@ export default function Tab() {
             <PopField base="green" title="정상 = 초록 램프 30개" sub="그 사이 빨강 1개" />
             <PopField base="gray" title="정상 = 회색 램프 30개" sub="그 사이 빨강 1개" />
           </div>
-          <Note>버튼을 누르면 램프가 0.25초 동안만 보였다가 사라져요 <Cite n={5} />. 사라진 뒤 빨강이 있던 자리를 눌러 보세요. 아마 회색 쪽이 훨씬 쉬울 거예요. 빨강과 초록은 밝기가 비슷해서, 색 말고는 구별할 단서가 거의 없거든요. 램프는 한 번만 짧게 보여주고, 깜빡이지 않아요.</Note>
+          <Note>버튼을 누르면 램프가 0.25초 동안만 보였다가 사라져요 <Cite n={5} />. 사라진 뒤 빨강이 있던 자리를 눌러 보세요. 아마 회색 쪽이 훨씬 쉬울 거예요. 빨강과 초록은 밝기가 비슷해서, 색 말고는 구별할 단서가 거의 없거든요. 안전관리 화면에서 구역·센서마다 켜 둔 초록 ‘정상’ 램프가 바로 왼쪽 그림이에요. 램프는 한 번만 짧게 보여주고, 깜빡이지 않아요.</Note>
         </Section>
 
         <Section id="dash-color-palette" title="빨강·주황·노랑은 알람에만 써요"
@@ -491,11 +640,12 @@ export default function Tab() {
             </div>
           </div>
           <ul className="cl-dodont">
-            <li className="no"><b>안 돼요</b><span>정상 운전 중인 선로를 초록 램프로 표시</span></li>
-            <li className="no"><b>안 돼요</b><span>‘저장’ 버튼, 로고, 탭 강조에 빨강·주황 쓰기</span></li>
-            <li className="no"><b>안 돼요</b><span>차트에서 북부·강변·산단을 빨강·주황·노랑으로 구분</span></li>
+            <li className="no"><b>안 돼요</b><span>정상인 구역·센서를 초록 램프로 표시</span></li>
+            <li className="no"><b>안 돼요</b><span>로고, 호출 버튼, CCTV 녹화 표시에 빨강 쓰기</span></li>
+            <li className="no"><b>안 돼요</b><span>작업 일정의 ‘예정·준비 중’을 노랑·주황으로 칠하기</span></li>
+            <li className="no"><b>안 돼요</b><span>차트에서 제2공장·물류센터·신축 현장을 빨강·주황·노랑으로 구분</span></li>
             <li className="no"><b>안 돼요</b><span>우선순위를 색 점 하나로만 표시</span></li>
-            <li className="ok"><b>좋아요</b><span>정상 설비는 회색, 이상이 생긴 값 옆에만 <PriBadge p={2} size={16} /> 표시</span></li>
+            <li className="ok"><b>좋아요</b><span>정상 구역은 회색, 이상이 생긴 값 옆에만 <PriBadge p={2} size={16} /> 표시</span></li>
             <li className="ok"><b>좋아요</b><span>차트 범주는 회색 농도와 선 모양(실선·점선)으로 구분</span></li>
           </ul>
           <Note><Term k="우선순위" /> 단계는 3~4개 이하로 두라고 흔히 권해요 <Cite n={7} />. 색이 많아질수록 서로 구분하기 어렵고, 외울 규칙도 늘어나요.</Note>
@@ -503,34 +653,35 @@ export default function Tab() {
 
         <Section id="dash-color-cvd" title="모양과 숫자가 왜 필요할까: 색각 이상으로 보기"
           gist="색만 쓴 표시는 구분이 안 되고, 모양·숫자를 함께 쓴 표시는 그대로 읽혀요."
-          desc={<>빨강과 초록을 잘 구분하지 못하는 사람(적록 <T k="색각 이상" />)의 눈으로 같은 화면을 바꿔 보세요. 색만 쓴 줄은 구분이 안 돼요. 모양과 숫자를 함께 쓴 줄은 그대로 읽혀요.</>}>
+          desc={<>빨강과 초록을 잘 구분하지 못하는 사람(적록 <T k="색각 이상" />)의 눈으로 같은 화면을 바꿔 보세요. 색만 쓴 줄은 화재와 가스 경고가 잘 구분되지 않아요. 모양과 숫자를 함께 쓴 줄은 그대로 읽혀요.</>}>
           <CvdDemo />
           <Note>시뮬레이션은 Machado 외(2009) 모델에서 가장 강한 정도(심도 1.0)의 계산식을 썼어요 <Cite n={8} />. 실제로 보이는 정도는 사람마다 달라요. 표의 ‘밝기 대비’는 두 알람 색끼리 밝기가 얼마나 다른지를 이 화면에서 직접 계산한 값이에요.</Note>
         </Section>
 
         <Section id="dash-color-bg" wide title="배경은 왜 흰색이 아니라 회색일까"
           gist="밝은 회색 배경이 눈이 덜 부셔요. 대신 노랑·주황 알람엔 테두리가 필요해요."
-          desc={<>하루 종일 읽는다면 새하얀 종이보다 연한 회색 종이가 눈이 편해요. 그래서 <T k="고성능 HMI" /> 지침은 밝은 회색 배경을 권해요 <Cite n={2} />. 흰 배경은 오래 보면 눈이 부시고, 관제실 조명도 화면에 더 많이 비쳐요. 배경 밝기를 바꾸면서 글자와 알람 모양이 배경과 얼마나 잘 구분되는지(<T k="대비" />) 보세요.</>}>
+          desc={<>하루 종일 읽는다면 새하얀 종이보다 연한 회색 종이가 눈이 편해요. 그래서 <T k="고성능 HMI" /> 지침은 밝은 회색 배경을 권해요 <Cite n={2} />. 흰 배경은 오래 보면 눈이 부시고, 상황실 조명도 화면에 더 많이 비쳐요. 배경 밝기를 바꾸면서 글자와 알람 모양이 배경과 얼마나 잘 구분되는지(<T k="대비" />) 보세요.</>}>
           <BgDemo />
-          <Note tone="tip">어두운 관제실이나 야간 근무용 어두운 화면은 조명 조건과 함께 <a href="#/dash/room">07 관제실 환경</a>에서 다뤄요.</Note>
+          <Note tone="tip">흔한 안전관리 화면은 어두운 남색 배경을 늘 고정으로 써요. 어두운 화면이 맞는 곳은 조명을 낮춘 상황실이나 야간 근무예요. 조명 조건과 함께 <a href="#/dash/room">07 관제실 환경</a>에서 다뤄요.</Note>
         </Section>
 
         <Section id="dash-color-check" title="색 규칙 점검표"
-          gist="화면 리뷰 때 이 여섯 가지를 하나씩 확인해요."
+          gist="화면 리뷰 때 이 일곱 가지를 하나씩 확인해요."
           desc="디자이너, 기획자, 개발자가 화면 리뷰 때 함께 보는 질문이에요.">
           <CheckList items={[
             '모든 색을 회색으로 바꿔도, 정상 화면에서 잃는 정보가 없나요?',
-            '빨강·주황·노랑을 알람이 아닌 곳(버튼, 로고, 차트 범주)에 쓰지 않았나요?',
-            '우선순위를 색, 모양, 숫자로 함께 표시하나요?',
-            '노랑·주황 알람 모양이 배경과 3:1 이상 대비되나요? (테두리 포함)',
-            '정상 상태를 초록으로 칠한 곳이 남아 있지 않나요?',
+            '정상 상태를 초록으로 칠하거나 반짝이게 한 곳이 남아 있지 않나요?',
+            '빨강·주황·노랑을 알람이 아닌 곳(로고, 버튼, CCTV 녹화 표시, 차트 범주)에 쓰지 않았나요?',
+            '‘예정·준비 중’ 같은 평범한 상태에 경고색을 쓰지 않았나요?',
+            '같은 우선순위가 지도, 목록, 통계에서 같은 색·모양으로 보이나요?',
+            '우선순위를 색, 모양, 숫자로 함께 표시하나요? 노랑·주황 모양은 배경과 3:1 이상 대비되나요?',
             '흰 배경 대신 밝은 회색 배경을 썼나요? (또는 조명에 맞춘 어두운 화면)',
           ]} />
         </Section>
 
         <Section id="dash-color-code" title="FE · 알람 색을 토큰으로 따로 두기"
           gist="알람 색은 알람 표시 컴포넌트에서만 쓰도록 막아 둬요."
-          desc={<>색마다 이름(<T k="토큰" />)을 붙이고, 알람 색은 알람 표시에서만 쓰도록 규칙을 정해요. 그러면 실수로 버튼에 빨강을 쓰는 일이 줄어요.</>}>
+          desc={<>색마다 이름(<T k="토큰" />)을 붙이고, 알람 색은 알람 표시에서만 쓰도록 규칙을 정해요. 그러면 실수로 버튼이나 녹화 표시에 빨강을 쓰는 일이 줄어요. 화면마다 경고색이 달라지는 일도 막아요.</>}>
           <CodeBlock code={TOKENS} label="CSS" maxHeight={380} />
         </Section>
 
@@ -540,8 +691,8 @@ export default function Tab() {
           { kind: 'reported', text: 'ASM 컨소시엄 에틸렌 플랜트 실험: 알람 전 감지 10번 중 1번 → 5번, 대응 성공률 70% → 96%, 처리 시간 18.1분 → 10.6분 (업체 요약)', url: 'https://new.abb.com/power-generation/in-control/01-2016/the-key-to-operator-effectiveness' },
           { kind: 'book', text: 'ASM Consortium, Effective Console Operator HMI Design Practices, 2판 (2013)', url: 'https://www.automation.com/en-us/articles/2013-2/asm-publishes-2nd-edition-of-hmi-design-guidelines' },
           { kind: 'paper', text: 'Healey, C. G. & Enns, J. T. (2012), Attention and Visual Memory in Visualization and Computer Graphics, IEEE TVCG 18(7) — 전주의 처리(눈이 0.2초 안에 저절로 알아채는 것)' },
-          { kind: 'standard', text: 'W3C WCAG 2.2 — 1.4.1 색 사용, 1.4.3 대비(최소), 1.4.11 비텍스트 대비', url: 'https://www.w3.org/TR/WCAG22/' },
-          { kind: 'reported', text: 'ANSI/ISA-18.2 (IEC 62682) · EEMUA 191 알람 관리 — 우선순위는 3~4단계 이하로 (2차 자료)', url: 'https://ifactoryapp.com/industries/oil-and-gas/alarm-management-isa-18-2-rationalization-flooding' },
+          { kind: 'standard', text: 'W3C WCAG 2.2 — 1.4.1 색 사용, 1.4.3 대비(최소), 1.4.11 비텍스트 대비, 2.3.1 세 번 깜빡임', url: 'https://www.w3.org/TR/WCAG22/' },
+          { kind: 'reported', text: 'ANSI/ISA-18.2 (IEC 62682) · EEMUA 191 알람 관리 — 우선순위는 3~4단계 이하로, 미확인·확인 같은 알람 상태 (2차 자료)', url: 'https://ifactoryapp.com/industries/oil-and-gas/alarm-management-isa-18-2-rationalization-flooding' },
           { kind: 'paper', text: 'Machado, Oliveira, Fernandes (2009), A Physiologically-based Model for Simulation of Color Vision Deficiency, IEEE TVCG 15(6)' },
         ]} />
       </SysGrid>

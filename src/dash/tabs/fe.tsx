@@ -1,16 +1,146 @@
-/* 09 FE · 구현 — 데이터 전송, 재연결, 대량 시계열 그리기(실측), 업데이트 묶기, 오래 켜 두는 화면, 시간, 접근성 */
+/* 09 FE · 구현 — 흔한 실수, 데이터 전송, 재연결, 대량 시계열 그리기(실측), 업데이트 묶기, 오래 켜 두는 화면, 시간, 접근성
+ * 예시: 가상의 가람산업 통합 안전관리 상황실 (data.ts SAFE_*) */
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { flushSync } from 'react-dom'
 import { Term, TermList } from '../../components/Term'
 import { Range, Seg } from '../../components/ui'
 import { download } from '../../system/export'
 import { CodeBlock, Note, Section, SysGrid } from '../../system/ui'
-import { SUBSTATIONS, rng, type Pri } from '../data'
-import { Cite, Finding, Hmi, PriBadge, Refs, useVisibleInterval } from '../ui'
+import { SAFE_ALARMS, SAFE_CENTER, SAFE_RANGES, SAFE_SITES, rng, type Pri } from '../data'
+import { CaseCard, Cite, Finding, Hmi, PriBadge, Refs, useVisibleInterval } from '../ui'
 import './fe.css'
 
 const reduced = () => typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
-const FEEDERS = SUBSTATIONS.flatMap(s => s.feeders)
+/** 구역 9곳의 대표 센서값 — 경보 기준을 100으로 볼 때 지금 값(가상) */
+const ZONE_BASE = [42, 58, 64, 20, 18, 46, 24, 16, 38]
+const ZONES = SAFE_SITES.flatMap(s => s.zones.map(z => ({ id: z.id, name: z.name, site: s.name }))).map((z, i) => ({ ...z, base: ZONE_BASE[i] }))
+const LEL = SAFE_RANGES.lel
+
+/* ================= 0. 흔한 실수 ================= */
+/** 흔한 화면에서 쓰는 초록 램프 (정상인데도 깜빡여요 — 일부러 보여주는 나쁜 예) */
+const Lamp = () => <i className="mk-lamp" aria-hidden="true" />
+const SENS = [
+  { z: '도장 부스', v: '3%LEL', t: '14:05:02', q: false },
+  { z: '화학물질 창고', v: '4%LEL', t: '13:40:11', q: true },
+  { z: '상하차장 일산화탄소', v: '12ppm', t: '14:05:01', q: false },
+  { z: '지하 밀폐공간 산소', v: '20.8%', t: '14:05:02', q: false },
+]
+function MkQualityBefore() {
+  return (
+    <Hmi dark title="가스 센서 현황" right={<span className="mk-red">● 실시간</span>} className="fe-mk">
+      <ul className="mk-rows">
+        {SENS.map(s => <li key={s.z}><Lamp /><span>{s.z}</span><b>{s.v}</b><em className="mk-ok">정상</em></li>)}
+      </ul>
+      <p className="mk-foot">서버가 보낸 품질 정보: <span className="mk-red">불확실</span> — 화면에서 쓰지 않음</p>
+    </Hmi>
+  )
+}
+function MkQualityAfter() {
+  return (
+    <Hmi title="가스 센서 현황" right="갱신 14:05:02" className="fe-mk up">
+      <div className="mk-banner">값 불확실 1건 — 정상 개수에서 뺐어요</div>
+      <ul className="mk-rows">
+        {SENS.map(s => (
+          <li key={s.z} className={s.q ? 'q' : ''}>
+            <span className="mk-q" aria-hidden="true">{s.q ? '?' : ''}</span><span>{s.z}</span><b>{s.v}</b>
+            <em>{s.q ? `불확실 · ${s.t} 이후 새 값 없음` : ''}</em>
+          </li>
+        ))}
+      </ul>
+    </Hmi>
+  )
+}
+const RECENT = ['보호구 미착용', '위험구역 접근', '보호구 미착용', '설비 이상', '위험구역 접근', '보호구 미착용']
+function MkCapBefore() {
+  return (
+    <Hmi dark title="최근 이벤트 50건" right={<span className="mk-red">50/50</span>} className="fe-mk">
+      <ul className="mk-rows dense">
+        {RECENT.map((t, i) => <li key={i}><span className="mk-t">14:19:{(47 - i * 7).toString().padStart(2, '0')}</span><span className="mk-red">{t}</span><span>물류센터 · 상하차장</span></li>)}
+        <li className="mk-more">… 44건 더 · 이전 이벤트는 ‘이력’ 메뉴에서</li>
+      </ul>
+      <p className="mk-foot">14:02에 시작된 도장 부스 화재 알람(진행 중)은 51번째로 밀려 목록에 없어요</p>
+    </Hmi>
+  )
+}
+function MkCapAfter() {
+  return (
+    <Hmi title="진행 중 알람 3건 · 전부" right="우선순위 → 발생 시각" className="fe-mk up">
+      <ul className="mk-rows">
+        <li><PriBadge p={1} /><span>제2공장 · 도장 부스</span><b>연기 + 온도 급상승</b><em>14:02 · 17분째</em></li>
+        <li><PriBadge p={2} /><span>제2공장 · 화학물질 창고</span><b>가스 12%LEL</b><em>14:04</em></li>
+        <li><PriBadge p={3} /><span>물류센터 · 상하차장</span><b>안전모 미착용</b><em>14:19 · 같은 종류 41건 묶음</em></li>
+      </ul>
+      <p className="mk-sub">최근 이벤트 50건은 이 아래에 따로 보여줘요</p>
+    </Hmi>
+  )
+}
+const GAP_PTS = Array.from({ length: 40 }, (_, i) => ({ i, v: 5 + Math.sin(i / 4) * 1.2 + (i > 16 && i < 26 ? Math.sin(((i - 16) / 10) * Math.PI) * 4 : 0) }))
+function GapChart({ fill }: { fill: boolean }) {
+  const x = (i: number) => 8 + i * 7.6, y = (v: number) => 96 - v * 7.4
+  const gap = (i: number) => i > 16 && i < 26
+  const seg = (arr: typeof GAP_PTS) => arr.map((p, k) => `${k ? 'L' : 'M'}${x(p.i).toFixed(1)},${y(p.v).toFixed(1)}`).join('')
+  return (
+    <svg viewBox="0 0 310 104" className="mk-chart" role="img" aria-label={fill ? '끊긴 구간을 다시 받아 채운 그래프. 그 구간에 가스 농도가 잠깐 올랐다 내려온 것이 보여요.' : '끊긴 구간 양 끝을 직선으로 이은 그래프. 그 사이의 상승이 보이지 않아요.'}>
+      {fill && <rect className="gapband" x={x(16.5)} y={4} width={x(25.5) - x(16.5)} height={92} />}
+      <path className="ln" d={seg(fill ? GAP_PTS : GAP_PTS.filter(p => !gap(p.i)))} />
+      {fill && GAP_PTS.filter(p => gap(p.i)).map(p => <circle key={p.i} className="late" cx={x(p.i)} cy={y(p.v)} r={2.4} />)}
+      {fill && <text className="lab" x={x(21)} y={102} textAnchor="middle">다시 받은 30초</text>}
+    </svg>
+  )
+}
+function MkGapBefore() {
+  return <Hmi dark title="화학물질 창고 가스 · 최근 5분" right={<span className="mk-ok">● 정상</span>} className="fe-mk"><GapChart fill={false} /><p className="mk-foot">30초 끊긴 동안의 값이 없는데도 선이 매끈하게 이어져 있어요</p></Hmi>
+}
+function MkGapAfter() {
+  return <Hmi title="화학물질 창고 가스 · 최근 5분" right="갱신 14:05:02" className="fe-mk up"><GapChart fill /><p className="mk-sub">끊긴 30초 사이에 9%LEL까지 올랐다 내려온 게 보여요. 끝내 못 받은 구간은 선을 끊고 빗금으로 비워요</p></Hmi>
+}
+const WID = [['요약 숫자', '14:02:05'], ['알람 목록', '14:02:01'], ['현장 지도', '14:01:58'], ['가스 추세', '14:02:04'], ['출입 인원', '14:01:55'], ['CCTV 상태', '14:02:03']]
+function MkPollBefore() {
+  return (
+    <Hmi dark title="상황실 메인 · 위젯 6개" right={<span className="mk-red">요청 1,440번/분</span>} className="fe-mk">
+      <div className="mk-wid">{WID.map(([n, t]) => <div key={n}><b>{n}</b><small>5초마다 따로 요청</small><span>{t}</span></div>)}</div>
+      <p className="mk-foot">위젯 6개 × 1분에 12번 × 상황실 화면 20대. 위젯마다 다른 순간을 보여줘요</p>
+    </Hmi>
+  )
+}
+function MkPollAfter() {
+  return (
+    <Hmi title="상황실 메인 · 위젯 6개" right="연결 1개 · 갱신 14:02:05" className="fe-mk up">
+      <div className="mk-wid">{WID.map(([n]) => <div key={n}><b>{n}</b><small>공용 저장소 구독</small><span>14:02:05</span></div>)}</div>
+      <p className="mk-sub">서버 연결 하나 → 공용 저장소 → 위젯은 구독만 해요. 모든 위젯이 같은 순간을 보여줘요</p>
+    </Hmi>
+  )
+}
+function Mistakes() {
+  return (
+    <div className="fe-cases">
+      <CaseCard sev="치명" title="서버가 ‘값 불확실’이라고 보내도 메인 목록은 정상처럼 그려요"
+        before={<MkQualityBefore />} after={<MkQualityAfter />}
+        now={<>서버는 센서값마다 <Term k="값 품질">품질 정보</Term>(좋음·불확실·나쁨)를 같이 보내요. 그런데 메인 목록은 숫자만 꺼내 그려요. 13:40에 멈춘 가스 센서가 25분째 <b>초록 ‘정상’</b>으로 떠 있어요.</>}
+        why={<>안전관리 화면이 해서는 안 되는 일이에요. 상황 인식은 ‘보기 → 이해 → 예측’ 순서예요. 첫 단계에서 잘못 보면 뒤 단계도 모두 틀려요 <Cite n={10} />. 멈춘 센서는 가스가 새도 알려 주지 않아요. 그런데 화면은 ‘안전하다’고 말해요.</>}
+        fix={<>품질과 마지막 수신 시각을 값과 <b>한 묶음</b>으로 받아요. 목록·지도·요약 숫자는 같은 함수로 그려요. ‘불확실’ 값은 물음표와 빗금으로 표시해요. 정상 개수에서 빼고 따로 세어 맨 위에 띄워요.</>} />
+      <CaseCard sev="치명" title="최근 50건만 받아서, 알람이 쏟아지면 진행 중인 화재 알람이 잘려요"
+        before={<MkCapBefore />} after={<MkCapAfter />}
+        now={<>목록 API가 ‘최근 50건’만 돌려줘요. 평소엔 충분해 보여요. 그런데 보호구 감지가 연달아 쏟아지면 14:02에 시작된 화재 알람이 51번째로 밀려나요.</>}
+        why={<>알람 관리 표준 쪽에서는 10분에 알람 10개가 넘으면 ‘폭주’로 봐요(보고된 수치) <Cite n={11} />. 폭주 때 50건은 금방 차요. 진행 중 알람은 ‘지금 상태’예요. 최근 기록 몇 건과 같은 것으로 다루면 안 돼요.</>}
+        fix={<>API를 둘로 나눠요. ① <b>진행 중 알람 전부</b>(개수 제한 없음, 넘치면 ‘더 있음’ 표시) ② 최근 이벤트 n건. 진행 중 목록은 우선순위, 그다음 발생 시각 순으로 정렬해요. 같은 종류가 쏟아지면 한 줄로 묶어요.</>} />
+      <CaseCard sev="높음" title="다시 연결되면 끊긴 구간을 선으로 매끈하게 이어 버려요"
+        before={<MkGapBefore />} after={<MkGapAfter />}
+        now={<>30초 동안 연결이 끊겼다 돌아와요. 차트 라이브러리는 기본 설정대로 앞뒤 점을 직선으로 이어요. 그 사이에 가스가 <Term k="%LEL">9%LEL</Term>까지 올랐다 내려왔는데 아무도 몰라요.</>}
+        why={<>사고를 조사할 때 가장 먼저 찾는 게 바로 그 구간이에요. SSE는 다시 연결할 때 마지막으로 받은 번호를 서버에 보내 줘요 <Cite n={2} />. 하지만 서버와 화면이 그 번호를 쓰지 않으면 소용이 없어요.</>}
+        fix={<>메시지마다 순서 번호(seq)를 붙여요. 다시 연결하면 ‘마지막 번호 이후’를 받아 채워요. 다시 받은 점은 속이 빈 점으로 그려요. 끝내 못 받은 구간은 <b>선을 끊고 빗금</b>으로 비워요.</>} />
+      <CaseCard sev="보통" title="위젯마다 따로 폴링해서 요청이 몰리고, 한 화면이 서로 다른 순간을 보여줘요"
+        before={<MkPollBefore />} after={<MkPollAfter />}
+        now={<>요약 숫자, 알람 목록, 지도, 추세 위젯이 각자 5초 타이머로 서버에 물어요. 화면 20대면 1분에 1,440번이에요. 위젯마다 갱신 시각이 달라서, 요약은 ‘알람 3건’인데 목록은 4건일 때도 있어요.</>}
+        why={<>같은 화면 안에서 숫자가 다르면 근무자는 어느 쪽을 믿을지부터 따져야 해요. 그만큼 판단이 늦어져요. 서버가 잠깐 멈췄다 살아나면 모든 위젯이 한꺼번에 몰려요(아래 재연결 섹션).</>}
+        fix={<>서버 연결은 <b>하나</b>만 둬요(SSE 또는 웹소켓). 받은 값은 공용 저장소에 넣고, 위젯은 저장소를 구독만 해요. 갱신 시각은 화면 전체에 하나만 보여줘요.</>} />
+      <CaseCard good sev="보통" title="필터 설정을 못 불러와도 알람을 숨기지 않아요(안전 쪽으로 실패)"
+        now={<>‘내 구역만 보기’ 같은 필터 설정을 서버에서 받아요. 그 요청이 실패하면 필터 없이 <b>전체 알람</b>을 보여줘요. 맨 위에는 “필터를 불러오지 못해 전체 알람을 보여줘요” 배너를 띄워요.</>}
+        why={<>반대로 하면 필터가 실패할 때 빈 목록이 나와요. 빈 목록은 ‘알람 없음’과 구별이 안 돼요. 안전관리 화면에서 가장 위험한 거짓말이에요.</>}
+        fix={<>필터 기본값을 ‘전부 보이기’로 둬요. 오류 처리(<code>catch</code>)에서 빈 배열을 돌려주지 않아요. 테스트에 ‘필터 API 실패’ 경우를 꼭 넣어요.</>} />
+    </div>
+  )
+}
 
 /* ================= 1. 데이터 전송 방식 ================= */
 type Method = 'poll' | 'long' | 'sse' | 'ws'
@@ -149,7 +279,7 @@ function Herd() {
         <label className="fe-inline">서버 장애 시간 <b>{down}초</b><Range value={down} min={5} max={45} onChange={setDown} label="서버 장애 시간" style={{ width: 160 }} /></label>
       </div>
       <div className="fe-scroll">
-        <svg viewBox={`0 0 ${W} 300`} className="fe-herd-svg" role="img" aria-label={`관제 화면 40대의 재접속 시도. 총 ${h.total}번, 가장 붐빈 1초에 ${h.peak}번.`}>
+        <svg viewBox={`0 0 ${W} 300`} className="fe-herd-svg" role="img" aria-label={`상황실 화면 40대의 재접속 시도. 총 ${h.total}번, 가장 붐빈 1초에 ${h.peak}번.`}>
           <rect className="down" x={x(0)} y={4} width={x(down) - x(0)} height={176} />
           <text className="ax" x={x(down / 2)} y={18} textAnchor="middle">서버 장애</text>
           {h.rows.map((row, c) => row.map((t, i) => t < 60 && <circle key={c + '-' + i} className={'try' + (t >= down ? ' ok' : '')} cx={x(t)} cy={26 + c * 3.8} r={t >= down ? 2.6 : 1.8} />))}
@@ -172,7 +302,7 @@ function Herd() {
 }
 
 interface Pt { seq: number; v: number; late?: boolean }
-const valAt = (seq: number) => { const r = rng(seq * 9301 + 49297); return +(68 + Math.sin(seq / 7) * 6 + (r() - 0.5) * 3).toFixed(1) }
+const valAt = (seq: number) => { const r = rng(seq * 9301 + 49297); return +(6 + Math.sin(seq / 7) * 2 + (r() - 0.5) * 1).toFixed(1) }
 function LiveReconnect() {
   const [on, setOn] = useState(true)
   const [resync, setResync] = useState(true)
@@ -201,7 +331,7 @@ function LiveReconnect() {
     force(v => v + 1)
   }, 250, on)
   const c = s.current, seqNow = Math.floor(c.t)
-  const W = 600, H = 150, x = (q: number) => 10 + ((q - (seqNow - 59)) / 59) * (W - 20), y = (v: number) => 10 + (1 - (v - 56) / 24) * (H - 20)
+  const W = 600, H = 150, x = (q: number) => 10 + ((q - (seqNow - 59)) / 59) * (W - 20), y = (v: number) => 10 + (1 - v / 12) * (H - 20)
   const sorted = [...c.data].sort((a, b) => a.seq - b.seq)
   let d = ''
   sorted.forEach((p, i) => { d += (i && sorted[i - 1].seq === p.seq - 1 ? 'L' : 'M') + x(p.seq).toFixed(1) + ',' + y(p.v).toFixed(1) })
@@ -212,9 +342,9 @@ function LiveReconnect() {
         <button type="button" className="chip" aria-pressed={resync} onClick={() => setResync(v => !v)}>재연결 후 놓친 구간 다시 받기</button>
         <button type="button" className="btn sm ghost" onClick={() => setOn(v => !v)}>{on ? '시뮬레이션 멈춤' : '다시 시작'}</button>
       </div>
-      <Hmi title="강변 1선 부하율 · 최근 60초" right={c.conn ? <>연결됨 · 마지막 번호(seq) {c.lastSeq}</> : <b className="fe-bad">끊김 · 재시도 #{c.attempt + 1} {Math.max(0, c.nextAt - c.t).toFixed(1)}초 뒤</b>}>
+      <Hmi title={`화학물질 창고 가연성 가스(${LEL.unit}) · 최근 60초`} right={c.conn ? <>연결됨 · 마지막 번호(seq) {c.lastSeq}</> : <b className="fe-bad">끊김 · 재시도 #{c.attempt + 1} {Math.max(0, c.nextAt - c.t).toFixed(1)}초 뒤</b>}>
         <div className="fe-live-grid">
-          <svg viewBox={`0 0 ${W} ${H}`} className={'fe-live-svg' + (c.conn ? '' : ' stale')} role="img" aria-label="최근 60초 부하율 추세. 빈 곳은 받지 못한 구간, 속이 빈 점은 재연결 후 다시 받은 값.">
+          <svg viewBox={`0 0 ${W} ${H}`} className={'fe-live-svg' + (c.conn ? '' : ' stale')} role="img" aria-label="최근 60초 가연성 가스 추세. 빈 곳은 받지 못한 구간, 속이 빈 점은 재연결 후 다시 받은 값.">
             {!c.conn && <rect className="hatch" x={x(c.lastSeq)} y={0} width={W - x(c.lastSeq)} height={H} />}
             <path className="ln" d={d} />
             {sorted.filter(p => p.late).map(p => <circle key={p.seq} className="late" cx={x(p.seq)} cy={y(p.v)} r={2.6} />)}
@@ -243,7 +373,7 @@ function getSeries(n: number): Series {
     x[i] = i; y[i] = 62 + Math.sin((i / n) * Math.PI * 4) * 12 + drift + (r() - 0.5) * 3
   }
   const spikeAt = Math.floor(n * 0.618)
-  y[spikeAt] += 34; y[spikeAt + 1] += 18 // 고장 순간 짧은 급등
+  y[spikeAt] += 34; y[spikeAt + 1] += 18 // 설비 충돌 순간 짧은 진동 급등
   let lo = Infinity, hi = -Infinity
   for (let i = 0; i < n; i++) { if (y[i] < lo) lo = y[i]; if (y[i] > hi) hi = y[i] }
   const s = { x, y, lo, hi, spikeAt }; cache.set(n, s); return s
@@ -373,11 +503,11 @@ function Bench() {
         <button type="button" className="btn sm ghost" disabled={!!busy || !runs.length} onClick={() => setRuns([])}>기록 지우기</button>
         <span className="muted" aria-live="polite">{busy ?? (n === 100_000 && ds === 'none' ? '10만 개 원본은 기기에 따라 잠깐 멈칫할 수 있어요.' : '버튼을 누를 때만 그려요.')}</span>
       </div>
-      <Hmi title={`강변 1선 부하율 · ${last ? fmtN(last.n) : fmtN(n)}개 측정값 (가상)`} right={last ? <>그린 점 {fmtN(last.pts)}개 · {last.rend === 'svg' ? 'SVG' : 'Canvas'} · {DS_N[last.ds]}</> : '아직 그리지 않았어요'}>
+      <Hmi title={`프레스 라인 3호기 진동 · ${last ? fmtN(last.n) : fmtN(n)}개 측정값 (가상)`} right={last ? <>그린 점 {fmtN(last.pts)}개 · {last.rend === 'svg' ? 'SVG' : 'Canvas'} · {DS_N[last.ds]}</> : '아직 그리지 않았어요'}>
         <div className="fe-bench-stage">
           <svg viewBox={`0 0 ${BW} ${BH}`} className="fe-bench-svg" style={{ display: shown === 'svg' ? 'block' : 'none' }} aria-hidden="true"><path ref={pathRef} /></svg>
           <canvas ref={canRef} className="fe-bench-cv" style={{ display: shown === 'canvas' ? 'block' : 'none' }} aria-hidden="true" />
-          {last && <span className={'fe-spike' + (last.spike ? '' : ' lost')}>{last.spike ? '고장 순간 최댓값이 보여요' : '고장 순간 최댓값이 사라졌어요'}</span>}
+          {last && <span className={'fe-spike' + (last.spike ? '' : ' lost')}>{last.spike ? '충돌 순간 최댓값이 보여요' : '충돌 순간 최댓값이 사라졌어요'}</span>}
         </div>
       </Hmi>
       {runs.length > 0 && (
@@ -408,7 +538,7 @@ const BMODE_N: Record<BMode, string> = { each: '메시지마다 렌더', raf: '�
 function Batching() {
   const [mode, setMode] = useState<BMode>('each')
   const [on, setOn] = useState(false)
-  const [vals, setVals] = useState(() => FEEDERS.map(f => f.load))
+  const [vals, setVals] = useState(() => ZONES.map(z => z.base))
   const stats = useRef({ msgs: 0, renders: 0 })
   const [rate, setRate] = useState({ msgs: 0, renders: 0 })
   const pend = useRef<Map<number, number>>(new Map())
@@ -428,8 +558,8 @@ function Batching() {
   }
   const feed = useVisibleInterval(() => {
     for (let k = 0; k < 4; k++) { // 16ms마다 4건 ≈ 초당 250건
-      const i = Math.floor(r.current() * FEEDERS.length)
-      const v = FEEDERS[i].load + (r.current() - 0.5) * 1.3
+      const i = Math.floor(r.current() * ZONES.length)
+      const v = ZONES[i].base + (r.current() - 0.5) * 1.3
       stats.current.msgs++
       if (modeRef.current === 'each') flushSync(() => setVals(prev => prev.map((x, j) => (j === i ? v : x))))
       else { pend.current.set(i, v); if (!raf.current) raf.current = requestAnimationFrame(flush) }
@@ -443,9 +573,9 @@ function Batching() {
         <button type="button" className="btn sm" onClick={() => { setOn(v => !v); setRate({ msgs: 0, renders: 0 }) }}>{on ? '멈추기' : '메시지 보내기 시작'}</button>
       </div>
       <div className="fe-batch-grid">
-        <Hmi title="9개 선로 부하율" right="초당 약 250건 수신">
+        <Hmi title="구역 9곳 대표 센서 · 경보 기준 대비" right="초당 약 250건 수신">
           <ul className="fe-bars">
-            {FEEDERS.map((f, i) => (
+            {ZONES.map((f, i) => (
               <li key={f.id}><span>{f.name}</span><i><b style={{ width: Math.min(100, vals[i]) + '%' }} /></i><em>{Math.round(vals[i])}%</em></li>
             ))}
           </ul>
@@ -464,7 +594,7 @@ function Batching() {
 
 /* ================= 5. 오래 켜 두는 화면 ================= */
 function GrowthChart() {
-  const W = 600, H = 190, per = 9 * 3 // 선로 9개 × 값 3개, 1초에 1번
+  const W = 600, H = 190, per = 9 * 3 // 구역 9곳 × 센서 3개, 1초에 1번
   const x = (h: number) => 50 + (h / 12) * (W - 64), maxPts = per * 3600 * 12
   const y = (v: number) => H - 26 - (v / maxPts) * (H - 46)
   const cap = per * 3600
@@ -541,7 +671,7 @@ function PageApis() {
         <small>Screen Wake Lock API</small>
         <b>{wl === 'on' ? '화면 꺼짐 방지 켜짐' : wl === 'unsupported' ? '이 브라우저는 지원하지 않아요' : wl === 'error' ? '요청이 거절됐어요' : '화면 꺼짐 방지 꺼짐'}</b>
         <button type="button" className="btn sm" disabled={wl === 'unsupported'} onClick={toggle} aria-pressed={wl === 'on'}>{wl === 'on' ? '해제하기' : '화면 꺼짐 방지 켜기'}</button>
-        <p>관제 화면은 절전 모드로 꺼지면 안 돼요. 탭이 가려지면 브라우저가 화면 꺼짐 방지를 자동으로 풀어요. 그래서 돌아왔을 때 다시 요청해요(이 데모도 그렇게 해요). 브라우저가 지원하지 않으면 운영체제 전원 설정으로 막아요.</p>
+        <p>안전관리 상황실 화면은 절전 모드로 꺼지면 안 돼요. 탭이 가려지면 브라우저가 화면 꺼짐 방지를 자동으로 풀어요. 그래서 돌아왔을 때 다시 요청해요(이 데모도 그렇게 해요). 브라우저가 지원하지 않으면 운영체제 전원 설정으로 막아요.</p>
       </div>
     </div>
   )
@@ -582,14 +712,18 @@ function ClockSkew() {
           </div>
         </Hmi>
       </div>
-      <p className="fe-p">PC 시계가 느리면 오래된 값이 방금 들어온 것처럼 보여요. 관제 화면에서 가장 위험한 건 <b>멈춘 화면이 정상처럼 보이는 것</b>이에요(05 탭). 그래서 기준 시각은 서버가 정해요. 브라우저는 서버와의 차이만 계산해서 고쳐 보여줘요. 화면에 표시할 땐 <code>Asia/Seoul</code>처럼 시간대를 정해 둬요. 기록을 남기거나 <Term k="API" />로 주고받을 땐 <code>2026-11-08T14:02:08+09:00</code>처럼 시간대가 붙은 형식을 써요.</p>
+      <p className="fe-p">PC 시계가 느리면 오래된 값이 방금 들어온 것처럼 보여요. 안전관리 화면에서 가장 위험한 건 <b>멈춘 화면이 정상처럼 보이는 것</b>이에요(05 탭). 그래서 기준 시각은 서버가 정해요. 브라우저는 서버와의 차이만 계산해서 고쳐 보여줘요. 화면에 표시할 땐 <code>Asia/Seoul</code>처럼 시간대를 정해 둬요. 기록을 남기거나 <Term k="API" />로 주고받을 땐 <code>2026-11-08T14:02:08+09:00</code>처럼 시간대가 붙은 형식을 써요.</p>
     </div>
   )
 }
 
 /* ================= 7. 접근성 ================= */
 interface Ann { p: Pri; t: string; how: string }
-const ANN_TEXT: Record<Pri, string> = { 1: '긴급 알람, 산단 1선 선로 고장, 차단기 트립', 2: '높음 알람, 강변 1선 부하율 95% 초과', 3: '주의 알람, 강변 2선 R/C-12 통신 두절' }
+const ANN_TEXT: Record<Pri, string> = {
+  1: `긴급 알람, ${SAFE_ALARMS[0].where.replace(' · ', ' ')}, ${SAFE_ALARMS[0].what}`,
+  2: `높음 알람, ${SAFE_ALARMS[2].where.replace(' · ', ' ')}, 가연성 가스 12%LEL`,
+  3: `주의 알람, ${SAFE_ALARMS[4].where.replace(' · ', ' ')}, ${SAFE_ALARMS[4].what}`,
+}
 function A11yDemo() {
   const [list, setList] = useState<{ id: number; p: Pri; ack: boolean }[]>([])
   const [said, setSaid] = useState<Ann[]>([])
@@ -645,7 +779,7 @@ const CHECK: { g: string; items: string[] }[] = [
 function Checklist() {
   const [on, setOn] = useState<Record<string, boolean>>({})
   const tot = CHECK.reduce((a, g) => a + g.items.length, 0), n = Object.values(on).filter(Boolean).length
-  const md = useMemo(() => ['# 관제 화면 FE 체크리스트', '', ...CHECK.flatMap(g => [`## ${g.g}`, '', ...g.items.map(t => `- [${on[t] ? 'x' : ' '}] ${t}`), ''])].join('\n'), [on])
+  const md = useMemo(() => ['# 안전관리 대시보드 FE 체크리스트', '', ...CHECK.flatMap(g => [`## ${g.g}`, '', ...g.items.map(t => `- [${on[t] ? 'x' : ' '}] ${t}`), ''])].join('\n'), [on])
   return (
     <div className="fe-check">
       <div className="fe-check-grid">
@@ -658,14 +792,14 @@ function Checklist() {
       </div>
       <div className="fe-row">
         <span className="muted">{n} / {tot} 확인</span><span className="fe-grow" />
-        <button type="button" className="btn sm" onClick={() => download('관제화면_FE_체크리스트.md', md, 'text/markdown;charset=utf-8')}>체크리스트 내려받기(.md)</button>
+        <button type="button" className="btn sm" onClick={() => download('안전관리화면_FE_체크리스트.md', md, 'text/markdown;charset=utf-8')}>체크리스트 내려받기(.md)</button>
       </div>
     </div>
   )
 }
 
 const CODE_WS = `// 재연결: 지수 백오프 + 지터, 마지막 seq 이후 다시 받기
-type Msg = { seq: number; feeder: string; load: number }
+type Msg = { seq: number; sensor: string; value: number }
 
 export function connect(url: string, onMsg: (m: Msg) => void, onState: (s: 'open' | 'retry', wait?: number) => void) {
   let ws: WebSocket | null = null
@@ -730,13 +864,25 @@ useEffect(() => {
 }, [])`
 
 /* ================= 탭 ================= */
+const EXTRA: Record<string, string> = {
+  '%LEL': '불이 붙을 수 있는 가장 낮은 가스 농도를 100으로 볼 때 지금 농도예요. 10%LEL이면 그 최저 농도의 10분의 1이에요.',
+  '값 품질': '센서값을 얼마나 믿을 수 있는지 서버가 함께 보내는 표시예요. 좋음·불확실·나쁨처럼 나눠요. 센서가 멈추면 ‘불확실’이 돼요.',
+}
+
 export default function Tab() {
   return (
     <div data-dash="fe">
-      <TermList keys={['폴링', '롱폴링', 'SSE', '웹소켓', '백오프', '지터', '다운샘플링', 'LTTB', 'Canvas', 'SVG', '링버퍼', '메모리 누수', 'aria-live', 'API']} />
+      <TermList keys={['폴링', '롱폴링', 'SSE', '웹소켓', '백오프', '지터', '다운샘플링', 'LTTB', 'Canvas', 'SVG', '링버퍼', '메모리 누수', 'aria-live', 'API']} extra={EXTRA} />
       <SysGrid>
+        <Section id="dash-fe-mistakes" wide title="흔한 실수 — 화면은 멀쩡한데 데이터가 거짓말을 해요"
+          gist="FE 실수는 화면에 안 보여요. 그래서 ‘안전해 보이는 거짓’이 돼요."
+          desc={<>FE에서 생기는 실수는 디자인 리뷰로 잡히지 않아요. 화면은 깔끔한데, 그 뒤에서 값이 멈추거나 잘리거나 매끈하게 꾸며져요. 업계 안전관리 대시보드에서 흔히 보는 네 가지와 잘한 예 하나예요. ‘흔한 화면’과 ‘업그레이드하면’을 눌러 비교해 보세요.</>}>
+          <Mistakes />
+          <Note>예시의 현장·센서·시각·수치는 모두 가상의 {SAFE_CENTER} 예시예요. 실제 설비 기준값이 아니에요.</Note>
+        </Section>
+
         <Section id="dash-fe-transport" wide title="데이터를 어떻게 받을까 — 폴링, 롱폴링, SSE, 웹소켓"
-          gist="관제 화면처럼 받기만 하면 SSE, 자주 보내기도 하면 웹소켓이 맞아요."
+          gist="상황실 화면처럼 받기만 하면 SSE, 자주 보내기도 하면 웹소켓이 맞아요."
           desc={<>택배 확인에 비유하면 쉬워요. 5분마다 현관에 나가 보는 게 <Term k="폴링" />, 택배가 오면 기사가 초인종을 눌러 주는 게 <Term k="SSE" />·<Term k="웹소켓" />이에요. 같은 30초 동안 서버에서 변화 8건이 생겨요. 네 방식이 요청을 몇 번 보내고, 변화가 화면에 몇 초 늦게 도착하는지 재생해 보세요. 아래 회색 막대가 늦어진 시간(지연)이에요.</>}>
           <Transport />
           <div className="sys-table-wrap">
@@ -745,17 +891,17 @@ export default function Tab() {
               <tbody>
                 <tr><td>폴링</td><td>브라우저 → 서버 요청</td><td>최대 간격만큼 늦음</td><td>변화가 없어도 계속 요청</td><td>다음 요청 때 자연히 회복</td><td>몇 분 단위 지표, 단순한 화면</td></tr>
                 <tr><td><Term k="롱폴링" /></td><td>요청을 서버가 붙잡음</td><td>짧음</td><td>기다리는 요청을 계속 붙잡고 있음</td><td>다시 요청</td><td>웹소켓을 못 쓰는 환경의 대안</td></tr>
-                <tr><td>SSE</td><td>서버 → 브라우저 한 방향</td><td>짧음</td><td>연결 하나</td><td>브라우저가 알아서 다시 연결하고, 마지막으로 받은 이벤트 번호(ID)를 보내 줌 <Cite n={2} /></td><td>알람·측정값처럼 받기만 하는 관제 화면</td></tr>
+                <tr><td>SSE</td><td>서버 → 브라우저 한 방향</td><td>짧음</td><td>연결 하나</td><td>브라우저가 알아서 다시 연결하고, 마지막으로 받은 이벤트 번호(ID)를 보내 줌 <Cite n={2} /></td><td>알람·센서값처럼 받기만 하는 안전관리 화면</td></tr>
                 <tr><td>웹소켓</td><td>양방향</td><td>짧음</td><td>연결 하나</td><td>재연결을 직접 만들어야 해요 <Cite n={1} /></td><td>확인·조작 명령도 자주 보내는 화면</td></tr>
               </tbody>
             </table>
           </div>
-          <Note>통신 시간과 사건 시각은 비교를 위해 만든 <b>가상 값</b>이에요. 실제 차이는 네트워크와 서버에 따라 달라요. 관제 화면은 대부분 ‘받기’만 해서 SSE로 충분한 경우가 많아요. 개폐기 조작 같은 명령은 보통 따로 만든 <Term k="API" />로 보내요(확인 절차 포함).</Note>
+          <Note>통신 시간과 사건 시각은 비교를 위해 만든 <b>가상 값</b>이에요. 실제 차이는 네트워크와 서버에 따라 달라요. 안전관리 화면은 대부분 ‘받기’만 해서 SSE로 충분한 경우가 많아요. 설비 비상 정지나 대피 방송 같은 명령은 보통 따로 만든 <Term k="API" />로 보내요(확인 절차 포함).</Note>
         </Section>
 
         <Section id="dash-fe-reconnect" wide title="끊겼다 다시 연결하기 — 백오프, 지터, 놓친 구간"
           gist="기다리는 시간을 늘리고 흩어서 다시 붙어요. 놓친 값은 다시 받아요."
-          desc={<>정전 뒤 전기가 들어오자마자 모든 집이 에어컨을 켜면 또 과부하가 걸리죠. 서버도 같아요. 관제실 화면 수십 대가 같은 서버를 보고 있어요. 서버가 잠깐 멈추면 모두가 동시에 다시 접속하려 해요. <Term k="백오프" />와 <Term k="지터" /> 전략을 바꿔 보세요.</>}>
+          desc={<>점심시간 종이 울리자마자 모두 엘리베이터 앞에 몰리면 아무도 못 타죠. 서버도 같아요. 상황실과 현장 사무실 화면 수십 대가 같은 서버를 보고 있어요. 서버가 잠깐 멈추면 모두가 동시에 다시 접속하려 해요. <Term k="백오프" />와 <Term k="지터" /> 전략을 바꿔 보세요.</>}>
           <Herd />
           <LiveReconnect />
           <SysPair>
@@ -766,13 +912,13 @@ export default function Tab() {
 
         <Section id="dash-fe-bench" wide title="점 10만 개 그리기 — 이 브라우저에서 직접 재요"
           gist="점은 화면 폭만큼만 그려요. 줄일 땐 최댓값이 사라지지 않게 해요."
-          desc={<>1초마다 잰 값을 하루 모으면 한 선로에 8만 6천 개예요. 점 개수, 그리는 방식(<Term k="SVG" />·<Term k="Canvas" />), <Term k="다운샘플링" />(점 줄이기)을 바꿔 가며 실제로 걸리는 시간을 재 보세요. 데이터 한가운데에 고장 순간의 짧은 급등이 숨어 있어요.</>}>
+          desc={<>1초마다 잰 값을 하루 모으면 센서 하나에 8만 6천 개예요. 점 개수, 그리는 방식(<Term k="SVG" />·<Term k="Canvas" />), <Term k="다운샘플링" />(점 줄이기)을 바꿔 가며 실제로 걸리는 시간을 재 보세요. 데이터 한가운데에 설비가 부딪힌 순간의 짧은 진동 급등이 숨어 있어요.</>}>
           <Bench />
           <SysPair>
             <Finding src={<>Steinarsson (2013) LTTB · Jugel 등 (2014) M4 — 한국어 요약 <Cite n={3} /><Cite n={4} /></>}>
               화면 폭보다 많은 점은 어차피 눈에 보이지 않아요. 화면 한 칸(픽셀)마다 모양을 지키는 점만 남기면, 같은 그림을 훨씬 빨리 그릴 수 있어요.
             </Finding>
-            <Note tone="warn"><b>‘n개마다 1개’는 위험해요.</b> 고르게 솎아 내면 점 1~2개로 된 고장 급등이 사라질 수 있어요. 관제 화면에서는 최댓값·최솟값이 곧 사건이에요. 구간마다 최소·최대를 남기거나 <Term k="LTTB" />처럼 모양을 지키는 방법을 써요. 확대하면 원본을 다시 불러와요.</Note>
+            <Note tone="warn"><b>‘n개마다 1개’는 위험해요.</b> 고르게 솎아 내면 점 1~2개로 된 진동 급등이 사라질 수 있어요. 안전관리 화면에서는 최댓값·최솟값이 곧 사건이에요. 구간마다 최소·최대를 남기거나 <Term k="LTTB" />처럼 모양을 지키는 방법을 써요. 확대하면 원본을 다시 불러와요.</Note>
           </SysPair>
         </Section>
 
@@ -784,16 +930,16 @@ export default function Tab() {
 
         <Section id="dash-fe-time" title="시각은 서버 기준으로"
           gist="시각은 서버가 정하고, 브라우저는 차이만 계산해서 고쳐요."
-          desc="내 손목시계가 3분 느리면, 3분 전 일이 방금 일어난 것처럼 느껴져요. 관제 PC 시계가 틀리면 ‘마지막 갱신 n초 전’이 틀린 시간을 보여줘요. 슬라이더로 PC 시계를 틀어 보세요.">
+          desc="내 손목시계가 3분 느리면, 3분 전 일이 방금 일어난 것처럼 느껴져요. 상황실 PC 시계가 틀리면 ‘마지막 갱신 n초 전’이 틀린 시간을 보여줘요. 슬라이더로 PC 시계를 틀어 보세요.">
           <ClockSkew />
         </Section>
 
         <Section id="dash-fe-longrun" wide title="8~12시간 켜 두는 화면 — 메모리와 화면 꺼짐"
           gist="근무 내내 켜 두는 화면은 메모리가 계속 늘지 않고, 화면이 꺼지지 않게 만들어요."
-          desc={<>관제 화면은 새로고침 없이 근무 내내 켜져 있어요. 잠깐 써 보는 웹페이지에서는 안 보이던 문제가 몇 시간 뒤에 나와요. 대표적인 게 <Term k="메모리 누수" />예요.</>}>
+          desc={<>안전관리 상황실 화면은 새로고침 없이 근무 내내 켜져 있어요. 잠깐 써 보는 웹페이지에서는 안 보이던 문제가 몇 시간 뒤에 나와요. 대표적인 게 <Term k="메모리 누수" />예요.</>}>
           <div className="fe-long-grid">
             <figure className="fe-fig">
-              <figcaption><b>점 개수가 근무 시간에 따라 어떻게 쌓이나</b><span className="muted">선로 9개 × 값 3개, 1초에 1번 (계산)</span></figcaption>
+              <figcaption><b>점 개수가 근무 시간에 따라 어떻게 쌓이나</b><span className="muted">구역 9곳 × 센서 3개, 1초에 1번 (계산)</span></figcaption>
               <GrowthChart />
               <small className="muted">12시간이면 116만 개예요. 숫자만 Float64로 담아도 점 하나에 16바이트(x·y)라 약 19MB예요. 객체로 담으면 훨씬 커요. 1시간 링버퍼는 약 9만 7천 개에서 더 늘지 않아요.</small>
             </figure>
@@ -818,7 +964,7 @@ export default function Tab() {
           gist="긴급 알람만 바로 끼어들어 읽고, 나머지는 기다렸다 읽거나 목록에만 둬요."
           desc={<><Term k="aria-live" />는 화면을 보지 못하는 사람에게 바뀐 내용을 읽어 주게 해요. 회의 중에 모두가 끼어들면 아무 말도 안 들리죠. 모든 알람을 assertive(바로 끼어들기)로 하면 스크린 리더가 쉴 새 없이 말을 끊어요.</>}>
           <A11yDemo />
-          <Note>긴급(1)만 <code>aria-live="assertive"</code>, 높음(2)은 <code>polite</code>, 주의(3)는 목록에만 둬요 <Cite n={6} />. 알람이 한꺼번에 쏟아질 때(폭주)는 하나씩 읽지 말고 “긴급 알람 12건”처럼 요약해서 한 번만 읽어요.</Note>
+          <Note>긴급(1)만 <code>aria-live="assertive"</code>, 높음(2)은 <code>polite</code>, 주의(3)는 목록에만 둬요 <Cite n={6} />. 안전관리 화면에서는 화재·작업자 무응답 같은 긴급 알람만 말을 끊고 읽어요. 보호구 미착용까지 끼어들면 정작 화재 안내를 놓쳐요. 알람이 한꺼번에 쏟아질 때(폭주)는 하나씩 읽지 말고 “긴급 알람 12건”처럼 요약해서 한 번만 읽어요.</Note>
         </Section>
 
         <Section id="dash-fe-code" wide title="코드와 체크리스트" gist="코드는 시작점으로 복사해 쓰고, 체크리스트는 출시 전 리뷰에 써요." desc="복사해서 시작점으로 쓰세요. 체크리스트는 출시 전 리뷰에 그대로 써요.">
@@ -838,7 +984,9 @@ export default function Tab() {
           { kind: 'standard', text: 'W3C WAI-ARIA 1.2 — aria-live (assertive · polite)', url: 'https://www.w3.org/TR/wai-aria-1.2/#aria-live' },
           { kind: 'standard', text: 'WCAG 2.1 성공 기준 2.3.1 — 초당 3회 이하 깜빡임', url: 'https://www.w3.org/WAI/WCAG21/Understanding/three-flashes-or-below-threshold.html' },
           { kind: 'standard', text: 'IETF RFC 5905 (2010). Network Time Protocol Version 4 — 시각 차이 계산', url: 'https://www.rfc-editor.org/rfc/rfc5905' },
-          { kind: 'practice', text: '지수 백오프와 지터(재접속이 한꺼번에 몰리지 않게 흩기), 링버퍼, requestAnimationFrame으로 업데이트 묶기 — 프런트엔드·분산 시스템 실무 방식' },
+          { kind: 'practice', text: '지수 백오프와 지터(재접속이 한꺼번에 몰리지 않게 흩기), 링버퍼, requestAnimationFrame으로 업데이트 묶기, 진행 중 알람과 최근 이벤트 API 나누기, 안전 쪽으로 실패하기 — 프런트엔드·분산 시스템 실무 방식' },
+          { kind: 'paper', text: 'Endsley, M. R. (1995). Toward a Theory of Situation Awareness in Dynamic Systems. Human Factors 37(1) — 보기 → 이해 → 예측, 앞 단계가 틀리면 뒤도 틀림', url: 'https://en.wikipedia.org/wiki/Situation_awareness' },
+          { kind: 'reported', text: 'ANSI/ISA-18.2 · EEMUA 191 알람 관리 목표값 — 10분에 10개 초과면 알람 폭주 (업체 해설)', url: 'https://ifactoryapp.com/industries/oil-and-gas/alarm-management-isa-18-2-rationalization-flooding' },
         ]} />
       </SysGrid>
     </div>

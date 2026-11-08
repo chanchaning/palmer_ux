@@ -12,7 +12,7 @@ export const DASH_TABS: { id: string; num: string; name: string; desc: string; l
   { id: 'alarm', num: '03', name: '알람 설계', desc: '우선순위, 상태, 확인과 보류, 알람 폭주', load: () => import('./tabs/alarm') },
   { id: 'context', num: '04', name: '값보다 맥락', desc: '정상 범위·추세·목표를 함께 보여주는 표시', load: () => import('./tabs/context') },
   { id: 'realtime', num: '05', name: '실시간 갱신', desc: '갱신 주기, 오래된 데이터, 끊김과 재연결', load: () => import('./tabs/realtime') },
-  { id: 'map', num: '06', name: '지도 · 계통도', desc: '위치 기반 이상 표시, 겹침, 단선도', load: () => import('./tabs/map') },
+  { id: 'map', num: '06', name: '지도 · 배치도', desc: '위치 기반 이상 표시, 겹침, 대피 경로와 인원 확인', load: () => import('./tabs/map') },
   { id: 'room', num: '07', name: '관제실 환경', desc: '벽면 화면과 개인 화면, 시청 거리와 글자, 다크 화면', load: () => import('./tabs/room') },
   { id: 'ops', num: '08', name: '기획 · 운영 정의', desc: '알람 정의서, 대응 절차, 교대 인수인계', load: () => import('./tabs/ops') },
   { id: 'fe', num: '09', name: 'FE · 구현', desc: '웹소켓과 폴링, 대량 데이터 그리기, 오래 켜 두는 화면', load: () => import('./tabs/fe') },

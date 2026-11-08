@@ -1,13 +1,16 @@
-import { useMemo, useRef, useState } from 'react'
+import { useMemo, useRef, useState, type ReactNode } from 'react'
 import { Range, Seg } from '../../components/ui'
 import { Note, Section, SysGrid } from '../../system/ui'
-import { AnalogBar, Cite, Finding, Hmi, PriBadge, Refs, Sparkline, hhmmss, useVisibleInterval, type RefItem } from '../ui'
-import { RANGES, rng } from '../data'
+import { AnalogBar, CaseCard, Cite, Finding, Hmi, PriBadge, Refs, Sparkline, hhmmss, useVisibleInterval, type RefItem } from '../ui'
+import { SAFE_PLACE, SAFE_RANGES, rng } from '../data'
 import { Term, TermList } from '../../components/Term'
 import './realtime.css'
 
 /* 사전(src/lib/glossary.ts)에 없는 말 — 이 탭에서만 풀어 써요 */
 const XT = {
+  '%LEL': '가스가 불붙어 터질 수 있는 가장 낮은 농도를 100으로 볼 때, 지금 농도가 얼마인지예요. 10%LEL이면 그 위험선의 10분의 1이에요.',
+  '수집 주기': '센서가 값을 재서 서버로 보내는 간격이에요. 가스 센서가 2초마다 보낸다면 수집 주기는 2초예요.',
+  '웨어러블': '작업자가 몸에 차는 작은 장치예요. 넘어짐이나 오래 움직이지 않음을 감지해서 상황실로 알려요.',
   '갱신 주기': '화면의 값을 새 값으로 바꾸는 간격이에요. 버스 도착 안내판이 30초마다 바뀐다면 갱신 주기는 30초예요.',
   '동작 줄이기': '휴대폰이나 PC 설정에서 화면 움직임을 줄여 달라고 켜 두는 옵션이에요. 움직임에 어지러움을 느끼는 사람을 위해 있어요. 켜져 있으면 깜빡임과 애니메이션을 줄여요.',
   '시각적 연속성': '화면이 바뀌어도 ‘내가 어디를 보고 있었는지’를 잃지 않게 하는 성질이에요. 책을 덮었다 펴도 책갈피 덕에 읽던 자리로 바로 돌아가는 것과 비슷해요.',
@@ -29,12 +32,12 @@ function SaChain() {
   const [fresh, setFresh] = useState(true)
   const steps = fresh
     ? [
-      { lv: '1단계 · 보기(지각)', see: '강변 1선 부하율 96% (방금 받은 값)', ok: true },
-      { lv: '2단계 · 이해', see: '경보선 95%를 넘었다 — 비정상', ok: true },
-      { lv: '3단계 · 예측', see: '이대로면 과부하 — 옆 선로로 부하를 옮길(절체) 준비를 하자', ok: true },
+      { lv: '1단계 · 보기(지각)', see: '화학물질 창고 가연성 가스 14%LEL (방금 받은 값)', ok: true },
+      { lv: '2단계 · 이해', see: '정상(10%LEL 이하)을 넘었고 오르는 중 — 비정상', ok: true },
+      { lv: '3단계 · 예측', see: '이대로면 약 40분 뒤 25%LEL 경보 — 지금 환기를 확인하고 출입을 막자', ok: true },
     ]
     : [
-      { lv: '1단계 · 보기(지각)', see: '강변 1선 부하율 83% (사실은 3분 전에 멈춘 값)', ok: false },
+      { lv: '1단계 · 보기(지각)', see: '화학물질 창고 가연성 가스 6%LEL (사실은 3분 전에 멈춘 값)', ok: false },
       { lv: '2단계 · 이해', see: '정상 범위 안이다 — 문제없음', ok: false },
       { lv: '3단계 · 예측', see: '할 일 없음 — 다른 화면을 보자', ok: false },
     ]
@@ -51,7 +54,178 @@ function SaChain() {
           </li>
         ))}
       </ol>
-      <p className="muted">현장의 실제 값은 두 경우 모두 96%예요. 달라진 건 화면이 값을 ‘언제’ 받았는지뿐이에요.</p>
+      <p className="muted">현장의 실제 값은 두 경우 모두 14%LEL이에요. 달라진 건 화면이 값을 ‘언제’ 받았는지뿐이에요. 숫자는 모두 가상이에요.</p>
+    </div>
+  )
+}
+
+/* ================= 1-1. 흔한 실수 — before/after 목업 ================= */
+const pad2 = (n: number) => String(n).padStart(2, '0')
+const hms = (s: number) => `${pad2(Math.floor(s / 3600) % 24)}:${pad2(Math.floor(s / 60) % 60)}:${pad2(Math.floor(s) % 60)}`
+const NOW0 = 14 * 3600 + 5 * 60 + 37 // 목업 속 '지금' 14:05:37
+/** 화면에 보일 때만 1초씩 가는 목업 시계 */
+function useMockClock() {
+  const [k, setK] = useState(0)
+  const ref = useVisibleInterval(() => setK(x => x + 1), 1000)
+  return [ref, k] as const
+}
+function BadHmi({ title, right, children }: { title: ReactNode; right?: ReactNode; children: ReactNode }) {
+  return <Hmi dark className="rt-bad" title={title} right={right}>{children}</Hmi>
+}
+const GasTiles = ['화학물질 창고 A', '화학물질 창고 B', '도장 부스']
+const GAS_V = [6, 4, 3]
+
+/* A. 연결이 끊겨도 메인 화면은 모름 */
+function DownBefore() {
+  const [ref, k] = useMockClock()
+  return (
+    <div className="rt-mk" ref={ref}>
+      <BadHmi title="안전 모니터링 · 제2공장" right={hms(NOW0 + k)}>
+        <div className="rt-bad-tiles">
+          {GasTiles.map((n, i) => <div key={n} className="rt-bad-tile"><span>{n}</span><b>{GAS_V[i]}<small>%LEL</small></b><em><i className="rt-lamp" aria-hidden="true" />정상</em></div>)}
+        </div>
+        <div className="rt-bad-foot">서버 연결 재시도 중 (3)</div>
+      </BadHmi>
+      <p className="rt-mk-cap">2분 전부터 서버와 끊겼어요. 그사이 화학물질 창고 A의 실제 가스는 14%LEL까지 올랐어요. 화면은 여전히 ‘6 · 정상’이에요. 끊긴 사실은 오른쪽 아래 작은 글씨 한 줄뿐이에요.</p>
+    </div>
+  )
+}
+function DownAfter() {
+  const [ref, k] = useMockClock()
+  const age = 142 + k
+  return (
+    <div className="rt-mk" ref={ref}>
+      <Hmi title="안전 모니터링 · 제2공장" right={<b>마지막 수신 14:03:15 ({ago(age)})</b>}>
+        <div className="rt-banner bad rt-mk-banner"><b>통신 끊김</b><span>화면 값은 14:03:15에 받은 값이에요. 지금 현장 상태는 알 수 없어요. 다시 연결 4번째 시도 중.</span></div>
+        <div className="rt-bad-tiles up">
+          {GasTiles.map((n, i) => <div key={n} className="rt-tile stale"><div className="top"><span>{n}</span><span className="tag">오래된 값</span></div><div className="v"><b>{GAS_V[i]}</b>%LEL</div></div>)}
+        </div>
+      </Hmi>
+      <p className="rt-mk-cap">맨 위 배너가 먼저 말해요. 모든 값은 회색 빗금과 ‘오래된 값’으로 바뀌고, ‘정상’ 표시는 사라져요. 끊긴 동안은 정상이라고 말할 근거가 없으니까요.</p>
+    </div>
+  )
+}
+
+/* B. 센서 하나가 멈췄는데 똑같이 보임 */
+function SensorBefore() {
+  return (
+    <div className="rt-mk">
+      <BadHmi title="가스 감시 · 제2공장" right="실시간">
+        <div className="rt-bad-tiles">
+          {GasTiles.map((n, i) => <div key={n} className="rt-bad-tile"><span>{n}</span><b>{GAS_V[i]}<small>%LEL</small></b><em><i className="rt-lamp" aria-hidden="true" />정상</em></div>)}
+        </div>
+      </BadHmi>
+      <p className="rt-mk-cap">세 값 중 하나는 41분 전 값이에요. 화학물질 창고 B 센서의 배터리가 나갔거든요. 서버 연결은 멀쩡해서 아무 경고도 없어요. 어느 값인지 맞혀 보세요. 화면만 봐서는 알 수 없어요.</p>
+    </div>
+  )
+}
+function SensorAfter() {
+  const [ref, k] = useMockClock()
+  const sec = [1 + (k % 2), 41 * 60 + k, 1 + ((k + 1) % 2)]
+  return (
+    <div className="rt-mk" ref={ref}>
+      <Hmi title="가스 감시 · 제2공장" right="연결 정상">
+        <div className="rt-mk-alarm"><PriBadge p={2} /><b>화학물질 창고 B</b><span>가스 센서 41분째 수신 없음 — 이 구역은 지금 감시가 안 돼요. 휴대용 측정기로 확인 요청</span></div>
+        <div className="rt-bad-tiles up">
+          {GasTiles.map((n, i) => {
+            const dead = i === 1
+            return <div key={n} className={'rt-tile' + (dead ? ' stale' : '')}><div className="top"><span>{n}</span>{dead && <span className="tag">수신 없음</span>}</div><div className="v"><b>{GAS_V[i]}</b>%LEL</div><span className="rt-mk-age">{dead ? `${Math.floor(sec[i] / 60)}분째 수신 없음` : `${sec[i]}초 전`}</span></div>
+          })}
+        </div>
+      </Hmi>
+      <p className="rt-mk-cap">값마다 받은 시각이 붙어요. 기준 시간을 넘긴 센서만 빗금으로 바뀌고, 센서가 멈춘 것 자체가 알람으로 올라와요.</p>
+    </div>
+  )
+}
+
+/* C. 데이터와 상관없이 깜빡이는 '실시간' 점 */
+function PulseBefore() {
+  const [ref, k] = useMockClock()
+  return (
+    <div className="rt-mk" ref={ref}>
+      <BadHmi title="안전 모니터링" right={<span className="rt-bad-live"><i className="rt-lamp" aria-hidden="true" />실시간 · {hms(NOW0 + k)}</span>}>
+        <div className="rt-bad-tiles">
+          {GasTiles.map((n, i) => <div key={n} className="rt-bad-tile"><span>{n}</span><b>{GAS_V[i]}<small>%LEL</small></b></div>)}
+        </div>
+      </BadHmi>
+      <p className="rt-mk-cap">초록 점은 1초마다 깜빡이고 시계도 가요. 그런데 데이터는 6분째 안 오고 있어요. 이 점은 화면 타이머에 맞춰 뛸 뿐이에요.</p>
+    </div>
+  )
+}
+function PulseAfter() {
+  const [ref, k] = useMockClock()
+  const age = 6 * 60 + 12 + k
+  return (
+    <div className="rt-mk" ref={ref}>
+      <Hmi title="안전 모니터링" right={<span className="rt-hb-ind quiet"><i className="dead" aria-hidden="true" />{ago(age).replace(' 전', '')}째 수신 없음 · 마지막 #1288</span>}>
+        <div className="rt-bad-tiles up">
+          {GasTiles.map((n, i) => <div key={n} className="rt-tile stale"><div className="top"><span>{n}</span><span className="tag">오래된 값</span></div><div className="v"><b>{GAS_V[i]}</b>%LEL</div></div>)}
+        </div>
+      </Hmi>
+      <p className="rt-mk-cap">점은 데이터를 받을 때만 한 번 뛰어요. 못 받으면 점이 비고, 몇 초째 못 받았는지를 글자로 보여 줘요. 색은 회색이에요.</p>
+    </div>
+  )
+}
+
+/* D. 잘한 예 — 수집 주기의 3배 */
+const SRC: { n: string; every: string; one: string; three: string }[] = [
+  { n: '가스 센서', every: '2초', one: '30번 놓쳐야 끊김', three: '6초' },
+  { n: '웨어러블', every: '10초', one: '6번 놓쳐야 끊김', three: '30초' },
+  { n: '설비 진동 센서', every: '1분', one: '한 번만 늦어도 끊김', three: '3분' },
+]
+function PeriodBefore() {
+  return (
+    <div className="rt-mk">
+      <BadHmi title="연결 판정 설정" right="모든 장치 공통">
+        <table className="rt-mk-tb">
+          <thead><tr><th>장치</th><th>보내는 간격</th><th>끊김 기준</th><th>결과</th></tr></thead>
+          <tbody>{SRC.map(s => <tr key={s.n}><td>{s.n}</td><td>{s.every}</td><td>60초</td><td>{s.one}</td></tr>)}</tbody>
+        </table>
+      </BadHmi>
+      <p className="rt-mk-cap">기준이 하나라서, 가스 센서는 너무 늦게 잡히고 진동 센서는 헛알람이 나요.</p>
+    </div>
+  )
+}
+function PeriodAfter() {
+  return (
+    <div className="rt-mk">
+      <Hmi title="연결 판정 설정" right="수집 주기 × 3">
+        <table className="rt-mk-tb">
+          <thead><tr><th>장치</th><th>보내는 간격</th><th>끊김 기준</th><th>결과</th></tr></thead>
+          <tbody>{SRC.map(s => <tr key={s.n}><td>{s.n}</td><td>{s.every}</td><td><b>{s.three}</b></td><td>3번 연속 놓치면 끊김</td></tr>)}</tbody>
+        </table>
+      </Hmi>
+      <p className="rt-mk-cap">장치마다 자기 주기의 3배를 기다려요. 빨리 알아채면서도, 한 번 늦은 걸로는 울리지 않아요.</p>
+    </div>
+  )
+}
+
+function Mistakes() {
+  return (
+    <div className="rt-cases">
+      <CaseCard sev="치명" title="통신이 끊겨도 메인 화면은 몰라요"
+        before={<DownBefore />} after={<DownAfter />}
+        now={<>서버 연결이 끊겨도 타일은 마지막 값을 그대로 보여 줘요. 초록 ‘정상’ 램프도 그대로예요. 끊긴 사실은 화면 맨 아래 작은 회색 글씨 한 줄뿐이에요.</>}
+        why={<>이건 안전관리 화면이 해서는 안 되는 일이에요. 끊긴 사이 가스가 오르고 있어도, 화면은 ‘6%LEL · 정상’이라고 말해요. 상황 인식은 첫 단계(보기)가 틀리면 뒤 판단이 모두 틀려요 <Cite n={R.endsley} />. 회색 위주 화면에서 하단 회색 글씨는 아무도 못 봐요 <Cite n={R.isa101} />.</>}
+        fix={<>끊기면 <b>화면 맨 위에 배너</b>를 띄워요. ‘화면 값은 14:03:15에 받은 값(2분 전)’처럼 언제 값인지 적어요. 모든 값은 <b>회색 빗금 + ‘오래된 값’</b>으로 바꾸고, 초록 ‘정상’ 표시는 지워요. 오래된 값으로 알람을 울리거나 풀지도 않아요.</>} />
+
+      <CaseCard sev="치명" title="센서 하나가 40분째 조용한데, 다른 센서와 똑같이 보여요"
+        before={<SensorBefore />} after={<SensorAfter />}
+        now={<>값마다 마지막으로 받은 시각이 없어요. 배터리가 나간 센서는 41분 전 값을 그대로 띄워요. 서버 연결은 멀쩡해서 배너도 안 떠요.</>}
+        why={<><Term k="신선도" />는 화면 전체가 아니라 <b>값 하나하나</b>의 문제예요. 지금 받은 값과 41분 전 값이 똑같이 그려지면, 근무자는 둘을 구분할 방법이 없어요. 말이 없는 가스 센서는 ‘가스 없음’이 아니라 ‘모름’이에요 <Cite n={R.practice} />.</>}
+        fix={<>타일마다 <b>‘2초 전’ 같은 받은 시각</b>을 붙여요. 기준 시간을 넘긴 타일만 빗금과 ‘n분째 수신 없음’으로 바꿔요. 센서가 멈춘 것 자체도 <b>알람</b>으로 올려요. 그 구역은 지금 감시가 안 되고 있다는 뜻이니까요.</>} />
+
+      <CaseCard sev="높음" title="‘실시간’ 초록 점이 데이터와 상관없이 깜빡여요"
+        before={<PulseBefore />} after={<PulseAfter />}
+        now={<>머리글의 초록 점과 ‘실시간’ 글자가 1초마다 깜빡여요. 그런데 이 점은 화면 타이머에 맞춰 뛰어요. 데이터가 6분째 안 와도 똑같이 뛰어요.</>}
+        why={<>움직이는 것은 0.2초 남짓이면 눈을 끌어요 <Cite n={R.healey} />. 그래서 근무자는 이 점을 ‘살아 있다’는 증거로 믿어요. 데이터와 상관없이 뛰는 점은 거짓 신호예요. 게다가 정상 상태에 초록과 움직임을 쓰면, 정말 눈에 띄어야 할 알람 색과 깜빡임이 묻혀요 <Cite n={R.isa101} />.</>}
+        fix={<>점은 <b>데이터를 받을 때만</b> 한 번 뛰게 해요. 옆에 ‘수신 #1288 · 1초 전’처럼 받은 번호와 시간을 적어요. 못 받으면 점을 비우고 ‘n초째 수신 없음’으로 바꿔요. 아래 하트비트 섹션에서 직접 비교해 볼 수 있어요.</>} />
+
+      <CaseCard good sev="보통" title="수집 주기의 3배 동안 소식이 없으면 ‘연결 안 됨’으로 판정해요"
+        before={<PeriodBefore />} after={<PeriodAfter />}
+        now={<>장치마다 값을 보내는 간격(<Term k="수집 주기" d={XT['수집 주기']} />)이 달라요. 이 예시에서 가스 센서는 2초, <Term k="웨어러블" d={XT['웨어러블']} />은 10초, 설비 진동 센서는 1분마다 보내요(가상). 그래서 ‘끊김’ 기준도 각자 주기의 3배로 잡아요.</>}
+        why={<>모든 장치에 기준 하나(예: 60초)를 쓰면 둘 중 하나가 틀려요. 가스 센서는 30번이나 놓쳐야 끊김으로 잡혀요. 1분마다 보내는 진동 센서는 조금만 늦어도 끊김이 떠서 헛알람이 돼요. 주기에 맞추면 빨리 알아채면서도 헛알람이 적어요 <Cite n={R.practice} />.</>}
+        fix={<>기준값은 이벤트 정의서에 장치 종류별로 적어요(<a href="#/dash/ops">08 기획 · 운영 정의</a>). 한 번 늦으면 ‘응답 기다리는 중’, 기준을 넘으면 ‘연결 안 됨’으로 두 단계로 보여 줘요.</>} />
     </div>
   )
 }
@@ -64,7 +238,7 @@ const TICK = 250
 const fmt = (v: number, tidy: boolean) => (tidy ? String(Math.round(v)) : v.toFixed(2))
 
 function initRate(tidy: boolean): RateS {
-  const raw = 83.12
+  const raw = 62.12
   return { k: 0, raw, w: PERIODS.map(() => ({ shown: fmt(raw, tidy), num: raw, prev: raw, chg: 0, lastK: 0, hist: [raw], changes: [] })) }
 }
 function RateDemo() {
@@ -74,7 +248,7 @@ function RateDemo() {
   const ref = useVisibleInterval(() => {
     setSt(s => {
       const k = s.k + 1
-      const target = 83 + Math.sin(k / 90) * 3.5
+      const target = 62 + Math.sin(k / 90) * 3.5
       const raw = s.raw + (r.current() - 0.5) * 1.1 + (target - s.raw) * 0.08
       const w = s.w.map((x, i) => {
         const every = (PERIODS[i] * 1000) / TICK
@@ -93,12 +267,12 @@ function RateDemo() {
     })
   }, TICK)
   const changeTidy = (v: boolean) => { setTidy(v); setSt(initRate(v)) }
-  const NOTE = ['읽기도 전에 숫자가 바뀌어요. 바뀔 때마다 눈이 끌려가요.', '읽을 시간이 충분해요. 부하율·전압 같은 측정값 대부분에 알맞아요.', '편하게 읽히지만, 급한 변화가 최대 30초 늦게 보여요.']
+  const NOTE = ['읽기도 전에 숫자가 바뀌어요. 바뀔 때마다 눈이 끌려가요.', '읽을 시간이 충분해요. 가스 농도·온도 같은 측정값 대부분에 알맞아요.', '편하게 읽히지만, 급한 변화가 최대 30초 늦게 보여요.']
   return (
     <div className="rt-rate" ref={ref}>
       <div className="rt-row">
         <Seg value={tidy ? 't' : 'r'} onChange={v => changeTidy(v === 't')} options={[['r', '받은 값 그대로 (소수 둘째 자리)'], ['t', '정리해서 (정수 · 작은 출렁임 무시)']]} />
-        <span className="muted">세 화면은 같은 신호(강변 1선 부하율, 가상)를 보고 있어요.</span>
+        <span className="muted">세 화면은 같은 신호(프레스 3호기 모터 온도, 가상)를 보고 있어요.</span>
       </div>
       <div className="rt-rate-grid">
         {PERIODS.map((p, i) => {
@@ -109,10 +283,10 @@ function RateDemo() {
           return (
             <Hmi key={p} title={`${p}초마다 갱신`} right={`다음 갱신 ${next}초`} className="rt-w">
               <div className="rt-w-val">
-                <b key={x.chg} className="chg">{x.shown}</b><span className="u">%</span>
+                <b key={x.chg} className="chg">{x.shown}</b><span className="u">℃</span>
                 <span className={'rt-w-dir' + (up ? ' up' : down ? ' down' : '')} aria-hidden="true">{up ? '▲' : down ? '▼' : '–'}</span>
               </div>
-              <Sparkline data={x.hist.length > 1 ? x.hist : [x.hist[0], x.hist[0]]} w={360} h={44} min={74} max={92} className="rt-w-spark" />
+              <Sparkline data={x.hist.length > 1 ? x.hist : [x.hist[0], x.hist[0]]} w={360} h={44} min={53} max={71} className="rt-w-spark" />
               <div className="rt-w-meta"><span>최근 1분간 숫자가 바뀐 횟수</span><b>{perMin}번</b></div>
               <p>{NOTE[i]}</p>
             </Hmi>
@@ -129,14 +303,14 @@ type Conn = 'live' | 'retry'
 interface StS { k: number; link: boolean; conn: Conn; lastK: number; vals: number[]; truth: number[]; hist: { v: number; f?: boolean }[]; buf: number[][]; attempt: number; nextK: number; filledN: number; filledUntil: number; hot: boolean }
 const HALF = 500
 const SLOT = 4 // 2초마다 데이터
-const LOST_AFTER = 10 // 5초 동안 못 받으면 끊김으로 판단
-const FEEDERS = ['강변 1선', '강변 2선', '강변 3선']
+const LOST_AFTER = 12 // 6초(수집 주기 2초의 3배) 동안 못 받으면 끊김으로 판단
+const FEEDERS = ['화학물질 창고 A', '화학물질 창고 B', '도장 부스']
 function initStale(): StS {
-  const truth = [83, 66, 57]
+  const truth = [6, 4, 3]
   const hist = series0()
   return { k: 0, link: true, conn: 'live', lastK: 0, vals: [...truth], truth, hist, buf: [], attempt: 0, nextK: 0, filledN: 0, filledUntil: 0, hot: false }
 }
-function series0() { const r = rng(9); return Array.from({ length: 40 }, () => ({ v: +(83 + (r() - 0.5) * 2.4).toFixed(1) })) }
+function series0() { const r = rng(9); return Array.from({ length: 40 }, () => ({ v: +(6 + (r() - 0.5) * 1.2).toFixed(1) })) }
 
 function StaleDemo() {
   const [st, setSt] = useState<StS>(initStale)
@@ -149,11 +323,11 @@ function StaleDemo() {
       const s: StS = { ...s0, k: s0.k + 1 }
       const k = s.k
       if (k % SLOT === 0) {
-        const tgt = s.hot ? 97 : 83
+        const tgt = s.hot ? 18 : 6
         s.truth = [
-          +(s.truth[0] + (tgt - s.truth[0]) * 0.18 + (r.current() - 0.5) * 1.2).toFixed(1),
-          +(66 + (r.current() - 0.5) * 2).toFixed(1),
-          +(57 + (r.current() - 0.5) * 2).toFixed(1),
+          +(s.truth[0] + (tgt - s.truth[0]) * 0.18 + (r.current() - 0.5) * 0.6).toFixed(1),
+          +(4 + (r.current() - 0.5) * 0.8).toFixed(1),
+          +(3 + (r.current() - 0.5) * 0.8).toFixed(1),
         ]
         if (s.link && s.conn === 'live') { s.vals = s.truth; s.lastK = k; s.hist = [...s.hist, { v: s.truth[0] }].slice(-40) }
         else s.buf = [...s.buf, s.truth]
@@ -183,7 +357,7 @@ function StaleDemo() {
   const missing = good ? st.buf.length : 0
   const N = 40, W = 600, H = 130, dx = W / (N - 1)
   const pts = [...st.hist.slice(-(N - missing))]
-  const y = (v: number) => H - 8 - ((v - 70) / 32) * (H - 16)
+  const y = (v: number) => H - 8 - (v / 30) * (H - 16)
   const x0 = (N - missing - pts.length) * dx
   const xy = pts.map((p, i) => [x0 + i * dx, y(p.v)] as const)
   // 받은 구간은 실선, 나중에 채운 구간은 점선 (채운 구간은 직전 점에서 이어 그려요)
@@ -210,7 +384,7 @@ function StaleDemo() {
         </div>
       </div>
 
-      <Hmi title="강변 변전소 · 선로 운전"
+      <Hmi title="제2공장 · 가스 감시"
         right={good
           ? <span className={'rt-fresh' + (stale ? ' old' : '')}>{!stale && <i className="rt-live" aria-hidden="true" />}{stale ? '' : '실시간 · '}마지막 갱신 {hhmmss(tAt(st.lastK))} ({ago(age)})</span>
           : <span>{hhmmss(tAt(st.k))}</span>}
@@ -233,28 +407,28 @@ function StaleDemo() {
         <div className="rt-st-tiles">
           {FEEDERS.map((f, i) => {
             const v = st.vals[i]
-            const al = v > 95
+            const al = v > SAFE_RANGES.lel.normal[1]
             return (
               <div key={f} className={'rt-tile' + (stale ? ' stale' : '')}>
-                <div className="top"><span>{f} 부하율</span>{al && !stale && <PriBadge p={2} />}{stale && <span className="tag">오래된 값</span>}</div>
-                <div className="v"><b>{v.toFixed(0)}</b>%</div>
-                <AnalogBar value={v} min={RANGES.load.min} max={RANGES.load.max} normal={RANGES.load.normal} alarm={RANGES.load.alarm} unit="%" name={f + ' 부하율'} w={180} />
-                {peek && <div className={'truth' + (Math.abs(st.truth[i] - v) >= 3 ? ' diff' : '')}>현장 실제 값 {st.truth[i].toFixed(0)}%</div>}
+                <div className="top"><span>{f} 가연성 가스</span>{al && !stale && <PriBadge p={2} />}{stale && <span className="tag">오래된 값</span>}</div>
+                <div className="v"><b>{v.toFixed(0)}</b>%LEL</div>
+                <AnalogBar value={v} min={SAFE_RANGES.lel.min} max={SAFE_RANGES.lel.max} normal={SAFE_RANGES.lel.normal} alarm={SAFE_RANGES.lel.alarm} unit="%LEL" name={f + ' 가연성 가스'} w={180} />
+                {peek && <div className={'truth' + (Math.abs(st.truth[i] - v) >= 2 ? ' diff' : '')}>현장 실제 값 {st.truth[i].toFixed(0)}%LEL</div>}
               </div>
             )
           })}
         </div>
         <div className="rt-st-trend">
-          <div className="cap"><span>강변 1선 부하율 추세 (최근 80초)</span><span className="lg"><i className="s" />받은 값 <i className="f" />나중에 채운 값 {good && <><i className="h" />못 받은 구간</>}</span></div>
-          <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" role="img" aria-label="강변 1선 부하율 추세">
+          <div className="cap"><span>화학물질 창고 A 가연성 가스 추세 (최근 80초)</span><span className="lg"><i className="s" />받은 값 <i className="f" />나중에 채운 값 {good && <><i className="h" />못 받은 구간</>}</span></div>
+          <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" role="img" aria-label="화학물질 창고 A 가연성 가스 추세">
             <defs><pattern id="rt-hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="3" height="8" className="hatch" /></pattern></defs>
-            <rect x="0" width={W} y={y(80)} height={y(70) - y(80)} className="band" />
-            <line x1="0" x2={W} y1={y(95)} y2={y(95)} className="al" />
+            <rect x="0" width={W} y={y(10)} height={y(0) - y(10)} className="band" />
+            <line x1="0" x2={W} y1={y(25)} y2={y(25)} className="al" />
             {missing > 0 && <rect x={(N - missing) * dx - dx / 2} width={missing * dx + dx / 2} y="0" height={H} fill="url(#rt-hatch)" className="gap" />}
             <path d={solid} className="ln" />
             {filledD && <path d={filledD} className="ln f" />}
           </svg>
-          <div className="ax"><span>정상 범위 끝 80%</span><span>경보선 95%</span></div>
+          <div className="ax"><span>띠: 정상 범위 0~10%LEL</span><span>점선: 경보선 25%LEL</span></div>
         </div>
       </Hmi>
       {!good && !st.link && <Note tone="warn"><b>지금 화면은 멈췄어요.</b> 그런데 시계는 계속 가고, 숫자는 정상 범위 안이에요. 그래서 아무 일도 없어 보여요. ‘현장 실제 값 함께 보기’를 켜 보세요.</Note>}
@@ -286,13 +460,13 @@ function Heartbeat() {
       <div className="rt-hb-grid">
         <div className="rt-hb-card bad">
           <span className="h">나쁜 예 · 화면 혼자 시계에 맞춰 움직임</span>
-          <Hmi title="강변 변전소" right={<span className="rt-hb-ind"><i key={Math.floor(k / 4)} className="pulse" aria-hidden="true" />{hhmmss(new Date(base.current + k * 250))}</span>}>
+          <Hmi title="제2공장 · 가스 센서" right={<span className="rt-hb-ind"><i key={Math.floor(k / 4)} className="pulse" aria-hidden="true" />{hhmmss(new Date(base.current + k * 250))}</span>}>
             <p className="rt-hb-p">점은 1초마다 뛰고 시계도 가요. 하지만 이건 <b>브라우저가 켜져 있다</b>는 뜻일 뿐이에요. 데이터가 오는지와는 상관없어요.</p>
           </Hmi>
         </div>
         <div className="rt-hb-card good">
           <span className="h">좋은 예 · 데이터를 받을 때만 움직임</span>
-          <Hmi title="강변 변전소" right={<span className={'rt-hb-ind' + (quiet ? ' quiet' : '')}><i key={recv.n} className={quiet ? 'dead' : 'pulse'} aria-hidden="true" />{quiet ? `${Math.floor(age)}초째 수신 없음` : `수신 #${recv.n} · ${ago(age)}`}</span>}>
+          <Hmi title="제2공장 · 가스 센서" right={<span className={'rt-hb-ind' + (quiet ? ' quiet' : '')}><i key={recv.n} className={quiet ? 'dead' : 'pulse'} aria-hidden="true" />{quiet ? `${Math.floor(age)}초째 수신 없음` : `수신 #${recv.n} · ${ago(age)}`}</span>}>
             <p className="rt-hb-p">점은 데이터가 도착할 때만 뛰어요. 그때마다 받은 번호(수신 #)도 하나씩 올라가요. 데이터가 멈추면 3초 뒤 점이 회색이 되고, <b>몇 초째 못 받았는지</b> 보여줘요.</p>
           </Hmi>
         </div>
@@ -322,7 +496,7 @@ function TimeDemo() {
         </div>
         <div className="rt-tm-tz"><span className="muted">PC 시간대</span><Seg value={tz} onChange={setTz} options={[['Asia/Seoul', '서울'], ['UTC', '세계 표준시(UTC)']]} /></div>
       </div>
-      <Hmi title="알람 상세 · 강변 1선 부하율 95% 초과">
+      <Hmi title="알람 상세 · 화학물질 창고 가연성 가스 10%LEL 초과">
         <div className="rt-tm-rows">
           <div className="ok"><span className="h">서버 시각으로 계산</span><b>발생 {fmtTz(ev, 'Asia/Seoul')} KST</b><span>{ago(real)}</span></div>
           <div className={wrong || tz === 'UTC' ? 'bad' : 'ok'}><span className="h">PC 시계 · PC 시간대로 계산</span><b>발생 {fmtTz(ev, tz)}</b><span>{pcTxt}</span></div>
@@ -343,17 +517,17 @@ function Digits() {
     <div className="rt-dg" ref={ref}>
       <Seg value={tab ? 't' : 'p'} onChange={x => setTab(x === 't')} options={[['p', '숫자 폭이 제각각 (기본)'], ['t', '숫자 폭 고정 (tabular-nums)']]} />
       <div className={'rt-dg-box' + (tab ? ' tab' : '')}>
-        {['북부 변전소', '강변 변전소', '산업단지 변전소'].map((n, i) => (
-          <div key={n}><span>{n} 전력</span><b>{v[i].toLocaleString('ko-KR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}<small> kW</small></b></div>
+        {['도장 부스', '화학물질 창고', '혼합실'].map((n, i) => (
+          <div key={n}><span>{n} 배기 풍량</span><b>{v[i].toLocaleString('ko-KR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}<small> m³/h</small></b></div>
         ))}
       </div>
-      <p className="muted">값은 가상이에요. 왼쪽 정렬된 숫자 뒤의 ‘kW’가 {tab ? '제자리에 있어요.' : '1초마다 좌우로 흔들려요. 1이 8보다 좁기 때문이에요.'}</p>
+      <p className="muted">값은 가상이에요. 왼쪽 정렬된 숫자 뒤의 ‘m³/h’가 {tab ? '제자리에 있어요.' : '1초마다 좌우로 흔들려요. 1이 8보다 좁기 때문이에요.'}</p>
     </div>
   )
 }
-const BASE_ROWS = ['북부 2선 전압 22.4kV 미만', '강변 2선 R/C-12 개폐기 통신 두절', '북부 변전소 출입문 개방', '산단 2선 부하율 80% 초과', '강변 3선 R/C-04 통신 두절']
-const INCOMING = ['산단 3선 R/C-07 배터리 전압 낮음', '북부 1선 부하율 80% 초과', '강변 변전소 출입문 개방', '북부 3선 전압 23.4kV 초과', '산단 2선 R/C-02 통신 두절', '강변 1선 부하율 80% 초과', '북부 2선 R/C-09 통신 두절', '산단 3선 전압 22.4kV 미만']
-const TARGET = '강변 2선 R/C-12 개폐기 통신 두절'
+const BASE_ROWS = ['제2공장 프레스 3호기 진동 4.5mm/s 초과', '신축 현장 고소작업 CCTV 3번 영상 끊김', '물류센터 상하차장 안전모 미착용', '제2공장 도장 부스 배기 풍량 낮음', '물류센터 CCTV 5번 영상 끊김']
+const INCOMING = ['신축 현장 웨어러블 배터리 낮음', '제2공장 프레스 1호기 모터 온도 70℃ 초과', '물류센터 고층 랙 구역 출입문 열림', '신축 현장 게이트 보호조끼 미착용', '제2공장 가스 센서 7번 통신 끊김', '물류센터 지게차 통로 보행자 접근', '신축 현장 지하 조명 고장', '제2공장 정문 게이트 출입 카드 오류']
+const TARGET = '신축 현장 고소작업 CCTV 3번 영상 끊김'
 function Reorder() {
   const [mode, setMode] = useState<'insert' | 'buffer'>('insert')
   const [rows, setRows] = useState(BASE_ROWS)
@@ -440,7 +614,7 @@ const REFS: RefItem[] = [
 export default function Tab() {
   return (
     <div data-dash="realtime">
-      <TermList keys={['상황 인식', '갱신 주기', '신선도', '하트비트', '부하율', '정상 범위', '추세', '절체', '동작 줄이기', 'UTC', '시각적 연속성', 'tabular-nums']} extra={XT} />
+      <TermList keys={['상황 인식', '갱신 주기', '수집 주기', '신선도', '하트비트', '%LEL', '정상 범위', '경보 범위', '추세', '웨어러블', '동작 줄이기', 'UTC', '시각적 연속성', 'tabular-nums']} extra={XT} />
       <SysGrid>
         <Section id="dash-realtime-why" wide title="실시간 화면이 틀린 정보를 주는 두 가지 경우"
           gist="너무 자주 바뀌는 화면보다, 멈췄는데 살아 보이는 화면이 더 위험해요."
@@ -453,6 +627,12 @@ export default function Tab() {
           </div>
         </Section>
 
+        <Section id="dash-realtime-mistakes" wide title="흔한 실수 — 멈췄는데 ‘실시간’이라고 말해요"
+          gist="연결이 끊기거나 센서가 멈추면, 화면이 먼저 크게 말해야 해요."
+          desc={<>업계에서 흔히 보는 안전관리 화면의 실시간 표시 문제예요. 사람의 실수가 아니라 화면 설계의 문제예요. 카드마다 ‘흔한 화면’과 ‘업그레이드하면’을 눌러 비교해 보세요. 예시 현장({SAFE_PLACE})과 수치는 모두 가상이에요.</>}>
+          <Mistakes />
+        </Section>
+
         <Section id="dash-realtime-rate" wide title="숫자를 자주 바꾼다고 좋은 게 아니에요"
           gist="측정값 대부분은 몇 초마다 바꾸면 충분해요. 너무 잦으면 눈만 뺏겨요."
           desc={<>옆에서 누가 계속 손을 흔들면 하던 일에 집중이 안 되죠. 화면의 숫자도 같아요. 같은 신호를 1초·5초·30초마다 바꿔 봤어요(<Term k="갱신 주기" d={XT['갱신 주기']} />). 움직이는 것은 0.2~0.25초 만에 눈을 끌어가요 <Cite n={R.healey} />. 숫자가 쉬지 않고 바뀌면, 정작 이상이 생긴 곳을 볼 주의를 계속 뺏겨요.</>}>
@@ -461,10 +641,10 @@ export default function Tab() {
 
         <Section id="dash-realtime-stale" wide title="멈춘 화면이 정상처럼 보이는 게 가장 위험해요"
           gist="값마다 ‘언제 받은 값인지’를 보여 줘야 멈춘 화면을 알아챌 수 있어요."
-          desc={<>유통기한이 안 적힌 우유는 마셔도 되는지 알 수 없어요. 화면의 숫자도 ‘언제 받은 값인지’가 붙어야 믿을 수 있어요. 이걸 <Term k="신선도" />라고 해요. ‘통신 끊기’를 누르면, 그사이 현장에서는 강변 1선 부하가 오르기 시작해요. 신선도 표시가 없을 때와 있을 때를 비교해 보세요. 숫자는 모두 가상이에요.</>}>
+          desc={<>유통기한이 안 적힌 우유는 마셔도 되는지 알 수 없어요. 화면의 숫자도 ‘언제 받은 값인지’가 붙어야 믿을 수 있어요. 이걸 <Term k="신선도" />라고 해요. ‘통신 끊기’를 누르면, 그사이 현장에서는 화학물질 창고 A의 가스 농도가 오르기 시작해요. 안전관리 화면에서 멈춘 가스 값은 ‘가스 없음’처럼 보여서 특히 위험해요. 신선도 표시가 없을 때와 있을 때를 비교해 보세요. 숫자는 모두 가상이에요.</>}>
           <StaleDemo />
           <div className="rt-rules3">
-            <div><b>언제부터 ‘끊김’으로 볼지 정해요</b><p>이 예시는 2초마다 데이터를 받고, 5초 동안 못 받으면 끊김으로 봐요. 보통 받는 간격의 두세 배쯤으로 잡아요. 정한 값은 정의서에 적어요 <Cite n={R.practice} />.</p></div>
+            <div><b>언제부터 ‘끊김’으로 볼지 정해요</b><p>이 예시는 2초마다 데이터를 받고, 6초 동안 못 받으면 끊김으로 봐요. 보통 받는 간격(<Term k="수집 주기" d={XT['수집 주기']} />)의 세 배쯤으로 잡아요. 센서마다 주기가 다르면 기준도 따로 잡고, 정의서에 적어요 <Cite n={R.practice} />.</p></div>
             <div><b>오래된 값은 다르게 그려요</b><p>회색, 빗금, ‘오래된 값’ 글자를 함께 써요. 색만 바꾸면 원래 회색 위주인 관제 화면에서는 티가 안 나요 <Cite n={R.isa101} />. 오래된 값을 보고 알람을 울리거나 풀지 않아요.</p></div>
             <div><b>다시 연결되면 빈 구간을 채워요</b><p>끊긴 동안의 값을 서버에서 다시 받아 <Term k="추세" /> 그래프를 이어요. 나중에 채운 구간은 점선으로 구분해요. 구현 방법은 <a href="#/dash/fe">09 FE · 구현</a>에서 다뤄요.</p></div>
           </div>
@@ -510,8 +690,8 @@ export default function Tab() {
             <table className="sys-table">
               <thead><tr><th>데이터</th><th>갱신</th><th>화면에서</th></tr></thead>
               <tbody>
-                <tr><td><b>차단기 트립 같은 상태 변화</b></td><td>바뀌는 즉시(서버가 먼저 보내 줌)</td><td>알람을 띄우고, 그 설비 표시도 바로 바꿔요.</td></tr>
-                <tr><td><b>부하율·전압 같은 측정값</b></td><td>몇 초마다</td><td>필요한 자릿수만 보여 주고, 작은 출렁임은 무시해요. 막대 그래프로 정상 범위 안인지 보여줘요 <Cite n={R.hmi} />.</td></tr>
+                <tr><td><b>화재 감지·작업자 무응답 같은 상태 변화</b></td><td>바뀌는 즉시(서버가 먼저 보내 줌)</td><td>알람을 띄우고, 그 설비 표시도 바로 바꿔요.</td></tr>
+                <tr><td><b>가스 농도·온도 같은 측정값</b></td><td>몇 초마다</td><td>필요한 자릿수만 보여 주고, 작은 출렁임은 무시해요. 막대 그래프로 정상 범위 안인지 보여줘요 <Cite n={R.hmi} />.</td></tr>
                 <tr><td><b>하루 추세 · 통계</b></td><td>몇 분마다</td><td>‘14:00 기준’처럼 언제 계산한 값인지 붙여요.</td></tr>
                 <tr><td><b>통신 상태</b></td><td>하트비트로 늘</td><td>끊기면 바로 배너를 띄우고, 값에는 ‘오래된 값’ 표시를 해요.</td></tr>
               </tbody>

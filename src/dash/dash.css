@@ -58,3 +58,26 @@
 /* 알람 색이 회색·어두운 배경에서 3:1 미만일 수 있어, 모양에 글자색 외곽선을 둘러 경계를 보장해요 */
 .dash-pri svg > :first-child { stroke: currentColor; stroke-width: 1.3; paint-order: stroke; }
 .dash-analog.out .ptr, .dash-analog.bad .ptr { filter: drop-shadow(0 0 .6px currentColor) drop-shadow(0 0 .6px currentColor); }
+
+/* 흔한 실수 카드 (CaseCard) */
+.neo-case { border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; display: flex; flex-direction: column; gap: 12px; background: var(--surface); min-width: 0; }
+.neo-case header { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.neo-case h4 { margin: 0; font-size: 17px; line-height: 1.4; word-break: keep-all; }
+.neo-sev { font-size: 12px; font-weight: 800; border-radius: 6px; padding: 3px 8px; white-space: nowrap; }
+.neo-sev.s-치명 { background: var(--p1); color: var(--p1-on); }
+.neo-sev.s-높음 { background: var(--p2); color: var(--p2-on); }
+.neo-sev.s-보통 { background: var(--surface-2); color: var(--text-2); }
+.neo-sev.s-good { background: color-mix(in srgb, var(--ok) 14%, var(--surface)); color: var(--ok); }
+.neo-vs { display: flex; flex-direction: column; gap: 10px; }
+.neo-vs-tog { align-self: flex-start; }
+.neo-vs-stage { min-width: 0; overflow-x: auto; }
+.neo-case-dl { margin: 0; display: flex; flex-direction: column; gap: 8px; }
+.neo-case-dl > div { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 10px; }
+.neo-case-dl dt { font-size: 13px; font-weight: 800; color: var(--text-3); padding-top: 2px; }
+.neo-case-dl dd { margin: 0; font-size: 15px; line-height: 1.65; color: var(--text-2); word-break: keep-all; }
+.neo-case-dl dd b { color: var(--text); }
+.neo-code { margin: 0; font-size: 12.5px; color: var(--text-3); font-family: ui-monospace, Consolas, monospace; word-break: break-all; }
+@media (max-width: 767px) {
+  .neo-case { padding: 14px 12px; }
+  .neo-case-dl > div { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+}

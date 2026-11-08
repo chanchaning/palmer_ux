@@ -2,15 +2,18 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Term, TermList } from '../../components/Term'
 import { Range, Seg } from '../../components/ui'
 import { Note, Section, SliderRow, SysGrid } from '../../system/ui'
-import { ALARMS, RANGES, SUBSTATIONS } from '../data'
-import { AnalogBar, Cite, Finding, Hmi, PriBadge, Refs } from '../ui'
+import { SAFE_ALARMS, SAFE_CENTER, SAFE_RANGES, SAFE_SITES } from '../data'
+import { AnalogBar, CaseCard, Cite, Finding, Hmi, PriBadge, Refs } from '../ui'
 import './room.css'
 
 /** 사전(glossary.ts)에 없는 이 탭 전용 용어 */
 const X: Record<string, string> = {
   '인간공학': '사람의 몸과 눈, 주의력에 맞춰 일하는 환경을 설계하는 분야예요. 의자 높이, 화면까지 거리, 글자 크기 같은 것을 다뤄요.',
-  '콘솔': '운영자가 앉아 일하는 책상과 모니터 묶음이에요. 모니터 여러 대가 반원처럼 놓여 있어요.',
-  '감독자': '관제실 전체를 조율하는 책임자예요. 보통 운영자 뒤쪽, 조금 높은 자리에 앉아요.',
+  '콘솔': '근무자가 앉아 일하는 책상과 모니터 묶음이에요. 모니터 여러 대가 반원처럼 놓여 있어요.',
+  '상황실': '현장 여러 곳의 센서·CCTV·알람을 한곳에 모아 지켜보는 방이에요. 벽면 대형 화면과 근무자 책상(콘솔)이 있어요.',
+  '야간 근무': '밤사이 상황실을 지키는 교대 근무예요. 방 조명을 낮추는 경우가 많아서 화면 밝기와 색을 다시 맞춰야 해요.',
+  '위치 태그': '작업자가 몸에 다는 작은 장치예요. 지금 어느 구역에 있는지를 시스템에 알려 줘요.',
+  '감독자': '상황실 전체를 조율하는 책임자예요. 보통 근무자 뒤쪽, 조금 높은 자리에 앉아요.',
   '시청 거리': '눈에서 화면까지의 거리예요. 멀수록 글자가 커야 읽혀요.',
   '시각도': '물체가 눈에 얼마나 크게 보이는지를 각도로 나타낸 값이에요. 멀리 있는 큰 산과 눈앞의 손톱이 비슷한 크기로 보이는 것처럼, 실제 크기가 아니라 ‘보이는 크기’예요. 단위 ′(분)은 1도의 1/60이에요.',
   '화소 간격': '화면의 점(화소) 하나와 옆 점 사이의 거리예요. 같은 크기 화면이라도 해상도가 높을수록 점이 촘촘해서 간격이 작아요.',
@@ -100,14 +103,14 @@ function ViewDistance() {
 
   const ZONES = {
     wall: { name: '벽면 대형 화면', lv: '레벨 1 · 모두 함께', d: '모두가 같은 그림을 봐요. 누가 봐도 같은 결론이 나와야 해요. 그래서 전체 개요만 올리고, 여기서 조작하지 않아요. 멀리서 읽혀야 하니 글자와 기호가 커요.' },
-    desk: { name: '운영자 콘솔', lv: '레벨 2~4 · 개인', d: '모니터 여러 대로 각자 자세히 들어가 보는 화면이에요. 팔 길이쯤 떨어져 보니 글자가 작아도 돼요. 대신 고개만 돌려 볼 수 있는 범위 안에 모아 둬요.' },
-    sup: { name: '감독자 자리', lv: '전체 조율', d: '운영자 뒤쪽 자리예요. 여기서 벽면 화면과 운영자를 함께 봐요. 감독자 눈높이에서도 벽면 화면이 가려지지 않게 배치해요.' },
+    desk: { name: '근무자 콘솔', lv: '레벨 2~4 · 개인', d: '모니터 여러 대로 각자 자세히 들어가 보는 화면이에요. 팔 길이쯤 떨어져 보니 글자가 작아도 돼요. 대신 고개만 돌려 볼 수 있는 범위 안에 모아 둬요.' },
+    sup: { name: '감독자 자리', lv: '전체 조율', d: '근무자 뒤쪽 자리예요. 여기서 벽면 화면과 근무자를 함께 봐요. 감독자 눈높이에서도 벽면 화면이 가려지지 않게 배치해요.' },
   }
 
   return (
     <div className="rm-vd">
       <div className="rm-vd-top">
-        <svg className="rm-sec" viewBox="0 0 640 240" role="img" aria-label={`관제실 단면. 운영자는 벽면 화면에서 ${opDist.toFixed(1)}m 떨어져 있어요.`}>
+        <svg className="rm-sec" viewBox="0 0 640 240" role="img" aria-label={`상황실 단면. 근무자는 벽면 화면에서 ${opDist.toFixed(1)}m 떨어져 있어요.`}>
           <line className="floor" x1="10" x2="630" y1={FLOOR} y2={FLOOR} />
           <line className="wallln" x1={X0 - 6} x2={X0 - 6} y1="14" y2={FLOOR} />
           {/* 벽면 화면 */}
@@ -121,14 +124,14 @@ function ViewDistance() {
           {/* 거리 */}
           <line className="dim" x1={X0} x2={opX - 6} y1={FLOOR + 14} y2={FLOOR + 14} />
           <text className="dimt" x={(X0 + opX) / 2} y={FLOOR + 28} textAnchor="middle">{opDist.toFixed(1)}m{!isWall && ' (예시)'}</text>
-          {/* 운영자 + 콘솔 */}
+          {/* 근무자 + 콘솔 */}
           <g className={'z' + (zone === 'desk' ? ' on' : '')}>
             <rect x={opX + 10} y={FLOOR - 0.75 * S} width={0.9 * S} height="5" />
             <rect x={opX + 14} y={FLOOR - 0.75 * S - 22} width="4" height="22" />
             <rect x={opX + 12} y={FLOOR - 0.75 * S} width="4" height={0.75 * S} />
             <circle cx={opX + 2} cy={eyeY - 6} r="8" />
             <path d={`M${opX + 2},${eyeY + 2} L${opX + 6},${FLOOR - 0.45 * S} L${opX + 28},${FLOOR - 0.45 * S} L${opX + 30},${FLOOR}`} className="body" />
-            <text x={opX + 10} y={FLOOR - 0.75 * S - 30}>운영자 콘솔</text>
+            <text x={opX + 10} y={FLOOR - 0.75 * S - 30}>근무자 콘솔</text>
           </g>
           {/* 감독자 (단 위) */}
           <g className={'z' + (zone === 'sup' ? ' on' : '')}>
@@ -139,7 +142,7 @@ function ViewDistance() {
           </g>
           {isWall && <><rect className="minzone" x={X0} y={FLOOR - 4} width={minDist * S} height="4" /><text className="mint" x={X0 + 4} y={FLOOR - 8}>너무 가까운 구간 ~{minDist.toFixed(1)}m</text></>}
         </svg>
-        <div className="rm-zones" role="group" aria-label="관제실 구역">
+        <div className="rm-zones" role="group" aria-label="상황실 구역">
           {(Object.keys(ZONES) as (keyof typeof ZONES)[]).map(k => (
             <button key={k} type="button" className={zone === k ? 'on' : ''} aria-pressed={zone === k} onClick={() => setZone(k)}>
               <b>{ZONES[k].name}</b><small>{ZONES[k].lv}</small>
@@ -186,7 +189,7 @@ function ViewDistance() {
       </div>
       <div className="rm-sample" aria-hidden="true">
         <span className="muted">벽면 화면에서 {fs ? Math.ceil(fs) : '–'}px 글꼴로 쓴 예</span>
-        <div className="rm-sample-box"><span style={{ fontSize: Math.min(72, Math.max(10, fs ?? 16)) }}>강변 1선 83%</span></div>
+        <div className="rm-sample-box"><span style={{ fontSize: Math.min(72, Math.max(10, fs ?? 16)) }}>도장 부스 연기 감지</span></div>
         <small className="muted">지금 보고 계신 화면과 화소 크기가 달라서, 실제로 보이는 크기는 아니에요. 크기 관계만 보세요.</small>
       </div>
     </div>
@@ -195,6 +198,8 @@ function ViewDistance() {
 
 /* ================= 2. 조명과 화면 밝기 ================= */
 type Light = 'bright' | 'dim'
+const LEL = SAFE_RANGES.lel
+const LS_ROWS = [{ name: '프레스 라인', v: 2 }, { name: '도장 부스', v: 4 }, { name: '화학물질 창고', v: 12 }]
 type Scr = 'gray' | 'dark'
 const DARK_P = { p1: '#ff6b6b', p2: '#ff922b', p3: '#ffd43b' }
 
@@ -208,21 +213,21 @@ function LightAndScreen() {
   return (
     <div className="rm-ls">
       <div className="rm-ls-ctl">
-        <div><span className="rm-k">관제실 조명</span><Seg value={light} onChange={setLight} options={[['bright', '밝은 관제실 (주간)'], ['dim', '어두운 관제실 (야간)']]} /></div>
+        <div><span className="rm-k">상황실 조명</span><Seg value={light} onChange={setLight} options={[['bright', '밝은 상황실 (주간)'], ['dim', '어두운 상황실 (야간)']]} /></div>
         <div><span className="rm-k">화면 배경</span><Seg value={scr} onChange={setScr} options={[['gray', '회색 배경'], ['dark', '다크 배경']]} /></div>
       </div>
       <div className={'rm-room ' + light}>
         <div className={'rm-room-scr ' + scr + (light === 'dim' && scr === 'gray' ? ' glow' : '')}>
-          <Hmi dark={scr === 'dark'} title="강변 변전소" right="02:14" className="rm-ls-hmi">
+          <Hmi dark={scr === 'dark'} title="제2공장 · 가연성 가스" right="02:14" className="rm-ls-hmi">
             <div className="rm-ls-rows">
-              {SUBSTATIONS[1].feeders.map(f => (
-                <div key={f.id} className="rm-ls-row">
-                  <span>{f.name}</span>
-                  <AnalogBar value={f.load} min={0} max={120} normal={RANGES.load.normal} alarm={RANGES.load.alarm} unit="%" name={f.name} w={120} />
-                  <em>{f.load}%</em>
+              {LS_ROWS.map(r => (
+                <div key={r.name} className="rm-ls-row">
+                  <span>{r.name}</span>
+                  <AnalogBar value={r.v} min={LEL.min} max={LEL.max} normal={LEL.normal} alarm={LEL.alarm} unit="%LEL" name={r.name + ' 가연성 가스'} w={120} />
+                  <em>{r.v}%LEL</em>
                 </div>
               ))}
-              <div className="rm-ls-al"><PriBadge p={2} /> 강변 1선 부하율 높음</div>
+              <div className="rm-ls-al"><PriBadge p={2} /> 화학물질 창고 가스 정상 범위 넘음</div>
             </div>
           </Hmi>
           {light === 'bright' && scr === 'dark' && <div className="rm-refl" aria-hidden="true"><i className="a" /><i className="b" /></div>}
@@ -270,7 +275,7 @@ function DarkContrast() {
 
 /* ================= 3. 멀티 모니터: 알람 목록 위치 ================= */
 type Layout = 'fixed' | 'moving'
-const MON_ROLES = ['알람 목록', '레벨 2 구역 운전', '레벨 3 · 4 상세', '추세 · 보조']
+const MON_ROLES = ['알람 목록', '레벨 2 현장 화면', '레벨 3 · 4 구역 상세', 'CCTV · 보조']
 const MOVE_SEQ = [2, 0, 3, 1, 2, 3, 0, 1]
 
 function Monitors() {
@@ -287,7 +292,7 @@ function Monitors() {
     for (let i = 0; i < 4; i++) arr.push(i === alarmAt ? MON_ROLES[0] : others[(k++ + round) % 3])
     return arr
   }, [alarmAt, round])
-  const a = ALARMS[round % ALARMS.length]
+  const a = SAFE_ALARMS[round % SAFE_ALARMS.length]
   const avg = (l: Layout) => times[l].length ? (times[l].reduce((s, v) => s + v, 0) / times[l].length / 1000).toFixed(2) + '초' : '–'
 
   const start = () => { setRound(r => r + 1); setT0(performance.now()); setMiss(0) }
@@ -336,12 +341,12 @@ function BurnIn() {
       </div>
       <div className={'rm-bi-scr ' + mode + (reveal ? ' reveal' : '')}>
         <div className="ghost" aria-hidden="true">
-          <div className="gh-top"><span className="gh-logo">누리시 배전 관제센터</span></div><div className="gh-side" />
+          <div className="gh-top"><span className="gh-logo">{SAFE_CENTER}</span></div><div className="gh-side" />
         </div>
         {!reveal && (
           <div className="live">
-            <div className="lv-top"><b>누리시 배전 관제센터 · 전체 개요</b><span>14:42:07</span></div>
-            <div className="lv-mid">{SUBSTATIONS.map(s => <div key={s.id}><b>{s.name}</b><span>정상</span></div>)}</div>
+            <div className="lv-top"><b>{SAFE_CENTER} · 전체 개요</b><span>14:42:07</span></div>
+            <div className="lv-mid">{SAFE_SITES.map(s => <div key={s.id}><b>{s.name}</b><span>정상</span></div>)}</div>
           </div>
         )}
       </div>
@@ -350,15 +355,140 @@ function BurnIn() {
   )
 }
 
+/* ================= 흔한 실수: before / after 목업 ================= */
+function OldBar({ title }: { title: string }) {
+  return <div className="rm-old-bar"><b>{title}</b><span><i className="lamp" aria-hidden="true" />정상 운영 중</span></div>
+}
+const WALL = DISPS[0]
+const WALL_DIST = 5
+/** 벽면 55인치 FHD 2×2, 5m, 16′ 기준으로 필요한 글자 높이(화소) */
+const wallNeedPx = () => Math.ceil(charMm(WALL_DIST, 16) / geom(WALL).pitch)
+
+function TinyBefore() {
+  return (
+    <div className="rm-old" role="img" aria-label="흔한 화면: 벽면 화면인데 글자가 10~12px로 아주 작음">
+      <OldBar title={`${SAFE_CENTER} 종합 상황판`} />
+      <div className="rm-old-tiny">
+        {SAFE_SITES.map(s => (
+          <div key={s.id}>
+            <b>{s.name}</b>
+            {s.zones.map(z => <span key={z.id}><i className="lamp" aria-hidden="true" />{z.name} 정상 · {z.workers}명</span>)}
+          </div>
+        ))}
+      </div>
+      <p className="rm-old-cap">회의실 노트북에서 만든 화면을 벽면에 그대로 띄웠어요. 5m 뒤 자리에서 이 글자는 점으로 보여요.</p>
+    </div>
+  )
+}
+function TinyAfter() {
+  return (
+    <Hmi title={`${SAFE_CENTER} · 전체 개요`} right="02:14" className="rm-mk">
+      <div className="rm-mk-big">
+        {SAFE_SITES.map(s => {
+          const hit = s.id === 'F'
+          return <div key={s.id} className={hit ? 'alarm' : ''}><b>{s.name}</b><span>{hit ? <><PriBadge p={2} size={24} /> 가스 높음</> : '정상'}</span></div>
+        })}
+      </div>
+      <p className="rm-mk-note">글자를 키우는 대신 올리는 정보를 현장 3곳의 상태로 줄였어요. 구역 이름과 숫자는 근무자 모니터에서 봐요.</p>
+    </Hmi>
+  )
+}
+
+const PEOPLE = [
+  { n: '홍길동', ph: '010-1234-5678', z: '지하 밀폐공간', st: '무응답 30초' },
+  { n: '김철수', ph: '010-2345-6789', z: '지하 밀폐공간', st: '작업 중' },
+  { n: '이영희', ph: '010-3456-7890', z: '지하 밀폐공간', st: '감시인' },
+]
+function PeopleBefore() {
+  return (
+    <div className="rm-old" role="img" aria-label="흔한 화면: 벽면에 작업자 이름과 전화번호가 그대로 보임">
+      <OldBar title="작업자 위치 현황" />
+      <ul className="rm-old-ppl">
+        {PEOPLE.map(p => <li key={p.n}><b>{p.n}</b><span>{p.ph}</span><span>{p.z}</span><span className={p.st.startsWith('무응답') ? 'red' : 'grn'}>{p.st}</span></li>)}
+      </ul>
+      <p className="rm-old-cap">방문객, 협력업체 직원, 다른 근무자 누구나 이 벽을 봐요. 이름은 예시용 가상 인물이에요.</p>
+    </div>
+  )
+}
+function PeopleAfter() {
+  return (
+    <Hmi title="신축 현장 · 지하 밀폐공간" right="02:14" className="rm-mk">
+      <div className="rm-mk-ppl">
+        <div className="al"><PriBadge p={1} /><b>무응답 1명</b><span>위치 태그 T-07 · 30초째 움직임 없음</span></div>
+        <div><b>구역 안 인원 3명</b><span>작업 2 · 감시인 1</span></div>
+      </div>
+      <p className="rm-mk-note">벽면에는 위치와 인원수만 보여요. 이름과 연락처는 담당자 콘솔에서 권한을 확인한 뒤 열고, 누가 열었는지 기록을 남겨요.</p>
+    </Hmi>
+  )
+}
+
+function DarkBefore() {
+  return (
+    <div className="rm-room bright rm-mini" role="img" aria-label="흔한 화면: 밝은 상황실에 다크 화면을 고정해서 조명이 비침">
+      <div className="rm-room-scr">
+        <Hmi dark title="제2공장 · 가연성 가스" right="14:42" className="rm-ls-hmi">
+          <div className="rm-ls-rows">
+            {LS_ROWS.map(r => <div key={r.name} className="rm-ls-row"><span>{r.name}</span><AnalogBar value={r.v} min={LEL.min} max={LEL.max} normal={LEL.normal} alarm={LEL.alarm} unit="%LEL" name={r.name} w={120} /><em>{r.v}%LEL</em></div>)}
+          </div>
+        </Hmi>
+        <div className="rm-refl" aria-hidden="true"><i className="a" /><i className="b" /></div>
+      </div>
+      <p className="rm-mini-cap">낮 2시, 형광등이 켜진 상황실이에요. "멋있어 보여서" 고른 다크 화면에 천장 조명이 비쳐요.</p>
+    </div>
+  )
+}
+function DarkAfter() {
+  return (
+    <div className="rm-room bright rm-mini" role="img" aria-label="업그레이드: 밝은 상황실에는 회색 화면, 밤에는 다크로 전환">
+      <div className="rm-room-scr">
+        <Hmi title="제2공장 · 가연성 가스" right="14:42 · 주간 회색" className="rm-ls-hmi">
+          <div className="rm-ls-rows">
+            {LS_ROWS.map(r => <div key={r.name} className="rm-ls-row"><span>{r.name}</span><AnalogBar value={r.v} min={LEL.min} max={LEL.max} normal={LEL.normal} alarm={LEL.alarm} unit="%LEL" name={r.name} w={120} /><em>{r.v}%LEL</em></div>)}
+          </div>
+        </Hmi>
+      </div>
+      <p className="rm-mini-cap">밝은 방에는 회색 화면이에요. 야간 근무에 조명을 낮추면 다크로 바꾸고, 그때 알람 색도 다크용으로 바꿔요.</p>
+    </div>
+  )
+}
+
+function Mistakes() {
+  const need = wallNeedPx()
+  return (
+    <div className="rm-cases">
+      <CaseCard sev="치명" title="벽면 화면인데 글자가 10~12px이에요"
+        now={<>개인 모니터에서 디자인한 화면을 벽면에 그대로 띄워요. 구역 이름과 상태가 10~12px이고, 정상 램프가 초록으로 깜빡여요.</>}
+        why={<>읽을 수 없는 알람은 없는 알람과 같아요. 55인치 FHD 2×2 벽면을 5m에서 보면, 시각도 16′ 기준으로 글자 높이만 약 {need}px이 필요해요<Cite n={4} />. 12px 글꼴의 실제 글자 높이는 11px 안팎이라, 필요한 높이의 3분의 1도 안 돼요. 표준은 화면 크기와 배치를 작업자의 시선에서 출발해 정하라고 해요<Cite n={1} /><Cite n={2} />.</>}
+        fix={<><b>가장 먼 자리에서 계산해요.</b> 아래 계산기로 거리와 화면을 넣고 최소 글자 크기를 정해요. 계산한 크기가 너무 크면 글자를 줄이지 말고 <b>정보를 줄여요</b>. 벽면에는 레벨 1 전체 개요만 둬요.</>}
+        before={<TinyBefore />} after={<TinyAfter />} />
+      <CaseCard sev="높음" title="작업자 이름과 전화번호를 벽면에 그대로 띄워요"
+        now={<>작업자 위치 목록에 이름, 휴대폰 번호, 위치가 함께 떠요. 그 목록이 상황실 벽면과 공용 화면에 그대로 올라가요.</>}
+        why={<>벽면은 방문객, 협력업체, 다른 부서 사람까지 보는 공용 화면이에요. 사고 대응에 필요한 건 이름이 아니라 <b>어디에 몇 명이 있고, 누가 응답이 없는지</b>예요. 필요 없는 정보는 화면을 붐비게 하고, 사람을 늘 관찰당하는 기분으로 만들어요<Cite n={9} />.</>}
+        fix={<><b>벽면에는 위치와 인원수만.</b> 작업자는 <Term k="위치 태그" d={X['위치 태그']} /> 번호로 표시해요. 이름과 연락처는 구조·연락을 맡은 담당자 콘솔에서 권한을 확인하고 열어요. 누가 언제 열었는지 기록을 남겨요.</>}
+        before={<PeopleBefore />} after={<PeopleAfter />} />
+      <CaseCard sev="보통" title="다크 화면을 고정해요. 방 조명은 보지 않아요"
+        now={<>'관제 화면은 어두워야 멋있다'며 다크 테마 하나만 만들어요. 낮의 밝은 상황실에서도 그대로 써요.</>}
+        why={<>밝은 방에서 어두운 화면은 거울이 돼요. 천장 조명과 창이 비쳐 값을 가려요. ISA-101 쪽은 밝은 방에 회색 배경을 권하고<Cite n={5} />, 회색 배경이 눈부심과 반사를 줄인다고 해요<Cite n={6} />. 정답은 테마 취향이 아니라 조명이에요.</>}
+        fix={<><b>조명에 맞춰 두 벌을 둬요.</b> 주간에는 회색 배경, 조명을 낮춘 <Term k="야간 근무" d={X['야간 근무']} />에는 다크 배경을 써요. 다크로 바꿀 때는 알람 색의 대비도 다시 재요(아래 '다크 화면에서는 알람 색을 다시 맞춰요').</>}
+        before={<DarkBefore />} after={<DarkAfter />} />
+      <CaseCard sev="보통" good title="깜빡임은 초당 3회 이하, 그것도 미확인 알람에만"
+        now={<>정상 램프는 깜빡이지 않아요. 깜빡임은 아직 아무도 확인하지 않은 알람에만 쓰고, 초당 3회를 넘지 않아요. '동작 줄이기' 설정을 켠 근무자에게는 깜빡임 대신 굵은 테두리를 보여 줘요.</>}
+        why={<>12시간 켜 두는 벽면에서 움직임은 가장 강한 신호예요. 평소에 움직이는 게 없어야 알람의 움직임이 눈에 띄어요. 초당 3회 이하는 광과민 발작을 막는 웹 접근성 기준이에요<Cite n={7} />.</>}
+        fix={<>확인을 누르면 깜빡임을 멈추고 고정 색으로 바꿔요. 벽면의 초록 '정상 운영 중' 펄스 같은 장식 움직임은 모두 지워요. 번인도 함께 줄어요.</>} />
+    </div>
+  )
+}
+
 /* ================= 체크리스트 ================= */
 const CHECK = [
   '벽면 화면에는 레벨 1(전체 개요)만 올렸나요? 누가 조작해도 바뀌지 않게 했나요?',
   '가장 먼 자리에서 화면까지 거리를 재고, 글자 높이를 계산식으로 확인했나요?',
-  '관제실 조명(낮·밤)을 확인하고, 화면 배경 밝기를 거기에 맞췄나요?',
+  '상황실 조명(낮·밤)을 확인하고, 화면 배경 밝기를 거기에 맞췄나요?',
   '다크 화면을 쓴다면, 알람 색을 다크 배경에서 다시 검사했나요?',
   '알람 목록은 어느 화면에서든 같은 모니터, 같은 자리에 있나요?',
   '12시간 켜 둬도 한자리에 오래 머무는 밝은 요소가 적나요?',
   '감독자 자리에서도 벽면 화면이 가려지지 않나요?',
+  '벽면과 공용 목록에 작업자 이름·연락처가 보이지 않나요? 위치와 인원수만 보이나요?',
 ]
 function CheckList() {
   const [on, setOn] = useState(() => CHECK.map(() => false))
@@ -377,33 +507,39 @@ function CheckList() {
 export default function Tab() {
   return (
     <div data-dash="room">
-      <TermList keys={['인간공학', '콘솔', '감독자', '시청 거리', '시각도', '화소 간격', 'FHD · QHD · 4K', '경험칙', '대비', '우선순위', '번인', '픽셀 시프트', 'HMI', '인수인계']} extra={X} />
+      <TermList keys={['상황실', '인간공학', '콘솔', '감독자', '시청 거리', '시각도', '화소 간격', 'FHD · QHD · 4K', '경험칙', '대비', '번인', '픽셀 시프트', '야간 근무', '위치 태그']} extra={X} />
       <SysGrid>
         <Section id="dash-room-why" wide title="같은 화면도 방에 따라 다르게 보여요"
           gist="화면만 따로 디자인하지 않아요. 방, 책상, 화면을 함께 맞춰요."
-          desc={<>극장 맨 앞줄과 맨 뒷줄에서 보는 스크린은 느낌이 달라요. 관제 화면도 몇 미터 떨어져 보는지, 방이 얼마나 밝은지, 몇 시간째 보고 있는지에 따라 다르게 읽혀요. 관제센터를 사람에게 맞게 설계하는 방법(<Term k="인간공학" d={X['인간공학']} />)은 ISO 11064라는 표준이 다뤄요<Cite n={1} /><Cite n={2} />.</>}>
+          desc={<>극장 맨 앞줄과 맨 뒷줄에서 보는 스크린은 느낌이 달라요. 공장의 안전관리 <Term k="상황실" d={X['상황실']} /> 화면도 몇 미터 떨어져 보는지, 방이 얼마나 밝은지, 몇 시간째 보고 있는지에 따라 다르게 읽혀요. 상황실 같은 관제센터를 사람에게 맞게 설계하는 방법(<Term k="인간공학" d={X['인간공학']} />)은 ISO 11064라는 표준이 다뤄요<Cite n={1} /><Cite n={2} />.</>}>
           <div className="rm-why">
             <Finding src={<>ISO 11064 관제센터 인간공학 설계 — 원칙 수준 한국어 요약</>}>
-              관제실 배치, 작업대, 화면을 따로따로 정하지 않아요. 운영자가 하는 일과 눈에 보이는 범위에서 출발해요. 그리고 방 → 작업대 → 화면 순서로 함께 맞춰요.
+              관제실 배치, 작업대, 화면을 따로따로 정하지 않아요. 근무자가 하는 일과 눈에 보이는 범위에서 출발해요. 그리고 방 → 작업대 → 화면 순서로 함께 맞춰요.
             </Finding>
             <ol className="rm-iso" aria-label="ISO 11064 중 이 탭과 관련된 부분">
               <li><small>Part 4 (2013)</small><b>작업대 배치와 치수</b><span>콘솔 높이, 모니터 위치, 벽면 화면까지의 시선</span></li>
               <li><small>Part 5 (2008)</small><b>화면 표시와 조작 장치</b><span>무엇을 어떤 크기와 위치로 보여 주고, 어떻게 조작하나</span></li>
             </ol>
           </div>
-          <Note>표준 원문에 적힌 시청 거리 숫자는 제가 직접 확인하지 못했어요. 그래서 이 탭은 <b>직접 계산하는 방법</b>과 원칙을 보여 줘요. 2차 자료에서 가져온 <Term k="경험칙" d={X['경험칙']} />은 '보고된 수치'로 표시했어요.</Note>
+          <Note>예시의 상황실은 가상의 회사예요. 야간 근무 근무자 2명이 벽면 화면 하나와 각자의 책상 모니터로 현장 3곳을 지켜봐요. 표준 원문에 적힌 시청 거리 숫자는 제가 직접 확인하지 못했어요. 그래서 이 탭은 <b>직접 계산하는 방법</b>과 원칙을 보여 줘요. 2차 자료에서 가져온 <Term k="경험칙" d={X['경험칙']} />은 '보고된 수치'로 표시했어요.</Note>
+        </Section>
+
+        <Section id="dash-room-mistakes" wide title="흔한 실수 — 회의실에서 만든 화면을 상황실 벽에 그대로 걸어요"
+          gist="벽면은 멀리서, 여럿이, 12시간 보는 화면이에요. 거기에 맞춰 다시 만들어요."
+          desc={<>업계에서 흔히 보는 안전관리 대시보드는 개인 모니터 기준으로 디자인돼요. 그대로 상황실 벽에 걸면 글자는 안 읽히고, 개인정보는 다 보이고, 조명은 화면에 비쳐요. 카드마다 '흔한 화면'과 '업그레이드하면'을 눌러 비교해 보세요. 화면 속 회사·사람·수치는 모두 가상이에요.</>}>
+          <Mistakes />
         </Section>
 
         <Section id="dash-room-distance" wide title="화면까지 거리에 따라 필요한 글자 크기"
           gist="가장 먼 자리에서도 읽히게 계산해요. 글자가 너무 커지면 정보를 줄여요."
-          desc={<>멀리 있는 표지판 글씨가 커야 읽히는 것과 같아요. 아래 그림은 관제실을 옆에서 자른 모습(단면)이에요. 구역을 누르면 그 자리에서 보는 화면이 설명돼요. 화면 종류와 <Term k="시청 거리" d={X['시청 거리']} />를 바꾸면 필요한 글자 크기를 다시 계산해요. 계산에는 글자가 눈에 보이는 크기(<Term k="시각도" d={X['시각도']} />)와 화면의 <Term k="화소 간격" d={X['화소 간격']} />을 써요.</>}>
+          desc={<>멀리 있는 표지판 글씨가 커야 읽히는 것과 같아요. 아래 그림은 상황실을 옆에서 자른 모습(단면)이에요. 구역을 누르면 그 자리에서 보는 화면이 설명돼요. 화면 종류와 <Term k="시청 거리" d={X['시청 거리']} />를 바꾸면 필요한 글자 크기를 다시 계산해요. 계산에는 글자가 눈에 보이는 크기(<Term k="시각도" d={X['시각도']} />)와 화면의 <Term k="화소 간격" d={X['화소 간격']} />을 써요.</>}>
           <ViewDistance />
           <Note tone="tip"><b>가장 먼 자리를 기준으로 계산해요.</b> 벽면 화면은 맨 뒤 <Term k="감독자" d={X['감독자']} /> 자리에서도 읽혀야 해요. 계산한 글자가 너무 크게 나오면, 글자를 키우기보다 벽면에 올리는 정보를 줄여요. 그게 <a href="#/dash/levels">01 화면 위계</a>에서 말한 레벨 1이에요.</Note>
         </Section>
 
         <Section id="dash-room-light" wide title="다크 화면이냐 밝은 화면이냐는 방 조명이 정해요"
           gist="밝은 방에는 회색 배경, 어두운 방에는 다크 배경이 맞아요."
-          desc={<>불 끈 방에서 휴대폰을 보면 눈이 부시죠. 반대로 햇빛 아래에서는 어두운 화면이 잘 안 보여요. 관제실도 같아요. ISA-101 쪽은 밝은 관제실에 회색 배경을 권해요<Cite n={5} />. 회색 배경은 눈부심과 반사를 줄여 줘요<Cite n={6} />. 어두운 관제실이나 밤에는 다크 화면이 맞을 수 있어요. 조합을 바꿔 보세요.</>}>
+          desc={<>불 끈 방에서 휴대폰을 보면 눈이 부시죠. 반대로 햇빛 아래에서는 어두운 화면이 잘 안 보여요. 상황실도 같아요. ISA-101 쪽은 밝은 관제실에 회색 배경을 권해요<Cite n={5} />. 회색 배경은 눈부심과 반사를 줄여 줘요<Cite n={6} />. 공장 상황실처럼 조명을 낮추는 야간 근무에는 다크 화면이 맞을 수 있어요. 조합을 바꿔 보세요.</>}>
           <LightAndScreen />
         </Section>
 
@@ -433,12 +569,12 @@ export default function Tab() {
             <li><b>고정 요소를 줄여요.</b> 큰 로고나 밝은 머리글은 빼거나 어둡게 해요.</li>
             <li><b>조금씩 옮겨요.</b> 화면을 몇 화소씩 주기적으로 움직이는 기능(<Term k="픽셀 시프트" d={X['픽셀 시프트']} />)을 켜요.</li>
             <li><b>화면 보호기는 안 돼요.</b> 관제 화면은 꺼지거나 가려지면 안 돼요.</li>
-            <li><b>피로를 줄여요.</b> 개인 콘솔 밝기는 운영자가 직접 조절할 수 있게 해요. 교대 <Term k="인수인계" />는 <a href="#/dash/ops">08 기획 · 운영 정의</a>에서 이어져요.</li>
+            <li><b>피로를 줄여요.</b> 개인 콘솔 밝기는 근무자가 직접 조절할 수 있게 해요. 교대 <Term k="인수인계" />는 <a href="#/dash/ops">08 기획 · 운영 정의</a>에서 이어져요.</li>
           </ul>
         </Section>
 
-        <Section id="dash-room-check" title="관제실 화면 점검표"
-          gist="현장에 가기 전에 이 7가지를 확인해요."
+        <Section id="dash-room-check" title="상황실 화면 점검표"
+          gist="현장에 가기 전에 이 8가지를 확인해요."
           desc="현장에 가 볼 때 제가 실제로 확인하는 것들이에요.">
           <CheckList />
         </Section>
@@ -450,8 +586,10 @@ export default function Tab() {
           { kind: 'reported', text: '글자 높이의 시각도 16~20 arcmin(분) — 인간공학 지침을 인용한 2차 자료의 값이에요. 계산식(h = 2·d·tan(θ/2))은 기하학 공식이에요.' },
           { kind: 'standard', text: 'ANSI/ISA-101.01-2015 Human Machine Interfaces for Process Automation Systems (고성능 HMI)', url: 'https://blog.isa.org/the-high-performance-hmi' },
           { kind: 'book', text: 'Hollifield, B., Oliver, D., Nimmo, I., Habibi, E. The High Performance HMI Handbook (PAS, 2008) — 회색 배경과 눈부심' },
-          { kind: 'standard', text: 'W3C WCAG 2.x — 1.4.11 비텍스트 대비 3:1, 대비 계산식(상대 휘도)', url: 'https://www.w3.org/TR/WCAG21/#non-text-contrast' },
+          { kind: 'standard', text: 'W3C WCAG 2.x — 1.4.11 비텍스트 대비 3:1, 대비 계산식(상대 휘도), 2.3.1 초당 3회 깜빡임 기준', url: 'https://www.w3.org/TR/WCAG21/#non-text-contrast' },
           { kind: 'practice', text: '모니터 역할 고정, 번인 줄이기, 화면 크기·거리 예시는 실무 경험과 설명을 위한 예시예요.' },
+          { kind: 'practice', text: '공용 화면(벽면)에는 대응에 필요한 최소 정보(위치·인원수)만 올리고, 개인 식별 정보는 권한이 있는 담당자 화면에서 기록을 남기며 여는 것이 실무 원칙이에요. 법적 요건은 회사의 개인정보 담당 부서와 확인하세요.' },
+          { kind: 'practice', text: "'흔한 실수'의 흔한 화면은 업계에서 자주 보이는 패턴을 일반화한 가상 화면이에요. 특정 회사나 제품, 실제 인물을 가리키지 않아요." },
         ]} />
       </SysGrid>
     </div>

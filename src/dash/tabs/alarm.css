@@ -277,3 +277,103 @@
   [data-dash="alarm"] .al-pm-list li time { display: none; }
 }
 [data-dash="alarm"] .dash-hmi-bar { flex-wrap: wrap; row-gap: 2px; }
+
+/* ---------- 0. 흔한 실수 ---------- */
+[data-dash="alarm"] .al-fl-list li { grid-template-columns: 44px 22px minmax(120px, 260px) minmax(0, 1fr); }
+[data-dash="alarm"] .al-cases { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: start; }
+[data-dash="alarm"] .al-mk { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+[data-dash="alarm"] .al-mk-cap { margin: 0; font-size: 13.5px; line-height: 1.6; color: var(--text-2); min-height: 3.2em; }
+[data-dash="alarm"] .al-mk-link { border: 0; background: none; padding: 0; color: var(--accent); font: inherit; font-weight: 700; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+[data-dash="alarm"] .al-mk .dash-hmi-body { min-height: 168px; }
+
+/* 흔한 화면 프레임: 남색 바탕 · 초록 램프 · 빨강 글자 */
+[data-dash="alarm"] .dash-hmi.al-bad { --h-bg: #0c1522; --h-panel: #14223a; --h-line: #263a5a; --h-text: #e4ebf4; --h-sub: #93a7c0; --h-eq: #6b80a0; border-color: #263a5a; }
+[data-dash="alarm"] .al-red { color: #ff6b6b; font-weight: 800; }
+[data-dash="alarm"] .al-lamp { display: inline-block; flex: none; width: 12px; height: 12px; border-radius: 50%; background: #34d47a; box-shadow: 0 0 8px #34d47a; margin-right: 8px; animation: al-lamp 1.2s ease-in-out infinite alternate; }
+@keyframes al-lamp { from { opacity: 1; } to { opacity: .45; } }
+[data-dash="alarm"] .al-bad-ok { display: flex; align-items: center; font-size: 15px; font-weight: 800; color: #34d47a; }
+[data-dash="alarm"] .al-bad-empty { display: flex; flex-direction: column; gap: 4px; align-items: center; justify-content: center; min-height: 92px; font-size: 13px; color: var(--h-sub); text-align: center; }
+[data-dash="alarm"] .al-bad-empty small { font-size: 11px; color: var(--h-eq); }
+[data-dash="alarm"] .al-bad-foot { font-size: 10.5px; color: var(--h-eq); text-align: right; }
+[data-dash="alarm"] .al-bad-card { display: flex; flex-direction: column; gap: 4px; border: 1px solid #ff6b6b; border-radius: 6px; padding: 12px; background: var(--h-panel); }
+[data-dash="alarm"] .al-bad-card .no { font-size: 11px; color: var(--h-sub); }
+[data-dash="alarm"] .al-bad-card b { font-size: 17px; }
+[data-dash="alarm"] .al-bad-card .w { font-size: 14px; }
+[data-dash="alarm"] .al-bad-card time { font-size: 11px; color: var(--h-sub); }
+[data-dash="alarm"] .al-bad-dots { display: flex; gap: 6px; justify-content: center; margin-top: 10px; }
+[data-dash="alarm"] .al-bad-dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--h-line); }
+[data-dash="alarm"] .al-bad-dots i.on { background: var(--h-text); }
+[data-dash="alarm"] .al-bad-pop { display: flex; flex-direction: column; gap: 6px; border: 1px solid #ff6b6b; border-radius: 6px; padding: 12px; background: var(--h-panel); font-size: 13px; }
+[data-dash="alarm"] .al-bad-pop .sop { font-size: 11px; color: var(--h-sub); }
+[data-dash="alarm"] .al-bad-pop .btns { display: flex; gap: 6px; justify-content: flex-end; }
+[data-dash="alarm"] .al-bad-pop button { border: 1px solid var(--h-line); background: var(--h-bg); color: var(--h-text); border-radius: 4px; padding: 4px 10px; font-size: 12px; cursor: pointer; }
+[data-dash="alarm"] .al-bad-gas { display: flex; flex-direction: column; gap: 10px; align-items: flex-start; padding: 8px 0; }
+[data-dash="alarm"] .al-bad-gas b { font-size: 26px; }
+[data-dash="alarm"] .al-bad-gas .snd { display: inline-flex; align-items: center; font-size: 14px; font-weight: 700; color: #ffb84d; }
+
+/* 업그레이드 화면 */
+[data-dash="alarm"] .al-mk-row { display: grid; grid-template-columns: auto 64px minmax(0, 1fr) auto; grid-template-areas: "m t w b" "m t x b"; gap: 2px 10px; align-items: center; padding: 10px; background: var(--h-panel); border: 1.5px dashed var(--h-sub); border-radius: 6px; font-size: 13.5px; }
+[data-dash="alarm"] .al-mk-row .al-ghost { grid-area: m; }
+[data-dash="alarm"] .al-mk-row time { grid-area: t; color: var(--h-sub); font-size: 12.5px; }
+[data-dash="alarm"] .al-mk-row .w { grid-area: w; font-weight: 800; }
+[data-dash="alarm"] .al-mk-row .x { grid-area: x; color: var(--h-sub); }
+[data-dash="alarm"] .al-mk-row .btn { grid-area: b; }
+[data-dash="alarm"] .al-mk-btn { background: var(--h-text); color: var(--h-bg); }
+[data-dash="alarm"] .al-mk-btn.ghost { background: var(--h-panel); color: var(--h-text); box-shadow: inset 0 0 0 1px var(--h-line); }
+[data-dash="alarm"] .al-mk-done { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; font-size: 13.5px; }
+[data-dash="alarm"] .al-mk-done .log { color: var(--h-sub); }
+[data-dash="alarm"] .al-mk-done time { color: var(--h-text); font-weight: 700; margin-right: 4px; }
+[data-dash="alarm"] .al-mk-list { margin: 0; padding: 0; list-style: none; font-size: 13px; }
+[data-dash="alarm"] .al-mk-list li { display: grid; grid-template-columns: 22px 42px minmax(0, 1fr); grid-template-areas: "p t w" "p t x"; gap: 0 8px; align-items: center; padding: 6px 4px; border-bottom: 1px solid var(--h-line); }
+[data-dash="alarm"] .al-mk-list li > .dash-pri { grid-area: p; }
+[data-dash="alarm"] .al-mk-list time { grid-area: t; color: var(--h-sub); font-size: 12px; }
+[data-dash="alarm"] .al-mk-list .w { grid-area: w; font-weight: 700; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+[data-dash="alarm"] .al-mk-list .x { grid-area: x; color: var(--h-sub); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+[data-dash="alarm"] .al-mk-list li.top { background: var(--h-panel); box-shadow: inset 0 0 0 2px var(--h-text); border-radius: 4px; }
+[data-dash="alarm"] .al-mk-detail { display: flex; flex-direction: column; gap: 8px; font-size: 13.5px; }
+[data-dash="alarm"] .al-mk-detail .head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
+[data-dash="alarm"] .al-mk-detail .tag { font-size: 12px; font-weight: 700; color: var(--h-sub); border: 1px solid var(--h-line); background: var(--h-bg); border-radius: 6px; padding: 1px 8px; }
+[data-dash="alarm"] .al-mk-detail .what { margin: 0; font-size: 14px; }
+[data-dash="alarm"] .al-mk-detail .sop { background: var(--h-panel); border: 1px solid var(--h-line); border-radius: 6px; padding: 8px 10px; }
+[data-dash="alarm"] .al-mk-detail .sop span { font-size: 12px; font-weight: 800; color: var(--h-sub); }
+[data-dash="alarm"] .al-mk-detail .sop ol { margin: 4px 0 0; padding-left: 20px; display: flex; flex-direction: column; gap: 2px; }
+[data-dash="alarm"] .al-mk-detail .btns { display: flex; flex-wrap: wrap; gap: 6px; }
+[data-dash="alarm"] .al-mk-detail .btns .btn { background: var(--h-panel); color: var(--h-text); box-shadow: inset 0 0 0 1px var(--h-line); }
+[data-dash="alarm"] .al-mk-detail .btns .btn:first-child:not(:disabled) { background: var(--h-text); color: var(--h-bg); box-shadow: none; }
+[data-dash="alarm"] .al-mk-detail .btns .btn:disabled { opacity: .45; }
+[data-dash="alarm"] .al-mk-detail .log { margin: 0; padding: 6px 0 0; list-style: none; display: flex; flex-direction: column; gap: 2px; font-size: 12.5px; color: var(--h-sub); border-top: 1px solid var(--h-line); }
+[data-dash="alarm"] .al-mk-gas { display: flex; flex-direction: column; gap: 10px; color: var(--h-text); }
+[data-dash="alarm"] .al-mk-gas .top { display: flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 700; color: var(--h-sub); }
+[data-dash="alarm"] .al-mk-gas .top b { margin-left: auto; font-size: 26px; color: var(--h-text); }
+[data-dash="alarm"] .al-mk-gas .top small { font-size: 13px; color: var(--h-sub); margin-left: 2px; }
+[data-dash="alarm"] .al-mk-gas .snd { font-size: 12.5px; color: var(--h-sub); }
+
+/* CCTV 목업 */
+[data-dash="alarm"] .al-cam-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+[data-dash="alarm"] .al-ghost rect, [data-dash="alarm"] .al-ghost circle { fill: none; stroke: var(--h-sub); stroke-width: 2; }
+[data-dash="alarm"] .al-cam { position: relative; aspect-ratio: 16 / 9; border-radius: 4px; background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--h-text) 7%, var(--h-panel)) 0 10px, var(--h-panel) 10px 20px); border: 1px solid var(--h-line); display: flex; flex-direction: column; justify-content: space-between; padding: 6px 8px; min-width: 0; }
+[data-dash="alarm"] .al-cam span { font-size: 11.5px; font-weight: 700; color: var(--h-text); background: color-mix(in srgb, var(--h-bg) 80%, transparent); align-self: flex-start; padding: 0 4px; border-radius: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+[data-dash="alarm"] .al-cam em { font-style: normal; font-size: 11px; font-weight: 700; align-self: center; border: 1.5px dashed currentColor; border-radius: 4px; padding: 6px 10px; color: var(--h-text); }
+[data-dash="alarm"] .al-bad .al-cam.hot em { color: #ff6b6b; }
+[data-dash="alarm"] .al-cam-focus { display: grid; grid-template-columns: minmax(0, 2.2fr) minmax(0, 1fr); gap: 6px; }
+[data-dash="alarm"] .al-cam-focus .al-cam.big { aspect-ratio: auto; min-height: 150px; box-shadow: inset 0 0 0 2px var(--h-text); }
+[data-dash="alarm"] .al-cam-side { display: flex; flex-direction: column; gap: 6px; }
+[data-dash="alarm"] .al-cam-side .al-cam { aspect-ratio: auto; height: 62px; }
+[data-dash="alarm"] .al-cam-focus .al-cam.big { min-height: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  [data-dash="alarm"] .al-lamp { animation: none; }
+}
+@media (max-width: 1280px) {
+  [data-dash="alarm"] .al-cases { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 767px) {
+  [data-dash="alarm"] .al-fl-list li { grid-template-columns: 40px 20px minmax(0, 1fr); }
+  [data-dash="alarm"] .al-mk-row { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "m t" "w w" "x x" "b b"; }
+  [data-dash="alarm"] .al-mk-row .btn { justify-self: start; margin-top: 6px; }
+  [data-dash="alarm"] .al-cam-focus { grid-template-columns: minmax(0, 1fr); }
+  [data-dash="alarm"] .al-cam-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  [data-dash="alarm"] .al-cam-focus .al-cam.big { min-height: 150px; }
+  [data-dash="alarm"] .al-cam-side { flex-direction: row; }
+  [data-dash="alarm"] .al-cam-side .al-cam { flex: 1; min-width: 0; }
+}
