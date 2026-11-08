@@ -1,0 +1,65 @@
+[
+ {
+  "id": "gesture-tap",
+  "num": "01",
+  "title": "탭",
+  "en": "Tap",
+  "desc": "짧게 눌렀다 떼요. 거의 움직이지 않고, 빨리 뗐을 때만 탭으로 판정해요."
+ },
+ {
+  "id": "gesture-long",
+  "num": "02",
+  "title": "길게 누르기",
+  "en": "Long Press",
+  "desc": "누른 채로 기다리면 숨은 메뉴가 열려요. 링이 다 차는 순간이 판정 시점이에요."
+ },
+ {
+  "id": "gesture-swipe",
+  "num": "03",
+  "title": "스와이프",
+  "en": "Swipe",
+  "desc": "빠르게 쓸어 넘겨요. 멀리 끌었거나, 짧아도 빠르게 던지면 넘어가요."
+ },
+ {
+  "id": "gesture-drag",
+  "num": "04",
+  "title": "드래그",
+  "en": "Drag & Reorder",
+  "desc": "잡고 끌어서 옮겨요. 들린 항목이 지나가면 나머지가 비켜서 자리를 만들어요."
+ },
+ {
+  "id": "gesture-pinch",
+  "num": "05",
+  "title": "핀치",
+  "en": "Pinch Zoom",
+  "desc": "두 손가락 사이를 벌리면 확대, 오므리면 축소돼요. 기준점은 두 손가락의 가운데예요."
+ },
+ {
+  "id": "gesture-delete",
+  "num": "06",
+  "title": "밀어서 삭제",
+  "en": "Swipe to Delete",
+  "desc": "행을 왼쪽으로 밀면 삭제 버튼이 드러나고, 끝까지 밀면 바로 지워져요."
+ },
+ {
+  "id": "gesture-double",
+  "num": "07",
+  "title": "두 번 탭",
+  "en": "Double Tap",
+  "desc": "빠르게 두 번 누르면 좋아요. 한 번 탭과 구분하려고 250ms를 기다려봐요."
+ },
+ {
+  "id": "gesture-pull",
+  "num": "08",
+  "title": "당겨서 새로고침",
+  "en": "Pull to Refresh",
+  "desc": "목록 맨 위에서 아래로 당겨요. 당길수록 무거워지고, 기준을 넘겨 놓으면 새로고침돼요."
+ },
+ {
+  "id": "gesture-edge",
+  "num": "09",
+  "title": "가장자리 스와이프",
+  "en": "Edge Swipe Back",
+  "desc": "화면 왼쪽 끝에서 오른쪽으로 끌면 이전 화면이 미리 보이며 뒤로 가요."
+ }
+]

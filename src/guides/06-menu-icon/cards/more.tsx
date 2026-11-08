@@ -6,9 +6,9 @@ import { Hero, Icon, useOutside } from '../shared'
 
 /* ---------- 02 케밥 ---------- */
 const FILES: [string, string, string, string, string][] = [
-  ['회의록.pdf', '회의록', 'PDF', '#e5484d', '어제 · 1.2MB'],
+  ['회의록.pdf', '회의록', 'PDF', '#c92a2a', '어제 · 1.2MB'],
   ['디자인 시안.png', '디자인 시안', 'PNG', '#8e4ec6', '3일 전 · 4.8MB'],
-  ['예산안.xlsx', '예산안', 'XLS', '#30a46c', '지난주 · 320KB'],
+  ['예산안.xlsx', '예산안', 'XLS', '#18794e', '지난주 · 320KB'],
 ]
 const KB_ACTIONS: [string, string, boolean?][] = [['↗', '열기'], ['✎', '이름 바꾸기'], ['⇪', '공유'], ['✕', '삭제', true]]
 const KB_LOG = <>행 오른쪽 <b>⋮</b>를 눌러 더보기 열기</>

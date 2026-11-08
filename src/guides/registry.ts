@@ -19,8 +19,12 @@ export interface GuideMeta {
   motion?: boolean
 }
 
+export interface CardInfo { id: string; num: string; title: string; en: string; desc: string }
+
 export interface Guide extends GuideMeta {
   Component: LazyExoticComponent<ComponentType>
+  /** 카드 목록 (cards.json — 검색·홈·딥링크용) */
+  cards: CardInfo[]
 }
 
 /* 가이드 폴더(src/guides/NN-id/)를 자동으로 찾아요.
@@ -28,12 +32,13 @@ export interface Guide extends GuideMeta {
  * 폴더를 지우면 가이드도 사라져요. */
 const metas = import.meta.glob<{ default: GuideMeta }>('./*/meta.ts', { eager: true })
 const bodies = import.meta.glob<{ default: ComponentType }>('./*/index.tsx')
+const cardLists = import.meta.glob<{ default: CardInfo[] }>('./*/cards.json', { eager: true })
 
 export const guides: Guide[] = Object.entries(metas)
   .filter(([path, mod]) => mod.default?.id && mod.default?.num && bodies[path.replace(/meta\.ts$/, 'index.tsx')])
   .map(([path, mod]) => {
     const load = bodies[path.replace(/meta\.ts$/, 'index.tsx')]
-    return { ...mod.default, Component: lazy(load) }
+    return { ...mod.default, Component: lazy(load), cards: cardLists[path.replace(/meta\.ts$/, 'cards.json')]?.default ?? [] }
   })
   .sort((a, b) => a.num.localeCompare(b.num))
 

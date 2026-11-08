@@ -79,7 +79,7 @@
 /* 06 swipe to delete */
 [data-page="gesture"] .gs-rows { width: 100%; display: flex; flex-direction: column; gap: 6px; }
 [data-page="gesture"] .gs-row { position: relative; border-radius: 10px; overflow: hidden; flex: none; }
-[data-page="gesture"] .gs-delbtn { position: absolute; inset: 1px; border: 0; background: var(--danger); color: #fff; font-size: 14px; font-weight: 700; display: flex; align-items: center; justify-content: flex-end; padding-right: 18px; gap: 4px; }
+[data-page="gesture"] .gs-delbtn { position: absolute; inset: 1px; border: 0; background: var(--danger); color: var(--on-fill); font-size: 14px; font-weight: 700; display: flex; align-items: center; justify-content: flex-end; padding-right: 18px; gap: 4px; }
 [data-page="gesture"] .gs-row.full .gs-delbtn { justify-content: center; padding-right: 0; }
 [data-page="gesture"] .gs-front { position: relative; display: flex; align-items: center; gap: 10px; padding: 8px 10px; background: var(--surface-2); touch-action: pan-y; cursor: grab; }
 [data-page="gesture"] .gs-front.snap { transition: transform calc(250ms * var(--slow)) cubic-bezier(.2,.8,.2,1); }

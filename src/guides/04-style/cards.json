@@ -1,0 +1,93 @@
+[
+ {
+  "id": "style-flat",
+  "num": "01",
+  "title": "플랫",
+  "en": "Flat Design",
+  "desc": "그림자·질감·그라데이션을 빼고 단색 면과 단순한 도형으로만 그려요."
+ },
+ {
+  "id": "style-skeu",
+  "num": "02",
+  "title": "스큐어모피즘",
+  "en": "Skeuomorphism",
+  "desc": "가죽·금속·레코드판처럼 실제 물건의 질감과 빛 반사를 흉내 내요."
+ },
+ {
+  "id": "style-mat",
+  "num": "03",
+  "title": "머티리얼",
+  "en": "Material Design",
+  "desc": "종이 같은 면이 층(고도)을 이루고, 그림자로 높이를, 리플로 터치를 알려요."
+ },
+ {
+  "id": "style-neu",
+  "num": "04",
+  "title": "뉴모피즘",
+  "en": "Neumorphism",
+  "desc": "배경과 같은 색의 면을 밝은·어두운 그림자 두 개로 볼록하거나 오목하게 만들어요."
+ },
+ {
+  "id": "style-glass",
+  "num": "05",
+  "title": "글래스모피즘",
+  "en": "Glassmorphism",
+  "desc": "반투명 면이 뒤 배경을 흐리게 비춰 젖빛 유리처럼 보여요."
+ },
+ {
+  "id": "style-clay",
+  "num": "06",
+  "title": "클레이모피즘",
+  "en": "Claymorphism",
+  "desc": "점토처럼 두툼하고 둥근 면에 안쪽 하이라이트로 말랑한 부피감을 줘요."
+ },
+ {
+  "id": "style-brut",
+  "num": "07",
+  "title": "네오 브루탈리즘",
+  "en": "Neo-Brutalism",
+  "desc": "굵은 검정 테두리, 흐림 없는 딱딱한 그림자, 원색으로 일부러 투박하게 그려요."
+ },
+ {
+  "id": "style-bento",
+  "num": "08",
+  "title": "벤토 그리드",
+  "en": "Bento Grid",
+  "desc": "도시락 칸처럼 크기가 다른 타일에 정보를 하나씩 나눠 담아요."
+ },
+ {
+  "id": "style-dark",
+  "num": "09",
+  "title": "다크 모드",
+  "en": "Dark Mode",
+  "desc": "어두운 화면에선 그림자 대신 ‘더 밝은 면’이 더 높은 층이에요."
+ },
+ {
+  "id": "style-liquid",
+  "num": "10",
+  "title": "리퀴드 글래스",
+  "en": "Liquid Glass",
+  "desc": "두꺼운 유리처럼 뒤를 거의 그대로 비추고, 가장자리에 빛이 맺히며 누르면 물방울처럼 부풀어요."
+ },
+ {
+  "id": "style-y2k",
+  "num": "11",
+  "title": "Y2K",
+  "en": "Y2K Aesthetic",
+  "desc": "크롬 금속, 젤 버튼, 픽셀 반짝이로 2000년 무렵의 ‘미래 감성’을 재현해요."
+ },
+ {
+  "id": "style-min",
+  "num": "12",
+  "title": "미니멀",
+  "en": "Minimalism",
+  "desc": "꼭 필요한 요소만 남기고 여백·글자 크기·얇은 선 하나로 위계를 만들어요."
+ },
+ {
+  "id": "style-3d",
+  "num": "13",
+  "title": "3D 아이콘",
+  "en": "3D Icons",
+  "desc": "여러 겹의 그라데이션과 그림자로 아이콘에 부피·두께·빛을 입혀요."
+ }
+]

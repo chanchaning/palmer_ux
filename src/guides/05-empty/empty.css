@@ -26,7 +26,7 @@
 /* 구성 칩: Info spec의 첫 칩 (<span>구성 <b>버튼들</b></span>) */
 [data-page="empty"] .spec > span:first-child, [data-page="empty"] .spec > span:first-child > b { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 2px; }
 [data-page="empty"] .spec > span:first-child button { border: 0; background: none; padding: 0 2px; font: inherit; font-weight: 600; color: var(--text); border-radius: 4px; cursor: help; }
-[data-page="empty"] .spec > span:first-child button:hover, [data-page="empty"] .spec > span:first-child button[aria-pressed="true"] { background: var(--b); color: #fff; }
+[data-page="empty"] .spec > span:first-child button:hover, [data-page="empty"] .spec > span:first-child button[aria-pressed="true"] { background: var(--b); color: var(--on-fill); }
 [data-page="empty"] [data-hl="ill"] [data-part="ill"],
 [data-page="empty"] [data-hl="title"] [data-part="title"],
 [data-page="empty"] [data-hl="desc"] [data-part="desc"],

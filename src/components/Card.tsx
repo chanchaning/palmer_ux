@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useRef, type ReactNode } from 'react'
 import { useMotion, type Motion } from '../lib/motion'
+import { IconReplay } from './icons'
 
 /* ------------------------------------------------------------------ *
  *  자동 재생 데모
@@ -120,7 +121,7 @@ export function Stage({ children, log, logId }: { children: ReactNode; log?: Rea
 }
 
 /** 스펙 칩 + 언제/주의 + 다시 보기 */
-export function Info({ spec = [], usage = [], actions, replayLabel = '▶ 다시 보기' }: {
+export function Info({ spec = [], usage = [], actions, replayLabel = '다시 보기' }: {
   spec?: [ReactNode, ReactNode][]
   usage?: [ReactNode, ReactNode][]
   actions?: ReactNode
@@ -133,7 +134,7 @@ export function Info({ spec = [], usage = [], actions, replayLabel = '▶ 다시
       {usage.length > 0 && <dl className="usage">{usage.map(([k, v], i) => <UsageRow key={i} k={k} v={v} />)}</dl>}
       {(replay || actions) && (
         <div className="t-actions">
-          {replay && <button className="btn ghost sm replay" onClick={replay}>{replayLabel}</button>}
+          {replay && <button className="btn ghost sm replay" onClick={replay}><IconReplay />{replayLabel.replace(/^[▶↻]️?\s*/, '')}</button>}
           {actions}
         </div>
       )}

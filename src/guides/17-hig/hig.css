@@ -25,7 +25,7 @@
 [data-page="hig"] .hig-cl-h { font-size: calc(20px * var(--ts)); font-weight: 800; letter-spacing: -.02em; line-height: 1.2; padding: 0 2px 2px; }
 [data-page="hig"] .hig-cl-row { display: flex; gap: 10px; align-items: center; background: var(--surface); border-radius: 10px; padding: 10px 12px; flex: none; }
 [data-page="hig"] .hig-cl-ic { width: 28px; height: 28px; border-radius: 8px; background: var(--accent); color: var(--accent-text); display: grid; place-items: center; font-style: normal; font-size: 15px; font-weight: 700; flex: none; }
-[data-page="hig"] .hig-cl-ic.o { background: var(--b); color: #fff; }
+[data-page="hig"] .hig-cl-ic.o { background: var(--b); color: var(--on-fill); }
 [data-page="hig"] .hig-cl-ic.g { background: #0ca678; color: #fff; }
 [data-page="hig"] .hig-cl-t { font-size: calc(14px * var(--ts)); font-weight: 600; line-height: 1.3; min-width: 0; }
 [data-page="hig"] .hig-cl-t small { display: block; font-size: calc(11.5px * var(--ts)); font-weight: 500; color: var(--text-2); margin-top: 2px; }
@@ -61,7 +61,7 @@
 [data-page="hig"] .hig-df-dev.immersive .hig-df-top, [data-page="hig"] .hig-df-dev.immersive .hig-df-bot { opacity: 0; pointer-events: none; }
 [data-page="hig"] .hig-df-ad, [data-page="hig"] .hig-df-promo { display: none; }
 [data-page="hig"] .hig-df-dev.loud .hig-df-top, [data-page="hig"] .hig-df-dev.loud .hig-df-bot { background: var(--surface-3); -webkit-backdrop-filter: none; backdrop-filter: none; }
-[data-page="hig"] .hig-df-dev.loud .hig-df-promo { display: block; background: var(--b); color: #fff; font-size: 12px; font-weight: 800; text-align: center; padding: 6px; letter-spacing: .02em; }
+[data-page="hig"] .hig-df-dev.loud .hig-df-promo { display: block; background: var(--b); color: var(--on-fill); font-size: 12px; font-weight: 800; text-align: center; padding: 6px; letter-spacing: .02em; }
 [data-page="hig"] .hig-df-dev.loud .hig-df-ad { display: flex; position: absolute; z-index: 4; left: 12px; right: 12px; bottom: 64px; gap: 8px; align-items: center; padding: 9px 10px; border-radius: 10px; background: #fab005; color: #2b2300; font-size: 12px; font-weight: 700; box-shadow: 0 4px 14px rgba(0,0,0,.25); }
 [data-page="hig"] .hig-df-dev.loud .hig-df-ttl { font-family: Georgia, serif; font-style: italic; color: var(--b); font-size: 15px; }
 

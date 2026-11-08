@@ -1,0 +1,51 @@
+[
+ {
+  "id": "laws-jakob",
+  "num": "01",
+  "title": "제이콥의 법칙",
+  "en": "Jakob's Law",
+  "desc": "사람들은 새 서비스도 이미 익숙한 다른 서비스처럼 동작하길 기대해요."
+ },
+ {
+  "id": "laws-miller",
+  "num": "02",
+  "title": "밀러의 법칙",
+  "en": "Miller's Law",
+  "desc": "사람은 한 번에 7±2개 정도만 기억해요. 덩어리로 묶으면 더 많이 기억해요."
+ },
+ {
+  "id": "laws-hick",
+  "num": "03",
+  "title": "힉의 법칙",
+  "en": "Hick's Law",
+  "desc": "선택지가 많고 복잡할수록 결정하는 데 시간이 더 걸려요."
+ },
+ {
+  "id": "laws-fitts",
+  "num": "04",
+  "title": "피츠의 법칙",
+  "en": "Fitts's Law",
+  "desc": "목표가 가까울수록, 클수록 더 빨리 정확하게 누를 수 있어요."
+ },
+ {
+  "id": "laws-doherty",
+  "num": "05",
+  "title": "도허티 임계",
+  "en": "Doherty Threshold",
+  "desc": "시스템이 0.4초 안에 반응하면 사람은 흐름을 잃지 않고 더 몰입해요."
+ },
+ {
+  "id": "laws-peak",
+  "num": "06",
+  "title": "피크엔드 법칙",
+  "en": "Peak-End Rule",
+  "desc": "경험의 평균이 아니라 가장 강렬한 순간(피크)과 마지막(엔드)으로 기억해요."
+ },
+ {
+  "id": "laws-postel",
+  "num": "07",
+  "title": "포스텔의 법칙",
+  "en": "Postel's Law",
+  "desc": "입력은 너그럽게 받고, 출력은 엄격하게 내보내요. (견고성의 원칙)"
+ }
+]

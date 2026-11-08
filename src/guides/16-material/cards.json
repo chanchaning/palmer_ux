@@ -1,0 +1,79 @@
+[
+ {
+  "id": "material-elev",
+  "num": "01",
+  "title": "디지털 종이와 잉크",
+  "en": "Elevation",
+  "desc": "UI 요소를 빛과 그림자가 있는 종이로 봐요. 높이 떠 있을수록 더 중요한 요소예요."
+ },
+ {
+  "id": "material-dc",
+  "num": "02",
+  "title": "다이내믹 컬러",
+  "en": "Dynamic Color · Material You",
+  "desc": "배경화면에서 색을 뽑아 버튼·배경 같은 테마 색을 자동으로 맞춰요."
+ },
+ {
+  "id": "material-ripple",
+  "num": "03",
+  "title": "리플 효과",
+  "en": "Ripple",
+  "desc": "누른 지점에서 잉크가 물결처럼 퍼져서, 어디를 눌렀는지 바로 알려줘요."
+ },
+ {
+  "id": "material-fab",
+  "num": "04",
+  "title": "플로팅 액션 버튼",
+  "en": "FAB",
+  "desc": "화면 우측 하단에 떠서, 그 화면의 가장 중요한 동작 하나를 맡아요."
+ },
+ {
+  "id": "material-drawer",
+  "num": "05",
+  "title": "내비게이션 드로어",
+  "en": "Navigation Drawer",
+  "desc": "화면 왼쪽 끝에서 서랍처럼 꺼내 쓰는 메뉴예요. 뒤는 반투명 막(스크림)으로 가려요."
+ },
+ {
+  "id": "material-rail",
+  "num": "06",
+  "title": "내비게이션 레일",
+  "en": "Navigation Rail",
+  "desc": "태블릿·데스크톱 왼쪽에 세로로 놓이는 얇은 메뉴예요. 화면 폭에 따라 바 → 레일 → 드로어로 바뀌어요."
+ },
+ {
+  "id": "material-sheet",
+  "num": "07",
+  "title": "바텀 시트",
+  "en": "Bottom Sheet",
+  "desc": "아래에서 올라오는 보조 화면이에요. 뒤 화면과 함께 쓰는 Standard, 막고 집중시키는 Modal이 있어요."
+ },
+ {
+  "id": "material-chips",
+  "num": "08",
+  "title": "칩 4종",
+  "en": "Chips",
+  "desc": "작고 둥근 사각형 버튼이에요. 역할에 따라 보조·필터·입력·추천 네 가지로 나눠요."
+ },
+ {
+  "id": "material-badge",
+  "num": "09",
+  "title": "배지",
+  "en": "Badges",
+  "desc": "아이콘 모서리에 붙어 새 소식이나 개수를 알려줘요. 점(Small)과 숫자 캡슐(Large) 두 가지예요."
+ },
+ {
+  "id": "material-divider",
+  "num": "10",
+  "title": "디바이더",
+  "en": "Divider",
+  "desc": "목록이나 영역 사이를 나누는 얇은 선이에요. 가로·세로, 들여쓰기 정도로 관계를 표현해요."
+ },
+ {
+  "id": "material-spec",
+  "num": "11",
+  "title": "규격 한눈에",
+  "en": "Specs",
+  "desc": "dp 단위, 48dp 터치 영역, Roboto 서체, 좌측 정렬 상단 바처럼 머티리얼만의 기준을 확인해요."
+ }
+]

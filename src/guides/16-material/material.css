@@ -220,7 +220,7 @@
 [data-page="material"] .md-nb .md-nbi { position: relative; width: 56px; height: 32px; border-radius: 16px; display: grid; place-items: center; transition: background-color .2s; }
 [data-page="material"] .md-nb button.on { color: var(--text); }
 [data-page="material"] .md-nb button.on .md-nbi { background: var(--m-pc); color: var(--m-on-pc); }
-[data-page="material"] .md-bdg { position: absolute; left: 50%; top: 2px; background: var(--danger); color: #fff; font-size: 11px; font-weight: 700; line-height: 16px; height: 16px; min-width: 16px; padding: 0 4px; border-radius: 8px; text-align: center; margin-left: 4px; transform-origin: 0 50%; transition: transform calc(200ms * var(--slow)) var(--ease-std); font-variant-numeric: tabular-nums; white-space: nowrap; }
+[data-page="material"] .md-bdg { position: absolute; left: 50%; top: 2px; background: var(--danger); color: var(--on-fill); font-size: 11px; font-weight: 700; line-height: 16px; height: 16px; min-width: 16px; padding: 0 4px; border-radius: 8px; text-align: center; margin-left: 4px; transform-origin: 0 50%; transition: transform calc(200ms * var(--slow)) var(--ease-std); font-variant-numeric: tabular-nums; white-space: nowrap; }
 [data-page="material"] .md-bdg.dot { width: 6px; min-width: 6px; height: 6px; padding: 0; top: 5px; margin-left: 6px; }
 [data-page="material"] .md-bdg.off { transform: scale(0); }
 [data-page="material"] .md-bdg.bump { animation: bump calc(350ms * var(--slow)); }

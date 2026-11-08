@@ -1,0 +1,65 @@
+[
+ {
+  "id": "darkpattern-cancel",
+  "num": "01",
+  "title": "숨은 해지",
+  "en": "Roach Motel",
+  "desc": "가입은 버튼 하나인데, 해지는 여러 화면 속에 숨겨 둬요."
+ },
+ {
+  "id": "darkpattern-precheck",
+  "num": "02",
+  "title": "미리 체크된 동의",
+  "en": "Preselection",
+  "desc": "선택 항목에 체크를 미리 해 두고, 그대로 넘어가게 만들어요."
+ },
+ {
+  "id": "darkpattern-timer",
+  "num": "03",
+  "title": "가짜 마감 시계",
+  "en": "Fake Countdown",
+  "desc": "곧 끝난다며 재촉하지만, 0이 되거나 새로고침하면 다시 처음부터예요."
+ },
+ {
+  "id": "darkpattern-shame",
+  "num": "04",
+  "title": "죄책감 버튼",
+  "en": "Confirmshaming",
+  "desc": "거절 버튼 문구로 사용자를 깎아내려서, 거절하기 민망하게 만들어요."
+ },
+ {
+  "id": "darkpattern-sneak",
+  "num": "05",
+  "title": "끼워팔기",
+  "en": "Sneak into Basket",
+  "desc": "하나만 담았는데, 장바구니에 부가 상품이 슬쩍 같이 들어가 있어요."
+ },
+ {
+  "id": "darkpattern-scarcity",
+  "num": "06",
+  "title": "가짜 희소성",
+  "en": "Fake Scarcity",
+  "desc": "“2개 남음”, “17명이 보는 중”처럼 사실이 아닌 숫자로 서두르게 해요."
+ },
+ {
+  "id": "darkpattern-drip",
+  "num": "07",
+  "title": "숨은 비용",
+  "en": "Drip Pricing",
+  "desc": "처음엔 싸 보이게 하고, 결제 직전 단계마다 수수료를 하나씩 붙여요."
+ },
+ {
+  "id": "darkpattern-autopay",
+  "num": "08",
+  "title": "몰래 자동결제",
+  "en": "Forced Continuity",
+  "desc": "무료 체험이 끝나면 아무 알림 없이 유료로 넘어가 돈이 빠져나가요."
+ },
+ {
+  "id": "darkpattern-nag",
+  "num": "09",
+  "title": "끝없는 권유",
+  "en": "Nagging",
+  "desc": "“나중에”를 눌러도 몇 초 뒤 같은 요청이 다시 떠서, 지쳐서 허락하게 만들어요."
+ }
+]

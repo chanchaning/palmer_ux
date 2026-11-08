@@ -2,7 +2,7 @@ import { Suspense, useEffect, useRef, useState } from 'react'
 import type { Guide } from '../guides/registry'
 
 /** 가이드 페이지: 헤더 · 점프 칩(스크롤 스파이) · 본문 */
-export function GuidePage({ guide }: { guide: Guide }) {
+export function GuidePage({ guide, focusCard }: { guide: Guide; focusCard?: string }) {
   const { Component } = guide
   return (
     <section className="page on" data-page={guide.id} key={guide.id}>
@@ -20,7 +20,7 @@ export function GuidePage({ guide }: { guide: Guide }) {
         </div>
       </div>
       <Suspense fallback={<div className="page-loading"><div className="spinner" /></div>}>
-        <JumpAndBody><Component /></JumpAndBody>
+        <JumpAndBody guideId={guide.id} focusCard={focusCard}><Component /></JumpAndBody>
       </Suspense>
     </section>
   )
@@ -28,7 +28,7 @@ export function GuidePage({ guide }: { guide: Guide }) {
 
 interface Chip { id: string; label: string }
 
-function JumpAndBody({ children }: { children: React.ReactNode }) {
+function JumpAndBody({ children, guideId, focusCard }: { children: React.ReactNode; guideId: string; focusCard?: string }) {
   const body = useRef<HTMLDivElement>(null)
   const jump = useRef<HTMLDivElement>(null)
   const [chips, setChips] = useState<Chip[]>([])
@@ -50,6 +50,19 @@ function JumpAndBody({ children }: { children: React.ReactNode }) {
     cards.forEach(c => io.observe(c))
     return () => io.disconnect()
   }, [])
+
+  // 딥링크(#/가이드/카드)로 들어오면 그 카드로 이동하고 잠깐 강조
+  useEffect(() => {
+    if (!focusCard || !chips.length) return
+    const el = document.getElementById(focusCard)
+    if (!el) return
+    const t = setTimeout(() => {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      el.classList.add('focus-flash')
+      setTimeout(() => el.classList.remove('focus-flash'), 1600)
+    }, 120)
+    return () => clearTimeout(t)
+  }, [focusCard, chips.length])
 
   // 스크롤 스파이
   useEffect(() => {
@@ -81,7 +94,10 @@ function JumpAndBody({ children }: { children: React.ReactNode }) {
       <div className="jump" ref={jump}>
         {chips.map((c, i) => (
           <button key={c.id} className={i === active ? 'on' : ''}
-            onClick={() => document.getElementById(c.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>
+            onClick={() => {
+              document.getElementById(c.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+              history.replaceState(null, '', `#/${guideId}/${c.id}`) // 공유 가능한 주소
+            }}>
             {c.label}
           </button>
         ))}

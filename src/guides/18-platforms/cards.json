@@ -1,0 +1,121 @@
+[
+ {
+  "id": "platforms-spec",
+  "num": "A1",
+  "title": "실무 핵심 규격",
+  "en": "Key Specs",
+  "desc": "단위·터치 영역·서체는 숫자부터 달라요. 표로 한눈에 보고, 아래에서 직접 확인해요."
+ },
+ {
+  "id": "platforms-feel",
+  "num": "A2",
+  "title": "뒤로 가기 · 입체감 · 상단 바",
+  "en": "Platform Feel",
+  "desc": "같은 화면도 돌아가는 방법, 깊이를 표현하는 방식, 제목 위치가 달라요."
+ },
+ {
+  "id": "platforms-topbar",
+  "num": "01",
+  "title": "화면 최상단 바",
+  "en": "Top Bar",
+  "desc": "제목과 주요 동작을 담는 맨 위 막대예요. 양쪽 다 스크롤해 보세요."
+ },
+ {
+  "id": "platforms-bottombar",
+  "num": "02",
+  "title": "화면 최하단 메뉴 바",
+  "en": "Bottom Bar",
+  "desc": "앱의 주요 화면 3~5개를 오가는 맨 아래 메뉴예요."
+ },
+ {
+  "id": "platforms-tabs",
+  "num": "03",
+  "title": "화면 내 가로 탭 전환",
+  "en": "In-page Switch",
+  "desc": "한 화면 안에서 보기를 바꾸는 가로 버튼 묶음이에요."
+ },
+ {
+  "id": "platforms-dialog",
+  "num": "04",
+  "title": "중앙 팝업 알림창",
+  "en": "Modal Prompt",
+  "desc": "하던 일을 멈추고 결정을 받아야 할 때 가운데 뜨는 창이에요."
+ },
+ {
+  "id": "platforms-sheet",
+  "num": "05",
+  "title": "하단에서 올라오는 선택창",
+  "en": "Bottom Panel",
+  "desc": "지금 화면 위로 선택지나 부가 화면을 아래에서 올려요."
+ },
+ {
+  "id": "platforms-snack",
+  "num": "06",
+  "title": "잠깐 뜨고 사라지는 알림",
+  "en": "Brief Message",
+  "desc": "작업 결과를 짧게 알려주고 저절로 사라지는 메시지예요."
+ },
+ {
+  "id": "platforms-switch",
+  "num": "07",
+  "title": "온/오프 스위치",
+  "en": "On/Off",
+  "desc": "누르는 즉시 켜고 끄는 스위치예요. 꾹 누르고 있어 보세요."
+ },
+ {
+  "id": "platforms-radio",
+  "num": "08",
+  "title": "단일 항목 선택",
+  "en": "Single Choice",
+  "desc": "여러 선택지 중 딱 하나만 고르게 해요."
+ },
+ {
+  "id": "platforms-check",
+  "num": "09",
+  "title": "다중 항목 선택",
+  "en": "Multiple Choice",
+  "desc": "여러 개를 동시에 고르게 해요."
+ },
+ {
+  "id": "platforms-spin",
+  "num": "10",
+  "title": "로딩 중 빙글빙글",
+  "en": "Spinner",
+  "desc": "얼마나 걸릴지 모를 때 돌아가는 표시예요."
+ },
+ {
+  "id": "platforms-linear",
+  "num": "11",
+  "title": "진행률 막대",
+  "en": "Progress Bar",
+  "desc": "얼마나 진행됐는지 가로 막대로 보여줘요."
+ },
+ {
+  "id": "platforms-menu",
+  "num": "12",
+  "title": "클릭 시 펼쳐지는 메뉴",
+  "en": "Dropdown",
+  "desc": "버튼을 누르면 선택지나 동작 목록이 펼쳐져요."
+ },
+ {
+  "id": "platforms-picker",
+  "num": "13",
+  "title": "날짜 및 시간 선택기",
+  "en": "Date & Time",
+  "desc": "날짜와 시간을 고르는 입력 도구예요. 고르는 손동작부터 달라요."
+ },
+ {
+  "id": "platforms-field",
+  "num": "14",
+  "title": "텍스트 입력창",
+  "en": "Text Input",
+  "desc": "글자를 입력받는 칸이에요. 라벨을 보여주는 방식이 달라요."
+ },
+ {
+  "id": "platforms-only",
+  "num": "C",
+  "title": "한쪽에만 있는 이름",
+  "en": "Platform-only",
+  "desc": "상대 플랫폼엔 같은 이름의 공식 컴포넌트가 없어요. 비슷한 화면은 다른 컴포넌트를 조합해 만들어요."
+ }
+]

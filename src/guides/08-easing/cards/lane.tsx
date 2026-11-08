@@ -102,7 +102,7 @@ function SimpleLane({ id, num, title, en, desc, curve, durs, initLog, finish, sp
 export function EaseIn() {
   return (
     <SimpleLane id="easing-in" num="01" title="이즈 인" en="Ease In" desc="천천히 출발해서 점점 빨라져요. 끝에서 가장 빠르니 화면을 떠나는 요소에 어울려요."
-      curve={C.in} durs={IN_DURS} initLog={<>▶ 재생으로 <b>가속하는 움직임</b> 보기</>}
+      curve={C.in} durs={IN_DURS} initLog={<>재생을 누르면 <b>가속하는 움직임</b>을 볼 수 있어요</>}
       finish={ms => <>끝에서 가장 빠르게 — {ms <= 250 ? <><b>{ms}ms</b>면 퇴장으로 딱</> : <>실제 UI에선 <b>200ms</b> 정도로 짧게</>}</>}
       spec={[['곡선', 'cubic-bezier(.4,0,1,1)'], ['권장', '150–200ms'], ['용도', '퇴장']]}
       usage={[['언제', '닫히는 시트, 지워지는 항목처럼 화면 밖으로 나가는 움직임'], ['주의', '등장에 쓰면 출발이 굼뜨고 끝에서 ‘쾅’ 멈춰요']]} />
@@ -112,7 +112,7 @@ export function EaseIn() {
 export function EaseOut() {
   return (
     <SimpleLane id="easing-out" num="02" title="이즈 아웃" en="Ease Out" desc="빠르게 출발해서 부드럽게 멈춰요. 들어오는 요소가 자연스럽게 자리 잡아요."
-      curve={C.out} durs={OUT_DURS} initLog={<>▶ 재생으로 <b>감속하는 움직임</b> 보기</>}
+      curve={C.out} durs={OUT_DURS} initLog={<>재생을 누르면 <b>감속하는 움직임</b>을 볼 수 있어요</>}
       finish={ms => <>앞에서 거의 다 가고 <b>천천히 안착</b>{ms > 400 ? ' · 길면 늘어져 보여요' : ' · 등장 권장 시간'}</>}
       spec={[['곡선', 'cubic-bezier(0,0,.2,1)'], ['권장', '200–300ms'], ['용도', '등장']]}
       usage={[['언제', '모달·토스트·메뉴처럼 화면에 새로 나타나는 요소'], ['주의', '끝부분이 길게 늘어져요 — 시간을 길게 잡으면 늦게 끝난 듯 느껴져요']]} />

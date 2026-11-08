@@ -1,0 +1,65 @@
+[
+ {
+  "id": "empty-first",
+  "num": "01",
+  "title": "첫 사용",
+  "en": "First Use · Onboarding",
+  "desc": "아직 아무것도 만들지 않은 상태예요. 비어 있는 이유 대신 ‘무엇을 하면 되는지’를 알려줘요."
+ },
+ {
+  "id": "empty-search",
+  "num": "02",
+  "title": "검색 결과 없음",
+  "en": "No Results",
+  "desc": "찾는 게 없을 때 막다른 길 대신 오타 교정과 대안 검색어로 다음 길을 열어줘요."
+ },
+ {
+  "id": "empty-filter",
+  "num": "03",
+  "title": "필터 결과 없음",
+  "en": "Over-filtered",
+  "desc": "조건을 겹겹이 걸다 보면 0개가 돼요. 무엇 때문인지 짚어주고 한 번에 풀 수 있게 해요."
+ },
+ {
+  "id": "empty-offline",
+  "num": "04",
+  "title": "오프라인",
+  "en": "Offline",
+  "desc": "네트워크가 끊겨 내용을 못 불러올 때예요. 사용자 탓이 아니라고 말하고 다시 시도할 길을 줘요."
+ },
+ {
+  "id": "empty-perm",
+  "num": "05",
+  "title": "권한 필요",
+  "en": "Permission Required",
+  "desc": "카메라·위치 권한이 없어 기능이 비어 있어요. 왜 필요한지 먼저 말하고 시스템 창을 띄워요."
+ },
+ {
+  "id": "empty-done",
+  "num": "06",
+  "title": "모두 완료",
+  "en": "All Done · Inbox Zero",
+  "desc": "할 일을 다 끝내서 빈 화면이에요. 문제가 아니라 보상이니 축하해 주세요."
+ },
+ {
+  "id": "empty-deleted",
+  "num": "07",
+  "title": "삭제 직후",
+  "en": "Cleared · Just Deleted",
+  "desc": "마지막 항목을 지워서 비었어요. 방금 한 일을 되짚어 주고 되돌릴 기회를 줘요."
+ },
+ {
+  "id": "empty-error",
+  "num": "08",
+  "title": "오류 화면",
+  "en": "Error State",
+  "desc": "서버가 응답하지 않아 비었어요. 사과하고, 다시 시도와 문의 경로를 함께 줘요."
+ },
+ {
+  "id": "empty-locked",
+  "num": "09",
+  "title": "잠김",
+  "en": "Locked · Paywall",
+  "desc": "내용은 있지만 볼 수 없어요. 무엇이 숨어 있는지 살짝 보여주고 여는 방법을 알려줘요."
+ }
+]

@@ -1,0 +1,100 @@
+[
+ {
+  "id": "type-distance",
+  "num": "01",
+  "title": "시청 거리와 기본 크기",
+  "en": "Viewing Distance",
+  "desc": "눈에서 화면이 멀어질수록(모바일 < 태블릿 < 웹) 기본 글자는 커져야 해요."
+ },
+ {
+  "id": "type-measure",
+  "num": "02",
+  "title": "한 줄 글자 수",
+  "en": "Line Length",
+  "desc": "한 줄에 들어가는 글자 수가 읽는 리듬을 정해요. 기기마다 알맞은 범위가 있어요."
+ },
+ {
+  "id": "type-lh",
+  "num": "03",
+  "title": "행간",
+  "en": "Line Height",
+  "desc": "한글 본문은 글자 크기의 150~160%, 큰 제목은 120~130%로 좁혀요."
+ },
+ {
+  "id": "type-ls",
+  "num": "04",
+  "title": "자간",
+  "en": "Letter Spacing",
+  "desc": "작은 화면에서는 한글 자간을 -1~-2%만 좁혀도 글자가 단단하게 뭉쳐 보여요."
+ },
+ {
+  "id": "type-weight",
+  "num": "05",
+  "title": "굵기",
+  "en": "Font Weight",
+  "desc": "본문에 Thin·Light는 쓰지 않아요. 3~4단계 굵기만 규칙적으로 써요."
+ },
+ {
+  "id": "type-contrast",
+  "num": "06",
+  "title": "색상과 명도 대비",
+  "en": "Contrast",
+  "desc": "흰 배경에 순수 검정은 눈이 부셔요. 본문은 #111~#333, 부가 설명은 #666~#767676을 써요."
+ },
+ {
+  "id": "type-num",
+  "num": "07",
+  "title": "숫자 정렬",
+  "en": "Tabular Numbers",
+  "desc": "가격표·통계·타이머처럼 숫자가 바뀌거나 세로로 쌓이면 숫자 폭을 고정해요."
+ },
+ {
+  "id": "type-ios",
+  "num": "08",
+  "title": "입력창 16px 규칙",
+  "en": "iOS Auto-zoom",
+  "desc": "모바일 사파리는 16px보다 작은 입력창을 누르면 화면을 강제로 확대해요."
+ },
+ {
+  "id": "type-rem",
+  "num": "09",
+  "title": "rem · px",
+  "en": "Relative Units",
+  "desc": "사용자가 브라우저 기본 글자 크기를 키우면 rem은 따라 커지고, px는 그대로 남아요."
+ },
+ {
+  "id": "type-scale",
+  "num": "10",
+  "title": "위계 대비와 타입 스케일",
+  "en": "Type Scale",
+  "desc": "본문을 기준으로 일정한 비율을 곱해 크기를 정하면 위계가 자연스럽게 생겨요."
+ },
+ {
+  "id": "type-tablet",
+  "num": "11",
+  "title": "태블릿: 최대 너비와 2단",
+  "en": "Max-width & Columns",
+  "desc": "가로 모드에서 글이 끝없이 늘어나지 않게 폭을 제한하거나 두 단으로 나눠요."
+ },
+ {
+  "id": "type-wrap",
+  "num": "12",
+  "title": "한글 줄바꿈",
+  "en": "word-break · text-wrap",
+  "desc": "한글은 기본적으로 글자 단위로 줄이 바뀌어 단어가 쪼개져요. 어절 단위로 바꾸면 훨씬 읽기 편해요."
+ },
+ {
+  "id": "type-platform",
+  "num": "13",
+  "title": "플랫폼별 타입 스케일",
+  "en": "Material 3 · Apple HIG",
+  "desc": "머티리얼은 5그룹×3단계, 애플은 역할 이름과 사용자가 키우는 Dynamic Type으로 정리해요."
+ },
+ {
+  "id": "type-fonts",
+  "num": "14",
+  "title": "실무 표준 한글 폰트",
+  "en": "Korean Typefaces",
+  "desc": "무료로 상업적 사용이 가능하고 웹·앱 용량 최적화가 잘 된 폰트들이에요."
+ }
+]

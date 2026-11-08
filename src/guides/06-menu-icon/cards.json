@@ -1,0 +1,65 @@
+[
+ {
+  "id": "menu-icon-hamburger",
+  "num": "01",
+  "title": "햄버거",
+  "en": "Hamburger",
+  "desc": "가로선 세 개. 화면 밖에 숨겨둔 전체 메뉴(내비게이션)를 열어요."
+ },
+ {
+  "id": "menu-icon-kebab",
+  "num": "02",
+  "title": "케밥",
+  "en": "Kebab",
+  "desc": "세로 점 세 개. 그 항목에 대한 추가 작업(더보기)을 세로 목록으로 열어요."
+ },
+ {
+  "id": "menu-icon-meatball",
+  "num": "03",
+  "title": "미트볼",
+  "en": "Meatball",
+  "desc": "가로 점 세 개. 카드·게시물에 딸린 더보기 작업을 옆으로 펼쳐요."
+ },
+ {
+  "id": "menu-icon-waffle",
+  "num": "04",
+  "title": "와플",
+  "en": "Waffle",
+  "desc": "3×3 네모. 같은 회사의 다른 앱·서비스로 건너가는 런처를 열어요."
+ },
+ {
+  "id": "menu-icon-bento",
+  "num": "05",
+  "title": "벤토",
+  "en": "Bento",
+  "desc": "3×3 점. 칸칸이 나뉜 도시락처럼 전체 서비스를 크기가 다른 타일로 보여줘요."
+ },
+ {
+  "id": "menu-icon-doner",
+  "num": "06",
+  "title": "도너",
+  "en": "Döner",
+  "desc": "길이가 점점 짧아지는 가로선. 목록을 걸러내는 필터 메뉴를 열어요."
+ },
+ {
+  "id": "menu-icon-veggie",
+  "num": "07",
+  "title": "베지 버거",
+  "en": "Veggie Burger",
+  "desc": "가운데 선만 짧은 햄버거. 헤더 아래로 펼쳐지는 메뉴를 열어요."
+ },
+ {
+  "id": "menu-icon-stair",
+  "num": "08",
+  "title": "계단",
+  "en": "Staircase",
+  "desc": "계단처럼 한 칸씩 어긋난 선. 목록의 정렬 순서를 고르는 메뉴를 열어요."
+ },
+ {
+  "id": "menu-icon-slider",
+  "num": "09",
+  "title": "슬라이더",
+  "en": "Slider · Filter",
+  "desc": "손잡이가 달린 선 세 개. 범위를 조절하는 상세 필터 패널을 열어요."
+ }
+]

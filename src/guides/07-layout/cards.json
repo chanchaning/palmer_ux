@@ -1,0 +1,65 @@
+[
+ {
+  "id": "layout-tabbar",
+  "num": "01",
+  "title": "하단 탭바",
+  "en": "Bottom Tab Bar",
+  "desc": "화면 맨 아래에 고정된 3~5개의 최상위 메뉴. 엄지로 바로 오가요."
+ },
+ {
+  "id": "layout-drawer",
+  "num": "02",
+  "title": "드로어",
+  "en": "Navigation Drawer",
+  "desc": "화면 옆에서 밀려 나오는 패널에 전체 메뉴를 담아요."
+ },
+ {
+  "id": "layout-toptabs",
+  "num": "03",
+  "title": "상단 탭",
+  "en": "Top Tabs",
+  "desc": "같은 화면 안의 카테고리를 가로로 나열해요. 많으면 옆으로 스크롤해요."
+ },
+ {
+  "id": "layout-breadcrumb",
+  "num": "04",
+  "title": "브레드크럼",
+  "en": "Breadcrumb",
+  "desc": "지금 위치까지 지나온 단계를 한 줄로 보여주고, 원하는 단계로 바로 올라가요."
+ },
+ {
+  "id": "layout-sticky",
+  "num": "05",
+  "title": "고정 헤더",
+  "en": "Sticky Header",
+  "desc": "내용을 스크롤해도 헤더는 제자리에 남고, 내려가면 그림자로 경계를 보여줘요."
+ },
+ {
+  "id": "layout-fab",
+  "num": "06",
+  "title": "플로팅 버튼",
+  "en": "FAB",
+  "desc": "화면 위에 떠 있는 둥근 버튼 하나로 가장 중요한 작업을 바로 시작해요."
+ },
+ {
+  "id": "layout-pagination",
+  "num": "07",
+  "title": "페이지네이션",
+  "en": "Pagination",
+  "desc": "목록을 쪽 단위로 나누고, 번호로 원하는 쪽에 바로 가요."
+ },
+ {
+  "id": "layout-infinite",
+  "num": "08",
+  "title": "무한 스크롤",
+  "en": "Infinite Scroll",
+  "desc": "끝에 닿기 전에 다음 내용을 알아서 불러와 계속 이어서 보여줘요."
+ },
+ {
+  "id": "layout-back",
+  "num": "09",
+  "title": "뒤로 가기",
+  "en": "Back Navigation",
+  "desc": "한 단계씩 들어온 길을 그대로 거슬러 이전 화면으로 돌아가요."
+ }
+]

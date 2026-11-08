@@ -1,0 +1,65 @@
+[
+ {
+  "id": "rating-star",
+  "num": "01",
+  "title": "별점",
+  "en": "Star Rating",
+  "desc": "별 다섯 개 중 몇 개를 채우느냐로 만족도를 매겨요. 올리면 미리보기, 눌러야 확정돼요."
+ },
+ {
+  "id": "rating-half",
+  "num": "02",
+  "title": "반별점",
+  "en": "Half-star Rating",
+  "desc": "별의 왼쪽 절반을 누르면 0.5점, 오른쪽을 누르면 1점. 포인터 위치로 정밀하게 매겨요."
+ },
+ {
+  "id": "rating-emoji",
+  "num": "03",
+  "title": "이모지 평가",
+  "en": "Emoji Rating",
+  "desc": "숫자 대신 표정으로 기분을 고르게 해요. 고른 얼굴이 커지고 이름표가 붙어요."
+ },
+ {
+  "id": "rating-thumbs",
+  "num": "04",
+  "title": "좋아요/싫어요",
+  "en": "Thumbs Up / Down",
+  "desc": "둘 중 하나만 고를 수 있는 이진 평가예요. 같은 버튼을 다시 누르면 취소돼요."
+ },
+ {
+  "id": "rating-slider",
+  "num": "05",
+  "title": "평점 슬라이더",
+  "en": "Rating Slider",
+  "desc": "1부터 10까지 끌어서 점수를 정해요. 값에 따라 색과 문구가 함께 바뀌어요."
+ },
+ {
+  "id": "rating-nps",
+  "num": "06",
+  "title": "NPS 점수",
+  "en": "Net Promoter Score",
+  "desc": "‘친구에게 추천하겠어요?’를 0–10으로 묻고, 점수대마다 다른 후속 질문을 던져요."
+ },
+ {
+  "id": "rating-summary",
+  "num": "07",
+  "title": "평점 요약",
+  "en": "Rating Summary",
+  "desc": "평균 점수와 5→1점 분포 막대를 함께 보여줘요. 막대를 누르면 그 점수 리뷰만 걸러져요."
+ },
+ {
+  "id": "rating-tags",
+  "num": "08",
+  "title": "평가 태그",
+  "en": "Rating Tags",
+  "desc": "별점을 고르면 그 점수에 맞는 이유 태그가 나타나요. 글을 안 써도 ‘왜’를 알 수 있어요."
+ },
+ {
+  "id": "rating-badge",
+  "num": "09",
+  "title": "평점 배지",
+  "en": "Rating Badge",
+  "desc": "목록 속에서 평점을 작게 압축해 보여주는 표시예요. 공간에 따라 모양을 골라요."
+ }
+]

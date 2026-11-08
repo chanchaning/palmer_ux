@@ -1,0 +1,65 @@
+[
+ {
+  "id": "loading-spinner",
+  "num": "01",
+  "title": "스피너",
+  "en": "Spinner",
+  "desc": "‘뭔가 하고 있어요’만 알려요. 짧고 끝을 모를 때 쓰고, 아주 짧으면 아예 숨겨요."
+ },
+ {
+  "id": "loading-bar",
+  "num": "02",
+  "title": "진행 바",
+  "en": "Progress Bar",
+  "desc": "얼마나 남았는지 알면 채워지는 막대로, 모르면 흐르는 막대로 보여줘요."
+ },
+ {
+  "id": "loading-skeleton",
+  "num": "03",
+  "title": "스켈레톤",
+  "en": "Skeleton",
+  "desc": "내용이 들어올 자리를 회색 뼈대로 먼저 그려요. 구조를 미리 알 때 가장 덜 지루해요."
+ },
+ {
+  "id": "loading-ring",
+  "num": "04",
+  "title": "진행 링",
+  "en": "Progress Ring",
+  "desc": "원이 채워지며 퍼센트를 보여줘요. 좁은 자리에서 진행률을 알릴 때 좋아요."
+ },
+ {
+  "id": "loading-steps",
+  "num": "05",
+  "title": "단계 표시",
+  "en": "Multi-step Progress",
+  "desc": "긴 작업을 단계로 나눠 지금 어디쯤인지 보여줘요. 단계마다 다른 표시를 써요."
+ },
+ {
+  "id": "loading-blur",
+  "num": "06",
+  "title": "블러 업",
+  "en": "Blur-up Image",
+  "desc": "아주 작은 색상 미리보기를 흐리게 깔고, 원본이 오면 선명해지며 바뀌어요."
+ },
+ {
+  "id": "loading-optimistic",
+  "num": "07",
+  "title": "낙관적 UI",
+  "en": "Optimistic UI",
+  "desc": "서버 응답을 기다리지 않고 성공했다고 보고 바로 바꿔요. 실패하면 되돌리고 알려요."
+ },
+ {
+  "id": "loading-stream",
+  "num": "08",
+  "title": "스트리밍 텍스트",
+  "en": "Streaming Text",
+  "desc": "답을 다 만들 때까지 기다리지 않고, 만들어지는 대로 조금씩 보여줘요."
+ },
+ {
+  "id": "loading-button",
+  "num": "09",
+  "title": "로딩 버튼",
+  "en": "Loading Button",
+  "desc": "누른 버튼 안에서 진행을 보여줘요. 너비는 그대로, 다시 누를 수 없게 막아요."
+ }
+]

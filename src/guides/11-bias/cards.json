@@ -1,0 +1,65 @@
+[
+ {
+  "id": "bias-anchor",
+  "num": "01",
+  "title": "앵커링",
+  "en": "Anchoring",
+  "desc": "처음 본 숫자가 ‘닻’이 돼서, 뒤에 보는 가격을 그 기준으로 판단해요."
+ },
+ {
+  "id": "bias-loss",
+  "num": "02",
+  "title": "손실 회피",
+  "en": "Loss Aversion",
+  "desc": "같은 크기라도 얻는 기쁨보다 잃는 아픔을 약 두 배 크게 느껴요."
+ },
+ {
+  "id": "bias-default",
+  "num": "03",
+  "title": "기본값 효과",
+  "en": "Default Effect",
+  "desc": "미리 골라둔 선택지는 대부분 그대로 받아들여요. 바꾸는 데도 노력이 들거든요."
+ },
+ {
+  "id": "bias-social",
+  "num": "04",
+  "title": "사회적 증거",
+  "en": "Social Proof",
+  "desc": "확신이 없을 때는 다른 사람들이 뭘 골랐는지를 보고 따라가요."
+ },
+ {
+  "id": "bias-scarcity",
+  "num": "05",
+  "title": "희소성",
+  "en": "Scarcity",
+  "desc": "얼마 남지 않았다고 느끼면 같은 물건도 더 가치 있어 보이고 서두르게 돼요."
+ },
+ {
+  "id": "bias-framing",
+  "num": "06",
+  "title": "프레이밍",
+  "en": "Framing Effect",
+  "desc": "같은 사실도 ‘성공’으로 말하느냐 ‘실패’로 말하느냐에 따라 결정이 달라져요."
+ },
+ {
+  "id": "bias-choice",
+  "num": "07",
+  "title": "선택 과부하",
+  "en": "Choice Overload",
+  "desc": "선택지가 너무 많으면 고르는 데 오래 걸리고, 아예 포기하기도 해요."
+ },
+ {
+  "id": "bias-peak",
+  "num": "08",
+  "title": "피크엔드 법칙",
+  "en": "Peak-End Rule",
+  "desc": "경험 전체가 아니라 가장 강렬했던 순간과 마지막 순간으로 기억해요."
+ },
+ {
+  "id": "bias-zeig",
+  "num": "09",
+  "title": "자이가르닉 효과",
+  "en": "Zeigarnik Effect",
+  "desc": "끝내지 못한 일은 머릿속에 계속 남아서 마저 끝내고 싶어져요."
+ }
+]

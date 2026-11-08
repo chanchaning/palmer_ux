@@ -31,7 +31,7 @@
 [data-page="layout"] .ly-cart b { display: block; font-size: 14px; }
 [data-page="layout"] .ly-tabbar { position: relative; }
 [data-page="layout"] .ly-tabbar button { position: relative; }
-[data-page="layout"] .ly-badge { position: absolute; top: 5px; left: calc(50% + 4px); min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px; background: var(--danger); color: #fff; font-size: 10px; font-weight: 800; font-style: normal; display: grid; place-items: center; }
+[data-page="layout"] .ly-badge { position: absolute; top: 5px; left: calc(50% + 4px); min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px; background: var(--danger); color: var(--on-fill); font-size: 10px; font-weight: 800; font-style: normal; display: grid; place-items: center; }
 
 /* 02 drawer */
 [data-page="layout"] .ly-drawer {
@@ -95,7 +95,7 @@
 /* 06 FAB */
 [data-page="layout"] .ly-fabwrap { position: absolute; right: 14px; bottom: 16px; z-index: 22; display: flex; flex-direction: column; align-items: flex-end; gap: 10px; transition: transform calc(250ms * var(--slow)) cubic-bezier(.2,.8,.2,1); }
 [data-page="layout"] .ly-fabwrap.hide { transform: translateY(96px); }
-[data-page="layout"] .ly-fab { width: 56px; height: 56px; border-radius: 18px; border: 0; background: var(--b); color: #fff; font-size: 29px; font-weight: 300; line-height: 1; display: grid; place-items: center; box-shadow: 0 6px 16px rgba(232,89,12,.35), 0 2px 4px rgba(0,0,0,.15); outline-offset: 3px; }
+[data-page="layout"] .ly-fab { width: 56px; height: 56px; border-radius: 18px; border: 0; background: var(--b); color: var(--on-fill); font-size: 29px; font-weight: 300; line-height: 1; display: grid; place-items: center; box-shadow: 0 6px 16px rgba(232,89,12,.35), 0 2px 4px rgba(0,0,0,.15); outline-offset: 3px; }
 [data-page="layout"] .ly-fab span { display: block; transition: transform calc(250ms * var(--slow)) var(--ease-std); }
 [data-page="layout"] .ly-fab[aria-expanded="true"] span { transform: rotate(45deg); }
 [data-page="layout"] .ly-dial { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
