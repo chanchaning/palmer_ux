@@ -143,7 +143,7 @@ export function Drawer() {
               <div className="li" key={n}><i className={'ic round' + (i % 2 ? ' o' : '')}>{ic}</i><div>{n}<span className="sub">{sub}</span></div></div>
             ))}
           </div>
-          <Tag style={{ right: 8, top: 35, opacity: open ? 0 : 1 }}>≡ · 가장자리로 열기</Tag>
+          <Tag style={{ left: 8, bottom: 30, opacity: open ? 0 : 1 }}>≡ · 가장자리로 열기</Tag>
           <div className="ly-edge" onPointerDown={e => start(e, 0)} onPointerMove={move} onPointerUp={end} onPointerCancel={end} />
           <div className={'ly-scrim' + (open || scrimDrag ? ' on' : '')} ref={scrim}
             onClick={() => { if (!drag.current) set(false, <><b>배경(스크림)</b>을 눌러 닫았어요</>) }} />
