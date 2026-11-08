@@ -54,7 +54,7 @@
 [data-plan="admin"] .ad-table tbody tr { cursor: pointer; transition: background .12s; }
 [data-plan="admin"] .ad-table tbody tr:hover { background: var(--surface-2); }
 [data-plan="admin"] .ad-table tbody tr.sel { background: var(--accent-soft); }
-[data-plan="admin"] .ad-table tbody tr.open { box-shadow: inset 3px 0 0 var(--accent); }
+[data-plan="admin"] .ad-table tbody tr.open { background: color-mix(in srgb, var(--accent) 6%, transparent); }
 [data-plan="admin"] .ad-table input[type="checkbox"] { accent-color: var(--accent); width: 15px; height: 15px; }
 [data-plan="admin"] .ad-empty { text-align: center; color: var(--text-3) !important; padding: 28px 8px !important; cursor: default; }
 [data-plan="admin"] .ad-sort { border: 0; background: none; padding: 0; font: inherit; color: var(--text-2); font-weight: 700; cursor: pointer; }
@@ -165,7 +165,6 @@
 [data-plan="admin"] .ad-btable { width: 100%; min-width: 640px; border-collapse: collapse; font-size: 14px; }
 [data-plan="admin"] .ad-btable th { text-align: left; font-size: 12px; color: var(--text-3); font-weight: 700; padding: 8px; border-bottom: 1px solid var(--line); }
 [data-plan="admin"] .ad-btable td { padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
-[data-plan="admin"] .ad-btable tr.has-warn td:first-child { box-shadow: inset 3px 0 0 var(--danger); }
 [data-plan="admin"] .ad-dates { display: flex; align-items: center; gap: 4px; }
 [data-plan="admin"] .ad-dates span { color: var(--text-3); }
 [data-plan="admin"] .ad-lint { margin: 4px 0 0; padding-left: 16px; font-size: 12px; color: var(--danger); line-height: 1.5; }

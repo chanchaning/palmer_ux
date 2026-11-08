@@ -102,8 +102,6 @@
 [data-plan="policy"] .po-warns.clean { background: color-mix(in srgb, var(--ok) 8%, var(--surface)); color: var(--ok); }
 [data-plan="policy"] .po-warns-head { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; font-size: 14px; }
 [data-plan="policy"] .po-warn { text-align: left; border: 0; background: var(--surface); border-radius: 8px; padding: 8px 10px; font-size: 13.5px; line-height: 1.55; color: var(--text); }
-[data-plan="policy"] .po-warn.danger { border-left: 3px solid var(--danger); }
-[data-plan="policy"] .po-warn.warn { border-left: 3px solid var(--b); }
 [data-plan="policy"] .po-warn:hover { background: var(--surface-2); }
 
 /* ---------- 엣지 케이스 ---------- */

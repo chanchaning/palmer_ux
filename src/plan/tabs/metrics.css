@@ -57,8 +57,6 @@
 [data-plan="metrics"] .mt-tree-ns { align-items: stretch; text-align: center; position: relative; }
 [data-plan="metrics"] .mt-node { text-align: left; border: 1px solid var(--line); background: var(--surface); color: var(--text); border-radius: 10px; padding: 10px 12px; font-size: 14px; font-weight: 600; transition: border-color .15s, background .15s, transform .15s; }
 [data-plan="metrics"] .mt-node:hover { border-color: var(--text-3); }
-[data-plan="metrics"] .mt-node.k-in { border-left: 4px solid var(--accent); }
-[data-plan="metrics"] .mt-node.k-gr { border-left: 4px solid var(--b); }
 [data-plan="metrics"] .mt-node.k-ns { text-align: center; font-size: 18px; font-weight: 800; padding: 22px 14px; border: 2px solid var(--accent); background: var(--accent-soft); color: var(--accent); }
 [data-plan="metrics"] .mt-node.on { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 30%, transparent); transform: translateY(-1px); }
 [data-plan="metrics"] .mt-node.k-gr.on { box-shadow: 0 0 0 3px color-mix(in srgb, var(--b) 30%, transparent); }
@@ -85,8 +83,6 @@
 [data-plan="metrics"] .mt-ev { width: 100%; min-width: 1000px; border-collapse: collapse; font-size: 14px; border: 1px solid var(--line); border-radius: 12px; }
 [data-plan="metrics"] .mt-ev th { text-align: left; font-size: 12px; color: var(--text-3); font-weight: 700; padding: 10px 8px; background: var(--surface-2); }
 [data-plan="metrics"] .mt-ev td { padding: 8px; border-top: 1px solid var(--line); vertical-align: top; }
-[data-plan="metrics"] .mt-ev tr.has-warn td:first-child { box-shadow: inset 3px 0 0 var(--danger); }
-[data-plan="metrics"] .mt-ev tr.is-ok td:first-child { box-shadow: inset 3px 0 0 var(--ok); }
 [data-plan="metrics"] .mt-ev-state { display: inline-block; margin-top: 5px; font-size: 12px; font-weight: 700; }
 [data-plan="metrics"] .mt-ev-state.ok, [data-plan="metrics"] .mt-lint-sum.ok { color: var(--ok); }
 [data-plan="metrics"] .mt-ev-state.bad, [data-plan="metrics"] .mt-lint-sum.bad { color: var(--danger); }

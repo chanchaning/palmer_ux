@@ -45,8 +45,7 @@
 /* 1. 요구사항 */
 [data-plan="collab"] .cb-intake { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 20px; }
 [data-plan="collab"] .cb-qs { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; counter-reset: q; }
-[data-plan="collab"] .cb-qs li { counter-increment: q; border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; border-left: 4px solid var(--ok); }
-[data-plan="collab"] .cb-qs li.empty { border-left-color: var(--surface-3); }
+[data-plan="collab"] .cb-qs li { counter-increment: q; border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; }
 [data-plan="collab"] .cb-q-head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; font-size: 15px; }
 [data-plan="collab"] .cb-q-head::before { content: counter(q); font-size: 12px; font-weight: 800; color: var(--text-3); font-variant-numeric: tabular-nums; }
 [data-plan="collab"] .cb-tag { font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 6px; background: var(--accent-soft); color: var(--accent); }

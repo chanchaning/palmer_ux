@@ -107,7 +107,7 @@
 [data-plan="storyboard"] .sb-desc li > button { width: 100%; display: flex; gap: 10px; text-align: left; border: 1px solid transparent; background: none; border-radius: 10px; padding: 10px; color: var(--text); transition: background .15s, border-color .15s; }
 [data-plan="storyboard"] .sb-desc li > button:hover { background: var(--surface-2); }
 [data-plan="storyboard"] .sb-desc li.on > button { background: color-mix(in srgb, var(--hot) 7%, var(--surface)); border-color: var(--hot); }
-[data-plan="storyboard"] .sb-desc li.chg > button { box-shadow: inset 3px 0 0 var(--chg); }
+[data-plan="storyboard"] .sb-desc li.chg > button { background: color-mix(in srgb, var(--chg) 7%, transparent); }
 [data-plan="storyboard"] .sb-desc-n { width: 24px; height: 24px; border-radius: 50%; background: var(--text); color: var(--bg); font-size: 12px; font-weight: 800; display: grid; place-items: center; flex: none; }
 [data-plan="storyboard"] .sb-desc li.on .sb-desc-n { background: var(--hot); color: var(--accent-text); }
 [data-plan="storyboard"] .sb-desc-body { display: flex; flex-direction: column; gap: 6px; min-width: 0; flex: 1; }

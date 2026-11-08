@@ -29,8 +29,7 @@
 [data-plan="map"] .mp-chip:hover { border-color: var(--text-3); }
 [data-plan="map"] .mp-chip.r-pm.on { background: var(--pm); border-color: var(--pm); color: var(--accent-text); }
 [data-plan="map"] .mp-chip.r-ux.on { background: var(--ux); border-color: var(--ux); color: var(--on-fill); }
-[data-plan="map"] .mp-detail { border: 1px solid var(--line); border-left: 4px solid var(--pm); border-radius: 14px; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; background: var(--surface); }
-[data-plan="map"] .mp-detail.r-ux { border-left-color: var(--ux); }
+[data-plan="map"] .mp-detail { border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; background: var(--surface); }
 [data-plan="map"] .mp-detail header { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
 [data-plan="map"] .mp-detail h4 { margin: 0 0 0 4px; font-size: 19px; flex-basis: 100%; margin-left: 0; margin-top: 4px; }
 [data-plan="map"] .mp-tag { font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 6px; background: var(--surface-2); color: var(--text-2); }
@@ -120,8 +119,7 @@
 /* 좋은 예 vs 나쁜 예 */
 [data-plan="map"] .mp-gb { display: flex; flex-direction: column; gap: 12px; }
 [data-plan="map"] .mp-gb-list { display: flex; flex-direction: column; gap: 10px; }
-[data-plan="map"] .mp-gb-item { border-radius: 12px; padding: 12px 14px; border: 1px solid var(--line); border-left: 4px solid var(--danger); }
-[data-plan="map"] .mp-gb-item.is-good { border-left-color: var(--ok); }
+[data-plan="map"] .mp-gb-item { border-radius: 12px; padding: 12px 14px; border: 1px solid var(--line); }
 [data-plan="map"] .mp-gb-item h4 { margin: 0 0 6px; font-size: 13px; color: var(--text-3); }
 [data-plan="map"] .mp-msg { margin: 0; font-size: 15px; line-height: 1.65; }
 [data-plan="map"] .mp-msg p { margin: 0; }

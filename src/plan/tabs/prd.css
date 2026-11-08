@@ -14,8 +14,7 @@
 /* 좋은 예 vs 나쁜 예 */
 [data-plan="prd"] .pr-gb { display: flex; flex-direction: column; gap: 12px; }
 [data-plan="prd"] .pr-gb-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 10px; }
-[data-plan="prd"] .pr-gb-list li { border: 1px solid var(--line); border-top: 4px solid var(--danger); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 8px; }
-[data-plan="prd"] .pr-gb-list li.is-good { border-top-color: var(--ok); }
+[data-plan="prd"] .pr-gb-list li { border: 1px solid var(--line); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 8px; }
 [data-plan="prd"] .pr-quote { margin: 0; font-size: 16px; font-weight: 600; line-height: 1.6; }
 [data-plan="prd"] .pr-why { margin: 0; font-size: 14px; line-height: 1.65; color: var(--text-2); }
 
