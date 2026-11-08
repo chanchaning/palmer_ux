@@ -561,7 +561,6 @@ button, input, textarea, select, output, svg text { font-family: inherit; }
 .kicker-group {
   display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; color: var(--text-2);
 }
-.kicker-group::before { content: ""; width: 18px; height: 2px; border-radius: 1px; background: var(--b); }
 @media (max-width: 767px) { .kicker-num { font-size: 40px; } }
 
 /* 아이콘 버튼 */
@@ -591,7 +590,6 @@ kbd { font-family: inherit; font-size: 12px; font-weight: 600; color: var(--text
 .home-stats dd { margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
 .home-group { padding-top: 32px; }
 .home-group-name { margin: 0 0 14px; font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
-.home-group-name::before { content: ""; width: 18px; height: 2px; border-radius: 1px; background: var(--b); }
 .home-group-name span { font-size: 13px; font-weight: 600; color: var(--text-3); }
 .home-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 16px; }
 .home-tile {
@@ -628,7 +626,6 @@ kbd { font-family: inherit; font-size: 12px; font-weight: 600; color: var(--text
 /* 딥링크 강조 */
 .card.focus-flash { box-shadow: 0 0 0 3px var(--accent), var(--shadow); transition: box-shadow .4s; }
 .home-eyebrow { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: var(--text-2); }
-.home-eyebrow::before { content: ""; width: 18px; height: 2px; border-radius: 1px; background: var(--b); }
 .home-desc p { margin: 0 0 10px; }
 .home-desc b { color: var(--text); }
 .home-sign { font-weight: 700; color: var(--text); margin-top: 4px !important; }
