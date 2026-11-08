@@ -131,3 +131,13 @@
 [data-page="contrast"] .ct-bars span { flex: 1; border-radius: 4px 4px 0 0; }
 [data-page="contrast"] .ct-brand { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 18px; border-radius: 12px; background: #ffffff; border: 1px solid var(--line); }
 [data-page="contrast"] .ct-brand button { border: 0; border-radius: 12px; padding: 12px 26px; font-weight: 700; }
+
+/* 모바일 가독성 */
+@media (max-width: 767px) {
+  /* 03: 네 개 오버레이 버튼을 2×2로 */
+  [data-page="contrast"] .seg-x.full button { flex: 1 1 calc(50% - 2px); }
+  /* 02: 조합표 칸을 줄여 한 화면에 더 많이, 숫자 줄바꿈 방지 */
+  [data-page="contrast"] .ct-matrix { border-spacing: 3px; }
+  [data-page="contrast"] .ct-cell { width: 64px; height: 48px; }
+  [data-page="contrast"] .ct-cell b { font-size: 14px; white-space: nowrap; }
+}

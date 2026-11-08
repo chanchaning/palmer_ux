@@ -78,7 +78,7 @@ export function SharedElement() {
   })
 
   return (
-    <Card id="t-shared" num="04" title="공유 요소" en="Shared Element" desc="두 화면에 공통으로 있는 요소(사진)가 위치를 이어서 날아가요." demo={demo}>
+    <Card id="t-shared" num="03" title="공유 요소" en="Shared Element" desc="두 화면에 공통으로 있는 요소(사진)가 위치를 이어서 날아가요." demo={demo}>
       <Stage log={log}>
         <Device ref={dev}>
           <div className="scr">

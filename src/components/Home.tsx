@@ -13,7 +13,7 @@ export function Home({ onSearch, logo }: { onSearch: () => void; logo: React.Rea
         <h2 className="home-title">질문이 쌓여<br />도감이 됐어요</h2>
         <div className="home-desc">
           <p>
-            디자이너로 일하며 부사수분들에게 가장 많이 받은 질문과, 제가 직접 부딪히며 배운 것들을 한곳에 꾹꾹 눌러 담았어요.
+            디자이너, 기획자, FE 개발자로 일하며 부사수분들에게 가장 많이 받은 질문과, 제가 직접 부딪히며 배운 것들을 한곳에 꾹꾹 눌러 담았어요.
           </p>
           <p>
             “토스트랑 스낵바는 뭐가 달라요?”, “이 회색 글자 써도 돼요?”, “이 기능은 화면을 어떻게 나눠요?”

@@ -175,7 +175,8 @@ footer { text-align: center; color: var(--text-3); font-size: 13px; padding: 40p
   .pill-btn .lbl { display: none; }
   .page-head { flex-direction: column; align-items: stretch; gap: 14px; }
   .stats { overflow-x: auto; scrollbar-width: none; }
-  .stats .stat { flex: 1; min-width: 96px; }
+  .stats .stat { flex: 1; min-width: 96px; padding: 10px 12px; }
+  .stats .stat b { font-size: clamp(19px, 5.6vw, 25px); }
 }
 
 /* =================== Shared card =================== */

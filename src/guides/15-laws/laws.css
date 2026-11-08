@@ -111,3 +111,8 @@
 [data-page="laws"] .lw-src { margin: 22px 0 0; font-size: 13px; color: var(--text-3); text-align: center; }
 [data-page="laws"] .shake { animation: lw-shake .3s; }
 @keyframes lw-shake { 25% { transform: translateX(-3px); } 75% { transform: translateX(3px); } }
+
+/* 모바일: 마스킹된 카드 번호가 잘리지 않게 */
+@media (max-width: 767px) {
+  [data-page="laws"] .lw-num { font-size: clamp(18px, 5.2vw, 27px); letter-spacing: .03em; }
+}

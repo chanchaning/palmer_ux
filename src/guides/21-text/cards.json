@@ -1,0 +1,11 @@
+[
+ { "id": "text-typing", "num": "01", "title": "타이핑", "en": "Typewriter", "desc": "글자를 한 자씩 찍어요. 누군가 지금 쓰고 있다는 느낌을 줘요." },
+ { "id": "text-stagger", "num": "02", "title": "글자 순차 등장", "en": "Letter Stagger", "desc": "글자·단어·줄을 조금씩 늦게 올려요. 단위가 커질수록 읽기 쉬워요." },
+ { "id": "text-scramble", "num": "03", "title": "스크램블", "en": "Scramble", "desc": "무작위 글자가 돌다가 앞에서부터 제자리를 찾아요. 계산·해독하는 느낌이에요." },
+ { "id": "text-fadeup", "num": "04", "title": "페이드업", "en": "Fade Up", "desc": "살짝 아래에서 떠오르며 나타나요. 가장 무난하고 많이 쓰는 등장이에요." },
+ { "id": "text-count", "num": "05", "title": "카운트업", "en": "Count Up", "desc": "숫자가 0에서 목표까지 올라가요. 크기를 몸으로 느끼게 해요." },
+ { "id": "text-mask", "num": "06", "title": "마스크 리빌", "en": "Mask Reveal", "desc": "보이지 않는 선 아래에서 글자가 밀려 올라와요. 단정하고 고급스러운 느낌이에요." },
+ { "id": "text-blur", "num": "07", "title": "블러 인", "en": "Blur In", "desc": "흐릿한 글자가 초점이 맞듯 선명해져요. 부드럽고 몽환적인 느낌이에요." },
+ { "id": "text-rotate", "num": "08", "title": "단어 교체", "en": "Word Rotate", "desc": "문장은 그대로 두고 한 단어만 돌아가며 바뀌어요. 여러 쓰임새를 한 줄로 말해요." },
+ { "id": "text-highlight", "num": "09", "title": "하이라이트", "en": "Highlight", "desc": "형광펜이 지나가듯 핵심 구절에 색이 칠해져요. 읽는 흐름 안에서 강조해요." }
+]

@@ -119,7 +119,7 @@ export function ModalPresent() {
   })
 
   return (
-    <Card id="t-modal" num="02" title="모달 등장" en="Modal Present" desc="새 화면이 아래에서 올라와 덮고, 뒤 화면은 살짝 작아지며 물러나요." demo={demo}>
+    <Card id="t-modal" num="04" title="모달 등장" en="Modal Present" desc="새 화면이 아래에서 올라와 덮고, 뒤 화면은 살짝 작아지며 물러나요." demo={demo}>
       <Stage log={log}>
         <Device ref={dev} className="black" light>
           <div className="scr" ref={a} style={{ transformOrigin: '50% 0', zIndex: 0 }}>
@@ -203,7 +203,7 @@ export function FadeThrough() {
 
   const ref = (i: number) => (el: HTMLDivElement | null) => { scrs.current[i] = el }
   return (
-    <Card id="t-fade" num="03" title="페이드 스루" en="Fade Through" desc="이전 화면이 먼저 사라지고, 새 화면이 살짝 커지며 나타나요." demo={demo}>
+    <Card id="t-fade" num="02" title="페이드 스루" en="Fade Through" desc="이전 화면이 먼저 사라지고, 새 화면이 살짝 커지며 나타나요." demo={demo}>
       <Stage log={log}>
         <Device ref={dev}>
           <div className="scr">

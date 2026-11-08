@@ -8,9 +8,9 @@ export default function TransitionGuide() {
   return (
     <div className="grid trans">
       <Push />
-      <ModalPresent />
       <FadeThrough />
       <SharedElement />
+      <ModalPresent />
       <CardExpand />
       <Zoom />
       <Stagger />

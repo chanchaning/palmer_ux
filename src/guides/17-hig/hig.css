@@ -365,3 +365,8 @@
 [data-page="hig"] .hig-la-dev.home .hig-la-lock { opacity: 0; pointer-events: none; }
 [data-page="hig"] .hig-la-apps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px 10px; }
 [data-page="hig"] .hig-la-apps span { aspect-ratio: 1; border-radius: 11px; box-shadow: 0 2px 6px rgba(0,0,0,.12); }
+
+/* 모바일: 머리말 수치 '44×44pt'가 칸 밖으로 넘치지 않게 */
+@media (max-width: 767px) {
+  [data-page="hig"] .stats .stat b { font-size: clamp(17px, 5vw, 25px); letter-spacing: -.03em; }
+}

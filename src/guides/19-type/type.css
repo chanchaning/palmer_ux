@@ -117,3 +117,19 @@
 [data-page="type"] .ty-font p { margin: 0; font-size: 18px; line-height: 1.4; }
 [data-page="type"] .ty-font .w9 { display: flex; gap: 6px; flex-wrap: wrap; font-size: 15px; margin-top: 4px; }
 [data-page="type"] .ty-src { margin: 22px 0 0; font-size: 13px; color: var(--text-3); text-align: center; }
+
+/* 모바일 가독성 */
+@media (max-width: 767px) {
+  /* 01: 긴 라벨이 예시 글자 위로 겹치지 않게 */
+  [data-page="type"] .ty-scale div { white-space: normal; }
+  [data-page="type"] .ty-scale small { width: 70px; font-size: 12px; line-height: 1.3; }
+  [data-page="type"] .ty-scale span { min-width: 0; word-break: keep-all; line-height: 1.35; }
+  /* 10: 이름·크기를 위 줄로, 예시는 아래 줄 전체 폭으로 */
+  [data-page="type"] .ty-steps { gap: 8px; }
+  [data-page="type"] .ty-steps div { grid-template-columns: auto 1fr; row-gap: 0; white-space: normal; }
+  [data-page="type"] .ty-steps small, [data-page="type"] .ty-steps code { font-size: 12px; }
+  [data-page="type"] .ty-steps span { grid-column: 1 / -1; white-space: normal; word-break: keep-all; line-height: 1.25; }
+  /* 13: 실제 크기 예시가 말줄임으로 잘리지 않게 줄바꿈 */
+  [data-page="type"] .ty-plat span { white-space: normal; line-height: 1.15; }
+  [data-page="type"] .ty-plat code { font-size: 12px; }
+}
