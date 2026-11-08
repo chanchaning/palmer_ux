@@ -20,15 +20,23 @@
 
 /* ---------- 1. 알람 피로 ---------- */
 [data-dash="alarm"] .al-fat { display: flex; flex-direction: column; gap: 14px; }
-[data-dash="alarm"] .al-fat-body { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 24px; align-items: center; }
-[data-dash="alarm"] .al-waffle { display: grid; grid-template-columns: repeat(50, minmax(0, 1fr)); gap: 2px; }
-[data-dash="alarm"] .al-waffle i { aspect-ratio: 1; background: var(--surface-3); border-radius: 1px; }
-[data-dash="alarm"] .al-waffle i.r { background: var(--text); }
+[data-dash="alarm"] .al-fat-body { display: grid; grid-template-columns: minmax(0, 420px) minmax(0, 560px); gap: 40px; align-items: start; }
+[data-dash="alarm"] .al-fat-q { margin: 0; font-size: 17px; font-weight: 600; line-height: 1.55; color: var(--text); }
+[data-dash="alarm"] .al-wf { display: flex; flex-direction: column; gap: 12px; }
+[data-dash="alarm"] .al-wf-grid { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 6px; max-width: 420px; }
+[data-dash="alarm"] .al-wf-grid i { aspect-ratio: 1; border-radius: 4px; border: 1.5px solid var(--line); background: var(--surface); }
+[data-dash="alarm"] .al-wf-grid i.r { background: var(--p1); border-color: var(--p1); }
+[data-dash="alarm"] .al-wf-key { display: flex; flex-direction: column; gap: 6px; font-size: 14px; color: var(--text-2); }
+[data-dash="alarm"] .al-wf-key span { display: inline-flex; align-items: center; gap: 8px; }
+[data-dash="alarm"] .al-wf-key i { flex: none; width: 14px; height: 14px; border-radius: 3px; border: 1.5px solid var(--line); background: var(--surface); }
+[data-dash="alarm"] .al-wf-key i.r { background: var(--p1); border-color: var(--p1); }
+[data-dash="alarm"] .al-wf-key b { color: var(--text); }
 [data-dash="alarm"] .al-fat-side { display: flex; flex-direction: column; gap: 10px; }
 [data-dash="alarm"] .al-fat-side p { margin: 0; font-size: 15px; line-height: 1.65; color: var(--text-2); }
 [data-dash="alarm"] .al-fat-side p b { color: var(--text); }
-[data-dash="alarm"] .al-fat-num { display: flex; flex-direction: column; gap: 2px; }
-[data-dash="alarm"] .al-fat-num b { font-size: 52px; line-height: 1; letter-spacing: -.03em; }
+[data-dash="alarm"] .al-fat-num { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
+[data-dash="alarm"] .al-fat-num span { flex-basis: 100%; }
+[data-dash="alarm"] .al-fat-num b { font-size: 40px; line-height: 1; letter-spacing: -.03em; }
 [data-dash="alarm"] .al-fat-num span { font-size: 14px; color: var(--text-2); }
 [data-dash="alarm"] .al-fat-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: var(--text-2); }
 [data-dash="alarm"] .al-fat-legend span { display: inline-flex; align-items: center; gap: 6px; }
@@ -248,8 +256,8 @@
   [data-dash="alarm"] .al-fat-body { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 767px) {
-  [data-dash="alarm"] .al-waffle { grid-template-columns: repeat(40, minmax(0, 1fr)); gap: 1px; }
-  [data-dash="alarm"] .al-fat-num b { font-size: 42px; }
+  [data-dash="alarm"] .al-wf-grid { gap: 4px; }
+  [data-dash="alarm"] .al-fat-num b { font-size: 32px; }
   [data-dash="alarm"] .al-sd-reset { margin-left: 0; }
   [data-dash="alarm"] .al-sd-swipe { display: block; }
   [data-dash="alarm"] .al-std b { font-size: 16px; }

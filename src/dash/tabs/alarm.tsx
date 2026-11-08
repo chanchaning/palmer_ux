@@ -47,27 +47,29 @@ type FId = (typeof FATIGUE)[number]['id']
 function Fatigue() {
   const [id, setId] = useState<FId>('icu')
   const f = FATIGUE.find(x => x.id === id)!
-  const N = 1000
-  const real = Math.round(N * (100 - f.pct) / 100)
-  // 진짜 알람이 어디에 섞여 있는지는 매번 같게(결정적 난수)
-  const order = useMemo(() => {
-    const r = rng(7), idx = Array.from({ length: N }, (_, i) => i)
-    for (let i = N - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [idx[i], idx[j]] = [idx[j], idx[i]] }
-    return idx
-  }, [])
-  const realSet = useMemo(() => new Set(order.slice(0, real)), [order, real])
+  // 알람 100번으로 바꿔서 보여줘요. 진짜 알람을 앞에 모아 세기 쉽게 해요.
+  const N = 100
+  const real = Math.max(1, Math.round(N * (100 - f.pct) / 100))
+  const fake = N - real
   return (
     <div className="al-fat">
+      <p className="al-fat-q">병원 모니터 알람이 <b>100번</b> 울렸다고 해 볼게요. 간호사가 정말 달려가야 했던 건 몇 번일까요?</p>
       <Seg value={id} onChange={setId} options={FATIGUE.map(x => [x.id, x.label] as const)} />
       <div className="al-fat-body">
-        <div className="al-waffle" role="img" aria-label={`알람 ${N}번 중 사람이 실제로 뭔가 해야 했던 건 약 ${real}번이에요. 나머지 ${N - real}번은 가짜였거나 아무것도 안 해도 됐어요`}>
-          {Array.from({ length: N }, (_, i) => <i key={i} className={realSet.has(i) ? 'r' : ''} />)}
+        <div className="al-wf" role="img" aria-label={`알람 100번 중 정말 할 일이 있던 건 ${real}번, 가 보니 할 일이 없던 건 ${fake}번이에요`}>
+          <div className="al-wf-grid" aria-hidden="true">
+            {Array.from({ length: N }, (_, i) => <i key={i} className={i < real ? 'r' : ''} />)}
+          </div>
+          <div className="al-wf-key" aria-hidden="true">
+            <span><i className="r" />네모 하나 = 알람 1번 · <b>진짜 할 일이 있던 알람 {real}번</b></span>
+            <span><i />가 보니 할 일이 없던 알람 {fake}번</span>
+          </div>
         </div>
         <div className="al-fat-side">
-          <div className="al-fat-num"><b>{f.pct}%</b><span>가짜였거나, 아무것도 안 해도 됐던 알람 <Cite n={f.cite} /></span></div>
-          <p>알람이 <b>1,000번</b> 울리면, 사람이 실제로 뭔가 해야 했던 건 <b>약 {real.toLocaleString('ko-KR')}번</b>이에요. 나머지 {(N - real).toLocaleString('ko-KR')}번은 헛걸음이었어요.</p>
-          <div className="al-fat-legend" aria-hidden="true"><span><i className="r" />뭔가 해야 했던 알람</span><span><i />안 해도 됐던 알람</span></div>
-          <p className="muted">{f.kind === '보고된 수치' ? '여러 병원 연구를 정리한 리뷰 논문에 실린 범위예요. 원래 연구를 옮겨 인용한 값이에요(보고된 수치).' : '한 어린이 병원에서 환자 모니터(심장 박동·호흡 등)의 알람을 지켜본 연구의 값이에요.'}</p>
+          <div className="al-fat-num"><span>100번 중 진짜 할 일이 있던 알람</span><b>{real}번</b><Cite n={f.cite} /></div>
+          <p>나머지 <b>{fake}번</b>은 달려가 봐도 할 일이 없었어요. 이런 일이 반복되면 사람은 알람이 울려도 ‘또 별일 아니겠지’ 하게 돼요. 양치기 소년 이야기와 같아요.</p>
+          <p>관제 화면도 똑같아요. 헛알람이 많을수록 진짜 알람을 놓쳐요.</p>
+          <p className="muted">{f.kind === '보고된 수치' ? `여러 병원 연구를 모은 리뷰 논문에 실린 범위예요(헛알람 ${f.pct}%). 원래 연구를 옮겨 인용한 값이에요(보고된 수치).` : `한 어린이 병원에서 환자 모니터(심장 박동·호흡 등) 알람을 지켜본 연구예요. 헛알람 비율 ${f.pct}%를 100번 기준으로 반올림했어요.`}</p>
         </div>
       </div>
     </div>
