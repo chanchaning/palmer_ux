@@ -575,7 +575,7 @@ a.brand { color: inherit; text-decoration: none; }
 .home-hero { padding: 24px 0 36px; display: flex; flex-direction: column; align-items: flex-start; gap: 16px; border-bottom: 1px solid var(--line); margin-bottom: 8px; }
 .home-logo .logo-img, .home-logo .logo { border-radius: 20px; }
 .home-title { margin: 4px 0 0; font-size: clamp(34px, 4.4vw, 58px); line-height: 1.12; letter-spacing: -.035em; font-weight: 800; }
-.home-desc { margin: 0; max-width: 620px; font-size: 17px; line-height: 1.7; color: var(--text-2); }
+.home-desc { margin: 0; max-width: 680px; font-size: 17px; line-height: 1.7; color: var(--text-2); }
 .home-search {
   display: flex; align-items: center; gap: 10px; width: min(560px, 100%); margin-top: 6px; padding: 14px 16px; text-align: left;
   border: 1px solid var(--line); border-radius: 14px; background: var(--surface); color: var(--text-3); font-size: 15px; box-shadow: var(--shadow);
@@ -627,3 +627,10 @@ kbd { font-family: inherit; font-size: 12px; font-weight: 600; color: var(--text
 
 /* 딥링크 강조 */
 .card.focus-flash { box-shadow: 0 0 0 3px var(--accent), var(--shadow); transition: box-shadow .4s; }
+.home-eyebrow { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: var(--text-2); }
+.home-eyebrow::before { content: ""; width: 18px; height: 2px; border-radius: 1px; background: var(--b); }
+.home-desc p { margin: 0 0 10px; }
+.home-desc b { color: var(--text); }
+.home-sign { font-weight: 700; color: var(--text); margin-top: 4px !important; }
+.home-for { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 14px; color: var(--text-2); }
+.home-for li::before { content: "✓"; color: var(--ok); font-weight: 800; margin-right: 6px; }

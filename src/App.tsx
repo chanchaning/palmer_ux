@@ -23,7 +23,8 @@ function Logo({ size = 40 }: { size?: number }) {
 /** 주소: #/ (홈) · #/guide-id · #/guide-id/card-id  (예전 #guide-id 도 지원) */
 function useHashRoute() {
   const read = () => {
-    const [g = '', c = ''] = location.hash.replace(/^#\/?/, '').split('/')
+    // 쿼리(?fg=..)는 라우팅에서 제외 — 가이드가 직접 읽어요
+    const [g = '', c = ''] = location.hash.replace(/^#\/?/, '').split('?')[0].split('/')
     return { g: decodeURIComponent(g), c: decodeURIComponent(c) }
   }
   const [id, setId] = useState(read)
@@ -77,7 +78,7 @@ export default function App() {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' })
     setDrawer(false)
-    document.title = guide ? `${guide.nav} · Palmer의 디자인 가이드` : 'Palmer의 디자인 가이드'
+    document.title = guide ? `${guide.nav} · Palmer의 웹 도감` : 'Palmer의 웹 도감 · 경험 노하우'
     requestAnimationFrame(() => window.dispatchEvent(new Event('resize')))
   }, [guide])
 
@@ -101,7 +102,7 @@ export default function App() {
   return (
     <div className="app">
       <aside className={'side' + (drawer ? ' open' : '')}>
-        <a className="brand" href="#/"><Logo /><div><b>Palmer</b><small>Design Guide</small></div></a>
+        <a className="brand" href="#/"><Logo /><div><b>Palmer</b><small>경험 노하우 웹 도감</small></div></a>
         <nav className="side-nav">
           <a href="#/" title="홈" className={!guide ? 'on' : ''}><span className="ico"><IconHome /></span><span className="txt">홈</span></a>
           {groups.map(gr => (
@@ -122,7 +123,7 @@ export default function App() {
       <div className="main">
         <header className="topbar">
           <button className="menu-btn" aria-label="메뉴 열기" onClick={() => setDrawer(true)}>☰</button>
-          <h1><a href="#/">Palmer의 디자인 가이드</a></h1>
+          <h1><a href="#/">Palmer의 웹 도감</a></h1>
           {guide && <span className="crumb">{guide.nav}</span>}
           <div className="top-actions">
             <button className="pill-btn search-btn" onClick={() => setSearch(true)}><IconSearch /> <span className="lbl">검색</span><kbd>⌘K</kbd></button>
@@ -137,7 +138,7 @@ export default function App() {
           {guide
             ? <GuidePage guide={guide} focusCard={route.c} key={guide.id} />
             : <Home onSearch={() => setSearch(true)} logo={<Logo size={72} />} />}
-          <footer>Palmer의 디자인 가이드 · 계속 추가 중</footer>
+          <footer>Palmer의 웹 도감 · 질문이 생길 때마다 채워가요</footer>
         </div>
       </div>
 

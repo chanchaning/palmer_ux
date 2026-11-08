@@ -8,11 +8,27 @@ export function Home({ onSearch, logo }: { onSearch: () => void; logo: React.Rea
     <section className="page on homepage" data-page="home">
       <header className="home-hero">
         <div className="home-logo">{logo}</div>
-        <h2 className="home-title">직접 만져보며 배우는<br />UX 도감</h2>
-        <p className="home-desc">
-          닮았지만 이름이 다른 컴포넌트, 화면이 넘어가는 방식, 사람이 결정하는 방식까지.
-          모든 카드에는 실제로 동작하는 데모가 들어 있어요. 눌러보고, 끌어보고, 비교해 보세요.
-        </p>
+        <div className="home-eyebrow">경험 노하우 · Palmer의 웹 도감</div>
+        <h2 className="home-title">질문이 쌓여<br />도감이 됐어요</h2>
+        <div className="home-desc">
+          <p>
+            디자이너로 일하며 부사수분들에게 가장 많이 받은 질문과, 제가 직접 부딪히며 배운 것들을 한곳에 꾹꾹 눌러 담았어요.
+          </p>
+          <p>
+            “토스트랑 스낵바는 뭐가 달라요?”, “이 회색 글자 써도 돼요?”, “이 기능은 화면을 어떻게 나눠요?”
+            매번 말로 풀어 설명하던 답을, 이제는 직접 눌러보고 끌어보면서 확인할 수 있게 만들었어요.
+          </p>
+          <p>
+            UX·UI에서 시작했지만 기획의 고민도 함께 채워가고 있어요. 정답을 외우기보다
+            <b> 왜 그렇게 결정하는지</b>를 같이 고민하는 도감이 되면 좋겠어요.
+          </p>
+          <p className="home-sign">— Palmer</p>
+        </div>
+        <ul className="home-for" aria-label="이런 분께 추천해요">
+          <li>처음 실무를 시작한 디자이너</li>
+          <li>디자이너와 함께 일하는 기획자·개발자</li>
+          <li>후배에게 ‘왜’를 설명해야 하는 사수</li>
+        </ul>
         <button className="home-search" onClick={onSearch}>
           <IconSearch />
           <span>찾고 싶은 패턴을 검색해 보세요 — 예: 토스트, 스와이프, 행간</span>
