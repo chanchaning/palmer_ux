@@ -283,3 +283,14 @@
 [data-dash="fe"] .fe-legend .late { fill: var(--surface); stroke: var(--text); stroke-width: 1.4; }
 [data-dash="fe"] .fe-legend .fk { fill: none; stroke: var(--text-2); stroke-width: 1.6; }
 [data-dash="fe"] .fe-legend .hatch { fill: var(--text-3); opacity: .35; }
+
+/* ---------- 1-3. 모바일 앱에서는 ---------- */
+[data-dash="fe"] .fe-app { border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; display: flex; flex-direction: column; gap: 12px; }
+[data-dash="fe"] .fe-app h5 { margin: 0; font-size: 15px; font-weight: 600; color: var(--text); }
+[data-dash="fe"] .fe-app h6 { margin: 0 0 8px; font-size: 14px; font-weight: 600; color: var(--text); }
+[data-dash="fe"] .fe-app-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 18px; align-items: start; }
+[data-dash="fe"] .fe-app-grid > div { background: var(--surface-2); border-radius: 10px; padding: 14px 16px; }
+[data-dash="fe"] .fe-app dl { margin: 0; display: flex; flex-direction: column; gap: 10px; }
+[data-dash="fe"] .fe-app dt { font-size: 14.5px; font-weight: 600; color: var(--text); }
+[data-dash="fe"] .fe-app dd { margin: 2px 0 0; font-size: 14px; line-height: 1.65; color: var(--text-2); }
+@media (max-width: 640px) { [data-dash="fe"] .fe-app { padding: 14px; } }
