@@ -363,7 +363,7 @@ export function EditMenu() {
       desc="텍스트를 선택하면 바로 위에 ‘복사하기 · 붙여넣기 · 번역’ 캡슐 메뉴가 떠요.">
       <Stage log={log}>
         <div className="box left hig-em-box" id="hig-em-box" ref={box}>
-          <p className="hig-em-p" id="hig-em-p" ref={p}>
+          <p className="hig-em-p allow-select" id="hig-em-p" ref={p}>
             {segs.map((g, i) => (g.mk ? <mark key={i} className="hig-em-mk">{g.t}</mark> : <Fragment key={i}>{g.t}</Fragment>))}
           </p>
           <div className={'hig-em-menu' + (menuOn ? ' on' : '') + (pos.below ? ' below' : '')} id="hig-em-menu" ref={menu}

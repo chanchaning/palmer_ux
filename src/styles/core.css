@@ -647,3 +647,8 @@ kbd { font-family: inherit; font-size: 12px; font-weight: 600; color: var(--text
 @media (max-width: 1279px) and (min-width: 768px) { .side-area { font-size: 0; padding: 8px 0 0; margin-top: 8px; } }
 .home-area { margin: 40px 0 0; font-size: 24px; font-weight: 600; letter-spacing: -.02em; }
 .home-area + .home-group { padding-top: 16px; }
+
+/* 본문 드래그·선택 막기 (입력칸과 선택 데모는 예외) */
+body { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+input, textarea, [contenteditable="true"], .allow-select, .allow-select * { -webkit-user-select: text; user-select: text; }
+img, svg { -webkit-user-drag: none; }
