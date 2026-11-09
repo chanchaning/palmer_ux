@@ -244,6 +244,246 @@ function Transport() {
   )
 }
 
+/* ================= 1-2. 네 방식 자세히 — 동작, 장단점, 조심할 점 ================= */
+interface MethodInfo {
+  how: string
+  steps: string[]
+  pros: string[]
+  cons: string[]
+  safety: string
+  traps: string[]
+  code: string
+}
+const DETAIL: Record<Method, MethodInfo> = {
+  poll: {
+    how: '5분마다 현관문을 열어 택배가 왔는지 보는 것과 같아요. 택배가 없어도 매번 나가 봐요.',
+    steps: [
+      '브라우저가 타이머로 정해진 간격(예: 5초)마다 서버에 “지금 상태 주세요”라고 요청해요.',
+      '서버는 그 순간의 상태를 바로 답하고 요청을 끝내요. 변화가 없어도 같은 답을 보내요.',
+      '브라우저는 답을 받아 화면을 고치고, 다음 간격까지 기다려요.',
+    ],
+    pros: [
+      '가장 단순해요. 평범한 HTTP 요청이라 서버·프록시·방화벽 어디서든 막히지 않아요.',
+      '요청마다 따로라서 서버가 연결을 기억할 필요가 없어요. 서버를 여러 대로 늘리기 쉬워요.',
+      '끊겨도 다음 요청이 곧 재연결이에요. 재연결 코드를 따로 만들 필요가 없어요.',
+      '캐시, 인증 헤더, 에러 처리 같은 기존 API 도구를 그대로 써요.',
+    ],
+    cons: [
+      '변화가 화면에 도착하기까지 최대 간격만큼 늦어요. 5초 간격이면 화재 알람도 최대 5초 늦게 떠요.',
+      '변화가 없어도 계속 요청해요. 화면 100대 × 5초 간격이면 1분에 1,200번이에요.',
+      '간격 사이에 생겼다 사라진 짧은 변화는 아예 못 볼 수 있어요(다음 요청 때 이미 정상).',
+      '간격을 줄이면 지연은 줄지만 요청 수가 그만큼 늘어요. 둘을 동시에 잡을 수 없어요.',
+    ],
+    safety: '일일 점검 현황, 시간별 출입 인원처럼 몇 분 단위로 바뀌는 지표에 잘 맞아요. 긴급 알람 목록에는 맞지 않아요.',
+    traps: [
+      '응답이 간격보다 오래 걸리면 요청이 겹쳐요. setInterval 대신 “응답을 받은 뒤 다음 요청 예약”으로 만들어요.',
+      '“변경분만 주세요”를 하려면 마지막으로 받은 번호나 시각을 같이 보내요. 안 그러면 매번 전체를 받아요.',
+      '탭이 가려졌을 때는 간격을 늘리거나 멈춰요. 다시 보이면 바로 한 번 받아요.',
+    ],
+    code: `// 응답을 받은 뒤에 다음 요청을 예약해요 (요청이 겹치지 않게)
+let since = 0, timer = 0
+async function tick() {
+  try {
+    const r = await fetch(\`/api/alarms?since=\${since}\`)
+    const { items, last } = await r.json()
+    apply(items); since = last
+  } catch { markStale() }            // 실패하면 '오래된 값' 표시
+  timer = window.setTimeout(tick, 5000)
+}
+tick()`,
+  },
+  long: {
+    how: '택배 기사에게 전화해 “오면 알려 주세요” 하고 끊지 않고 기다리는 것과 같아요. 소식이 오면 끊고, 바로 다시 전화해요.',
+    steps: [
+      '브라우저가 “새 소식 있으면 주세요”라고 요청해요.',
+      '서버는 새 소식이 없으면 바로 답하지 않고 요청을 붙잡고 기다려요(보통 20~60초까지).',
+      '새 소식이 생기면 그때 답하고 요청을 끝내요. 기다리다 시간이 다 되면 빈 답을 보내요.',
+      '브라우저는 답을 받자마자 다음 요청을 다시 보내요. 이것을 계속 반복해요.',
+    ],
+    pros: [
+      '평범한 HTTP라서 웹소켓이 막힌 회사망·오래된 프록시에서도 대부분 동작해요.',
+      '소식이 생기면 바로 답하므로 지연이 짧아요. 폴링보다 빈 요청이 훨씬 적어요.',
+      '기존 API 서버에 기능 하나를 더하는 방식이라 새 기술 없이 시작할 수 있어요.',
+    ],
+    cons: [
+      '소식 하나마다 요청이 한 번 끝나고 새로 열려요. 소식이 많을수록 요청 수와 헤더 낭비가 늘어요.',
+      '답을 받고 다음 요청을 보내기 전 아주 짧은 틈이 생겨요. 그 사이 생긴 소식은 번호(커서)로 다시 받아야 해요.',
+      '서버는 기다리는 요청을 화면 수만큼 붙잡고 있어요. 요청 하나에 스레드 하나를 쓰는 서버는 금방 바닥나요.',
+      '중간의 프록시·로드밸런서가 “응답 없는 오래된 요청”을 잘라 버릴 수 있어요. 기다리는 시간을 그보다 짧게 맞춰요.',
+    ],
+    safety: '웹소켓·SSE를 쓸 수 없는 폐쇄망이나 오래된 장비가 섞인 현장에서 대안으로 써요. 새로 만든다면 SSE를 먼저 검토해요.',
+    traps: [
+      '매 요청에 마지막으로 받은 번호를 보내야 틈 사이의 소식을 놓치지 않아요.',
+      '빈 답(시간 초과)은 오류가 아니에요. 오류일 때만 백오프로 기다렸다 다시 요청해요.',
+      '여러 탭이 같은 요청을 동시에 붙잡으면 브라우저 연결 수 제한에 걸릴 수 있어요.',
+    ],
+    code: `// 답이 오면 바로 다음 요청. 서버는 소식이 생길 때까지 답을 미뤄요
+let since = 0
+async function loop() {
+  for (;;) {
+    try {
+      const r = await fetch(\`/api/alarms/wait?since=\${since}&timeout=25\`)
+      if (r.status === 204) continue          // 25초 동안 소식 없음 → 다시
+      const { items, last } = await r.json()
+      apply(items); since = last
+    } catch { await sleep(backoff()) }        // 오류일 때만 쉬었다가
+  }
+}`,
+  },
+  sse: {
+    how: '라디오를 켜 두는 것과 같아요. 방송국(서버)이 말하면 그냥 들려요. 하지만 라디오로 방송국에 말을 걸 수는 없어요.',
+    steps: [
+      '브라우저가 EventSource로 요청을 하나 보내고, 서버는 그 응답을 끝내지 않고 열어 둬요.',
+      '서버는 소식이 생길 때마다 같은 응답에 “id · 이벤트 종류 · 데이터” 한 덩어리를 이어서 써요.',
+      '연결이 끊기면 브라우저가 알아서 다시 연결하고, 마지막으로 받은 id를 Last-Event-ID 헤더로 보내요.',
+      '서버는 그 id 이후의 소식부터 다시 보내요. 브라우저에서 서버로 보낼 일은 따로 API를 불러요.',
+    ],
+    pros: [
+      '받기만 하는 화면에 딱 맞아요. 안전관리 상황실 화면의 대부분이 받기예요.',
+      '재연결과 “마지막 번호 이후부터 다시 받기”가 표준에 들어 있어요. 직접 만들 게 적어요.',
+      '평범한 HTTP 응답이라 기존 인증 쿠키, 서버 로그, HTTP/2를 그대로 써요.',
+      '서버 코드가 단순해요. 응답에 글자를 이어 쓰기만 하면 돼요.',
+    ],
+    cons: [
+      '서버 → 브라우저 한 방향뿐이에요. 확인(ack) 같은 응답은 따로 API로 보내요.',
+      '글자(UTF-8)만 보낼 수 있어요. 이진 데이터는 글자로 바꿔야 해서 커져요.',
+      'HTTP/1.1에서는 브라우저가 한 도메인에 연결을 6개까지만 열어요. 탭을 여러 개 열면 막힐 수 있어서 HTTP/2가 필요해요.',
+      '브라우저 기본 EventSource는 요청 헤더를 직접 넣을 수 없어요. 토큰 인증은 쿠키나 별도 방법을 써요.',
+    ],
+    safety: '알람 목록, 센서값, 연결 상태처럼 서버가 알려 주기만 하면 되는 상황실 화면의 기본 선택이에요.',
+    traps: [
+      '중간 프록시(예: nginx)가 응답을 모았다 한꺼번에 보내면 실시간이 아니게 돼요. 버퍼링을 꺼요.',
+      '소식이 없어도 15~30초마다 빈 줄(주석) 하나를 보내요. 그래야 중간 장비가 연결을 끊지 않고, 화면도 살아 있는지 알아요.',
+      '서버가 id를 붙이지 않으면 자동 재연결이 있어도 놓친 구간을 못 받아요.',
+    ],
+    code: `// 브라우저: 재연결과 Last-Event-ID 는 브라우저가 알아서 해요
+const es = new EventSource('/api/alarms/stream', { withCredentials: true })
+es.addEventListener('alarm', e => apply(JSON.parse(e.data)))
+es.onerror = () => markStale()      // 끊김 배너 (재연결은 자동)
+
+// 서버가 쓰는 글자 형식
+// id: 1042
+// event: alarm
+// data: {"id":"S-101","pri":1,"where":"도장 부스"}
+//
+// : ping   ← 소식이 없을 때 연결 유지용 주석`,
+  },
+  ws: {
+    how: '전화 통화와 같아요. 한 번 연결하면 양쪽이 언제든 말할 수 있어요. 하지만 끊기면 다시 거는 것도, 어디까지 들었는지도 직접 챙겨야 해요.',
+    steps: [
+      '브라우저가 HTTP 요청으로 “웹소켓으로 바꿔요(Upgrade)”를 보내고, 서버가 받아들이면 연결이 바뀌어요.',
+      '그 뒤로는 HTTP가 아니라 작은 묶음(프레임)으로 양쪽이 언제든 주고받아요.',
+      '연결이 끊기면 브라우저는 close 이벤트만 알려 줘요. 다시 연결하는 일은 코드가 해요.',
+      '다시 연결한 뒤 놓친 구간은 마지막 번호를 보내 직접 다시 받아요.',
+    ],
+    pros: [
+      '양방향이에요. 확인(ack), 구독할 구역 바꾸기, 채팅처럼 브라우저도 자주 보내는 화면에 맞아요.',
+      '메시지마다 붙는 머리말이 2~14바이트로 아주 작아요. 1초에 수십 건씩 오가도 가벼워요.',
+      '글자와 이진 데이터를 모두 보낼 수 있어요. 영상 메타데이터나 압축한 센서 묶음도 바로 보내요.',
+    ],
+    cons: [
+      '재연결, 놓친 구간 다시 받기, 살아 있는지 확인(하트비트)을 모두 직접 만들어야 해요.',
+      '서버가 연결마다 상태를 들고 있어서, 서버를 여러 대로 늘리거나 배포할 때 연결을 옮기는 설계가 필요해요.',
+      '일부 회사망·보안 프록시는 Upgrade 요청을 막아요. 그럴 때를 위한 대체 방식이 필요해요.',
+      '브라우저 WebSocket도 요청 헤더를 직접 넣을 수 없어요. 인증은 쿠키, 연결 직후 첫 메시지, 짧게 쓰는 토큰으로 해요.',
+    ],
+    safety: '근무자가 화면에서 알람 확인·보류, 구역 구독 변경을 자주 보내거나 여러 근무자가 같은 화면 상태를 함께 바꾸는 상황실에 맞아요.',
+    traps: [
+      '보낸 메시지가 서버에 닿았다는 보장이 없어요. 확인(ack)처럼 중요한 명령은 서버의 응답 번호를 받고 나서 “처리됨”으로 표시해요.',
+      'onclose만 믿지 마세요. 랜선이 빠지면 몇 분 동안 close가 안 올 수 있어요. 하트비트가 일정 시간 안 오면 끊긴 것으로 판정해요.',
+      '보내는 쪽이 받는 쪽보다 빠르면 bufferedAmount가 계속 쌓여요. 쌓인 양을 보고 보내기를 늦춰요.',
+    ],
+    code: `// 하트비트가 끊기면 직접 끊고 다시 연결해요 (onclose 를 기다리지 않음)
+let ws: WebSocket, last = 0, seen = Date.now()
+function open() {
+  ws = new WebSocket(\`/ws/alarms?since=\${last}\`)
+  ws.onmessage = e => {
+    seen = Date.now()
+    const m = JSON.parse(e.data)
+    if (m.type === 'ping') return
+    apply(m); last = m.seq
+  }
+  ws.onclose = () => setTimeout(open, backoff())
+}
+setInterval(() => { if (Date.now() - seen > 30_000) ws.close() }, 5_000)
+open()`,
+  },
+}
+
+/** 표 형태 비교 — 행은 항목, 열은 방식 */
+const COMPARE: [string, string, string, string, string][] = [
+  ['연결 모양', '요청마다 새로 열고 닫음', '요청 하나를 오래 열어 두고, 답이 오면 새로 엶', '응답 하나를 계속 열어 둠', 'HTTP로 시작해 웹소켓 연결로 바꿈'],
+  ['누가 먼저 말하나', '항상 브라우저', '항상 브라우저 (서버는 답을 미룸)', '연결 뒤에는 서버', '양쪽 모두 언제든'],
+  ['변화가 도착하는 시간', '최대 간격만큼 늦음', '바로 (다음 요청 전 틈 제외)', '바로', '바로'],
+  ['변화가 없을 때', '그래도 계속 요청', '기다리다 시간 초과 후 다시 요청', '연결 유지용 주석만 가끔', '하트비트만 가끔'],
+  ['소식 하나당 낭비', 'HTTP 헤더 전체 (수백 바이트~수 KB)', 'HTTP 헤더 전체', '몇 줄짜리 글자', '머리말 2~14바이트'],
+  ['보낼 수 있는 데이터', '무엇이든 (일반 HTTP)', '무엇이든 (일반 HTTP)', '글자(UTF-8)만', '글자와 이진 데이터'],
+  ['끊긴 뒤 다시 연결', '다음 요청이 곧 재연결', '다음 요청이 곧 재연결', '브라우저가 자동', '직접 만들어야 함'],
+  ['놓친 구간 다시 받기', 'since 값을 직접 보냄', 'since 값을 직접 보냄', 'Last-Event-ID 자동 전송 (서버가 id를 붙여야 함)', '직접 만들어야 함'],
+  ['회사망·프록시 통과', '거의 항상 됨', '대부분 됨 (오래 기다리면 잘릴 수 있음)', '대부분 됨 (버퍼링 끄기 필요)', 'Upgrade를 막는 곳이 있음'],
+  ['서버를 여러 대로 늘리기', '쉬움', '보통', '보통 (연결이 한 서버에 머묾)', '어려움 (연결 상태를 들고 있음)'],
+  ['직접 만들 코드 양', '적음', '보통', '적음', '많음'],
+]
+
+const SHORT: Record<Method, string> = { poll: '폴링', long: '롱폴링', sse: 'SSE', ws: '웹소켓' }
+function MethodDetail() {
+  const [m, setM] = useState<Method>('sse')
+  const d = DETAIL[m], name = SHORT[m]
+  return (
+    <div className="fe-md">
+      <div className="fe-row">
+        <Seg value={m} onChange={setM} options={METHODS.map(x => [x.id, SHORT[x.id]] as const)} />
+      </div>
+      <div className="fe-md-card" aria-live="polite">
+        <p className="fe-md-how"><b>{name}</b>{d.how}</p>
+        <div className="fe-md-block">
+          <h5>어떻게 움직이나</h5>
+          <ol className="fe-md-steps">{d.steps.map((s, i) => <li key={i}>{s}</li>)}</ol>
+        </div>
+        <div className="fe-md-pc">
+          <div className="fe-md-block"><h5>장점</h5><ul>{d.pros.map((s, i) => <li key={i}>{s}</li>)}</ul></div>
+          <div className="fe-md-block"><h5>단점</h5><ul>{d.cons.map((s, i) => <li key={i}>{s}</li>)}</ul></div>
+        </div>
+        <div className="fe-md-pc">
+          <div className="fe-md-block">
+            <h5>안전관리 화면에서는</h5>
+            <p>{d.safety}</p>
+            <h5>만들 때 조심할 점</h5>
+            <ul>{d.traps.map((s, i) => <li key={i}>{s}</li>)}</ul>
+          </div>
+          <CodeBlock label={`TypeScript · ${name} 기본 모양`} code={d.code} maxHeight={360} />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function MethodCompare() {
+  return (
+    <div className="sys-table-wrap">
+      <table className="sys-table fe-cmp">
+        <thead><tr><th>항목</th><th>폴링</th><th>롱폴링</th><th>SSE</th><th>웹소켓</th></tr></thead>
+        <tbody>{COMPARE.map(r => <tr key={r[0]}>{r.map((c, i) => i === 0 ? <th key={i} scope="row">{c}</th> : <td key={i}>{c}</td>)}</tr>)}</tbody>
+      </table>
+    </div>
+  )
+}
+
+const PICK: [string, string][] = [
+  ['몇 분에 한 번 바뀌는 지표뿐이에요', '폴링. 가장 단순하고 고장 날 곳이 적어요.'],
+  ['서버가 알려 주기만 하면 돼요 (알람·센서값)', 'SSE. 재연결과 놓친 구간 받기가 표준에 있어요.'],
+  ['브라우저도 1초에 여러 번 보내요 (확인·구독 변경·함께 편집)', '웹소켓. 대신 재연결·하트비트·놓친 구간을 직접 만들어요.'],
+  ['SSE·웹소켓이 막힌 망이에요', '롱폴링. 마지막 번호(since)를 꼭 같이 보내요.'],
+]
+function MethodPick() {
+  return (
+    <div className="fe-pick">
+      <h5>무엇을 고를까 — 질문 하나로</h5>
+      <dl>{PICK.map(([q, a]) => <div key={q}><dt>{q}</dt><dd>{a}</dd></div>)}</dl>
+    </div>
+  )
+}
+
 /* ================= 2. 재연결: 지수 백오프 + 지터 ================= */
 type Strat = 'fixed' | 'exp' | 'jitter'
 const STRAT_N: Record<Strat, string> = { fixed: '1초마다 고정', exp: '지수 백오프', jitter: '지수 백오프 + 지터' }
@@ -301,11 +541,14 @@ function Herd() {
   )
 }
 
-interface Pt { seq: number; v: number; late?: boolean }
+interface Pt { seq: number; v: number; late?: boolean; fake?: boolean }
+type Gap = 'resync' | 'blank' | 'fill'
+const GAP_N: Record<Gap, string> = { resync: '놓친 구간 다시 받기', blank: '빈칸으로 두기', fill: '더미 값으로 채우기' }
 const valAt = (seq: number) => { const r = rng(seq * 9301 + 49297); return +(6 + Math.sin(seq / 7) * 2 + (r() - 0.5) * 1).toFixed(1) }
 function LiveReconnect() {
   const [on, setOn] = useState(true)
-  const [resync, setResync] = useState(true)
+  const [gap, setGap] = useState<Gap>('resync')
+  const [marks, setMarks] = useState(true)
   const s = useRef({ t: 60, downUntil: 0, conn: true, attempt: 0, nextAt: 0, lastSeq: 60, data: Array.from({ length: 60 }, (_, i) => ({ seq: i + 1, v: valAt(i + 1) })) as Pt[], log: [] as string[], r: rng(42) })
   const [, force] = useState(0)
   const delay = (n: number) => { const d = Math.min(16, 2 ** n); return d / 2 + s.current.r() * (d / 2) }
@@ -320,9 +563,13 @@ function LiveReconnect() {
     } else if (c.t >= c.nextAt) {
       if (up) {
         const missed = seqNow - c.lastSeq - 1
-        if (resync && missed > 0) {
+        if (gap === 'resync' && missed > 0) {
           for (let q = c.lastSeq + 1; q < seqNow; q++) c.data.push({ seq: q, v: valAt(q), late: true })
           log(`연결됨 · ${c.lastSeq}번 이후 요청(since) → 놓친 ${missed}개 받음`)
+        } else if (gap === 'fill' && missed > 0) {
+          const lv = c.data.find(p => p.seq === c.lastSeq)?.v ?? valAt(c.lastSeq)
+          for (let q = c.lastSeq + 1; q < seqNow; q++) c.data.push({ seq: q, v: lv, fake: true })
+          log(`연결됨 · 놓친 ${missed}개를 마지막 값 ${lv}로 채움 (더미)`)
         } else log(missed > 0 ? `연결됨 · 놓친 ${missed}개는 빈칸으로 남음` : '연결됨')
         c.data.push({ seq: seqNow, v: valAt(seqNow) }); c.lastSeq = seqNow; c.conn = true
       } else { c.attempt++; c.nextAt = c.t + delay(c.attempt); log(`재시도 #${c.attempt} 실패 · 다음 ${(c.nextAt - c.t).toFixed(1)}초 뒤`) }
@@ -333,25 +580,46 @@ function LiveReconnect() {
   const c = s.current, seqNow = Math.floor(c.t)
   const W = 600, H = 150, x = (q: number) => 10 + ((q - (seqNow - 59)) / 59) * (W - 20), y = (v: number) => 10 + (1 - v / 12) * (H - 20)
   const sorted = [...c.data].sort((a, b) => a.seq - b.seq)
-  let d = ''
-  sorted.forEach((p, i) => { d += (i && sorted[i - 1].seq === p.seq - 1 ? 'L' : 'M') + x(p.seq).toFixed(1) + ',' + y(p.v).toFixed(1) })
+  const path = (ps: Pt[]) => { let d = ''; ps.forEach((p, i) => { d += (i && ps[i - 1].seq === p.seq - 1 ? 'L' : 'M') + x(p.seq).toFixed(1) + ',' + y(p.v).toFixed(1) }); return d }
+  // 점 표시를 켜면 더미 구간은 진짜 선과 떼어 점선으로 그려요. 끄면 흔한 화면처럼 한 줄로 이어져요.
+  const real = marks ? sorted.filter(p => !p.fake) : sorted
+  const fakeRuns: Pt[][] = []
+  if (marks) sorted.forEach((p, i) => {
+    if (!p.fake) return
+    const prev = sorted[i - 1], run = fakeRuns[fakeRuns.length - 1]
+    if (prev?.fake && run) run.push(p)
+    else fakeRuns.push(prev ? [prev, p] : [p])
+    const next = sorted[i + 1]
+    if (next && !next.fake) fakeRuns[fakeRuns.length - 1].push(next)
+  })
+  const nFake = sorted.filter(p => p.fake).length, nLate = sorted.filter(p => p.late).length
   return (
     <div className="fe-live" ref={ref}>
       <div className="fe-row">
         <button type="button" className="btn sm" disabled={!c.conn || c.downUntil > c.t} onClick={() => { c.downUntil = c.t + 10; force(v => v + 1) }}>통신 10초 끊기</button>
-        <button type="button" className="chip" aria-pressed={resync} onClick={() => setResync(v => !v)}>재연결 후 놓친 구간 다시 받기</button>
+        <Seg value={gap} onChange={setGap} options={(Object.keys(GAP_N) as Gap[]).map(k => [k, GAP_N[k]] as const)} />
+        <button type="button" className="chip" aria-pressed={marks} onClick={() => setMarks(v => !v)}>점으로 값의 출처 표시</button>
         <button type="button" className="btn sm ghost" onClick={() => setOn(v => !v)}>{on ? '시뮬레이션 멈춤' : '다시 시작'}</button>
       </div>
       <Hmi title={`화학물질 창고 가연성 가스(${LEL.unit}) · 최근 60초`} right={c.conn ? <>연결됨 · 마지막 번호(seq) {c.lastSeq}</> : <b className="fe-bad">끊김 · 재시도 #{c.attempt + 1} {Math.max(0, c.nextAt - c.t).toFixed(1)}초 뒤</b>}>
         <div className="fe-live-grid">
-          <svg viewBox={`0 0 ${W} ${H}`} className={'fe-live-svg' + (c.conn ? '' : ' stale')} role="img" aria-label="최근 60초 가연성 가스 추세. 빈 곳은 받지 못한 구간, 속이 빈 점은 재연결 후 다시 받은 값.">
+          <svg viewBox={`0 0 ${W} ${H}`} className={'fe-live-svg' + (c.conn ? '' : ' stale')} role="img" aria-label={`최근 60초 가연성 가스 추세. 다시 받은 값 ${nLate}개, 더미로 채운 값 ${nFake}개.`}>
             {!c.conn && <rect className="hatch" x={x(c.lastSeq)} y={0} width={W - x(c.lastSeq)} height={H} />}
-            <path className="ln" d={d} />
-            {sorted.filter(p => p.late).map(p => <circle key={p.seq} className="late" cx={x(p.seq)} cy={y(p.v)} r={2.6} />)}
+            <path className="ln" d={path(real)} />
+            {fakeRuns.map((r, i) => <path key={i} className="fake" d={path(r)} />)}
+            {marks && sorted.map(p => p.fake
+              ? <path key={p.seq} className="fk" d={`M${x(p.seq) - 2.4},${y(p.v) - 2.4}l4.8,4.8m0,-4.8l-4.8,4.8`} />
+              : <circle key={p.seq} className={p.late ? 'late' : 'pt'} cx={x(p.seq)} cy={y(p.v)} r={p.late ? 2.6 : 1.7} />)}
           </svg>
           <ol className="fe-log" aria-live="polite">{c.log.length ? c.log.map((l, i) => <li key={i}>{l}</li>) : <li className="muted">‘통신 10초 끊기’를 눌러 보세요</li>}</ol>
         </div>
       </Hmi>
+      <ul className="fe-legend" aria-label="점의 뜻">
+        <li><svg viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="2.4" className="pt" /></svg>작은 점 · 제때 실시간으로 받은 값</li>
+        <li><svg viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="3.4" className="late" /></svg>속이 빈 점 · 끊긴 구간을 재연결 뒤 서버에서 다시 받은 진짜 값</li>
+        <li><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3.6,3.6l6.8,6.8m0,-6.8l-6.8,6.8" className="fk" /></svg>엑스 표시 · 받지 못해 화면이 마지막 값으로 채운 더미 값</li>
+        <li><svg viewBox="0 0 14 14" aria-hidden="true"><rect x="1" y="3" width="12" height="8" className="hatch" /></svg>빗금 · 지금 끊겨서 값이 들어오지 않는 구간</li>
+      </ul>
     </div>
   )
 }
@@ -885,17 +1153,12 @@ export default function Tab() {
           gist="상황실 화면처럼 받기만 하면 SSE, 자주 보내기도 하면 웹소켓이 맞아요."
           desc={<>택배 확인에 비유하면 쉬워요. 5분마다 현관에 나가 보는 게 <Term k="폴링" />, 택배가 오면 기사가 초인종을 눌러 주는 게 <Term k="SSE" />·<Term k="웹소켓" />이에요. 같은 30초 동안 서버에서 변화 8건이 생겨요. 네 방식이 요청을 몇 번 보내고, 변화가 화면에 몇 초 늦게 도착하는지 재생해 보세요. 아래 회색 막대가 늦어진 시간(지연)이에요.</>}>
           <Transport />
-          <div className="sys-table-wrap">
-            <table className="sys-table">
-              <thead><tr><th>방식</th><th>방향</th><th>지연</th><th>서버 부담</th><th>끊기면</th><th>잘 맞는 곳</th></tr></thead>
-              <tbody>
-                <tr><td>폴링</td><td>브라우저 → 서버 요청</td><td>최대 간격만큼 늦음</td><td>변화가 없어도 계속 요청</td><td>다음 요청 때 자연히 회복</td><td>몇 분 단위 지표, 단순한 화면</td></tr>
-                <tr><td><Term k="롱폴링" /></td><td>요청을 서버가 붙잡음</td><td>짧음</td><td>기다리는 요청을 계속 붙잡고 있음</td><td>다시 요청</td><td>웹소켓을 못 쓰는 환경의 대안</td></tr>
-                <tr><td>SSE</td><td>서버 → 브라우저 한 방향</td><td>짧음</td><td>연결 하나</td><td>브라우저가 알아서 다시 연결하고, 마지막으로 받은 이벤트 번호(ID)를 보내 줌 <Cite n={2} /></td><td>알람·센서값처럼 받기만 하는 안전관리 화면</td></tr>
-                <tr><td>웹소켓</td><td>양방향</td><td>짧음</td><td>연결 하나</td><td>재연결을 직접 만들어야 해요 <Cite n={1} /></td><td>확인·조작 명령도 자주 보내는 화면</td></tr>
-              </tbody>
-            </table>
-          </div>
+          <h4 className="fe-h4">네 방식을 하나씩 자세히</h4>
+          <p className="fe-p">방식을 골라 보세요. 어떻게 움직이는지, 장점과 단점, 안전관리 화면에서 언제 쓰는지, 만들 때 조심할 점과 기본 코드를 차례로 보여줘요.</p>
+          <MethodDetail />
+          <h4 className="fe-h4">항목별로 나란히 비교</h4>
+          <MethodCompare />
+          <MethodPick />
           <Note>통신 시간과 사건 시각은 비교를 위해 만든 <b>가상 값</b>이에요. 실제 차이는 네트워크와 서버에 따라 달라요. 안전관리 화면은 대부분 ‘받기’만 해서 SSE로 충분한 경우가 많아요. 설비 비상 정지나 대피 방송 같은 명령은 보통 따로 만든 <Term k="API" />로 보내요(확인 절차 포함).</Note>
         </Section>
 
@@ -905,7 +1168,8 @@ export default function Tab() {
           <Herd />
           <LiveReconnect />
           <SysPair>
-            <Note><b>마지막 번호(seq)를 기억해요.</b> 서버가 메시지마다 순서 번호를 붙이면, 다시 연결할 때 “1042번 이후 주세요”라고 할 수 있어요. ‘다시 받기’를 끄고 끊어 보면 그래프에 구멍이 남아요. 그 구멍이 바로 사고 조사 때 찾는 구간일 수 있어요.</Note>
+            <Note tone="warn"><b>점은 끊긴 구간을 제대로 보려고 찍어요.</b> 선이 매끈하게 이어져 있다고 그동안 값을 다 받았다는 뜻은 아니에요. 끊긴 동안 마지막 값을 복사하거나 미리 넣어 둔 더미 값으로 빈칸을 채우는 화면이 있어요. 그러면 가스 농도가 오르던 순간도 평평한 정상처럼 보여요. ‘더미 값으로 채우기’를 고르고 끊어 본 뒤 ‘점으로 값의 출처 표시’를 꺼 보세요. 그러면 진짜 값과 가짜 값을 구분할 수 없어요. 그래서 값이 있어 보여도 점을 보고 제때 받은 값인지, 다시 받은 값인지, 채운 값인지 확인해요. 채운 값은 화면에서 반드시 다르게 그리고, 조사 기록에는 남기지 않아요.</Note>
+            <Note><b>마지막 번호(seq)를 기억해요.</b> 서버가 메시지마다 순서 번호를 붙이면, 다시 연결할 때 “1042번 이후 주세요”라고 할 수 있어요. ‘빈칸으로 두기’를 고르고 끊어 보면 그래프에 구멍이 남아요. 그 구멍이 바로 사고 조사 때 찾는 구간일 수 있어요.</Note>
             <Note tone="tip"><b>끊긴 동안 화면이 할 일.</b> 끊겼다는 배너와 마지막 갱신 시각을 보여줘요. 오래된 값은 빗금이나 회색으로 바꿔요. 다시 연결하는 중이라는 것과 다음 시도까지 남은 시간도 보여줘요. 자세한 화면 표현은 05 실시간 갱신 탭에 있어요.</Note>
           </SysPair>
         </Section>

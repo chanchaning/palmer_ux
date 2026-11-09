@@ -245,3 +245,41 @@
 }
 
 @media (max-width: 767px) { [data-dash="fe"] .fe-mk { min-width: 0; } }
+
+/* ---------- 1-2. 네 방식 자세히 ---------- */
+[data-dash="fe"] .fe-h4 { margin: 18px 0 0; font-size: 16px; font-weight: 600; color: var(--text); }
+[data-dash="fe"] .fe-md { display: flex; flex-direction: column; gap: 12px; }
+[data-dash="fe"] .fe-md-card { border: 1px solid var(--line); border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 18px; }
+[data-dash="fe"] .fe-md-how { margin: 0; font-size: 15px; line-height: 1.7; color: var(--text-2); }
+[data-dash="fe"] .fe-md-how b { display: block; font-size: 18px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+[data-dash="fe"] .fe-md-block h5 { margin: 0 0 8px; font-size: 14px; font-weight: 600; color: var(--text); }
+[data-dash="fe"] .fe-md-block h5 + p { margin: 0 0 16px; }
+[data-dash="fe"] .fe-md-block p, [data-dash="fe"] .fe-md-block li { font-size: 14.5px; line-height: 1.7; color: var(--text-2); }
+[data-dash="fe"] .fe-md-block ul, [data-dash="fe"] .fe-md-block ol { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; }
+[data-dash="fe"] .fe-md-steps li::marker { color: var(--text); font-variant-numeric: tabular-nums; }
+[data-dash="fe"] .fe-md-pc { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 18px; align-items: start; }
+[data-dash="fe"] .fe-md-pc > .fe-md-block { background: var(--surface-2); border-radius: 10px; padding: 14px 16px; }
+[data-dash="fe"] .fe-cmp th[scope="row"] { font-weight: 600; color: var(--text); white-space: nowrap; }
+[data-dash="fe"] .fe-pick { border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; }
+[data-dash="fe"] .fe-pick h5 { margin: 0 0 10px; font-size: 14px; font-weight: 600; color: var(--text); }
+[data-dash="fe"] .fe-pick dl { margin: 0; display: grid; gap: 10px; }
+[data-dash="fe"] .fe-pick dl > div { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 4px 16px; font-size: 14.5px; line-height: 1.6; }
+[data-dash="fe"] .fe-pick dt { color: var(--text-2); }
+[data-dash="fe"] .fe-pick dd { margin: 0; color: var(--text); }
+@media (max-width: 640px) {
+  [data-dash="fe"] .fe-md-card { padding: 14px; }
+  [data-dash="fe"] .fe-pick dl > div { grid-template-columns: 1fr; }
+  [data-dash="fe"] .fe-cmp th[scope="row"] { white-space: normal; }
+}
+
+/* ---------- 2-2. 점의 뜻 (실시간 · 다시 받음 · 더미) ---------- */
+[data-dash="fe"] .fe-live-svg .pt { fill: var(--h-text); }
+[data-dash="fe"] .fe-live-svg .fake { fill: none; stroke: var(--h-sub); stroke-width: 1.6; stroke-dasharray: 3 3; }
+[data-dash="fe"] .fe-live-svg .fk { fill: none; stroke: var(--h-sub); stroke-width: 1.4; }
+[data-dash="fe"] .fe-legend { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 20px; font-size: 13.5px; color: var(--text-2); }
+[data-dash="fe"] .fe-legend li { display: inline-flex; align-items: center; gap: 6px; }
+[data-dash="fe"] .fe-legend svg { width: 14px; height: 14px; flex: none; }
+[data-dash="fe"] .fe-legend .pt { fill: var(--text); }
+[data-dash="fe"] .fe-legend .late { fill: var(--surface); stroke: var(--text); stroke-width: 1.4; }
+[data-dash="fe"] .fe-legend .fk { fill: none; stroke: var(--text-2); stroke-width: 1.6; }
+[data-dash="fe"] .fe-legend .hatch { fill: var(--text-3); opacity: .35; }
