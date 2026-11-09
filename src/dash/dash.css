@@ -11,13 +11,13 @@
 /* 근거 표기 */
 .dash-refs ol { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; counter-reset: ref; }
 .dash-refs li { counter-increment: ref; display: grid; grid-template-columns: 28px 86px minmax(0, 1fr); gap: 8px; align-items: baseline; font-size: 14px; line-height: 1.55; color: var(--text-2); }
-.dash-refs li::before { content: "[" counter(ref) "]"; font-weight: 700; color: var(--text-3); font-variant-numeric: tabular-nums; }
+.dash-refs li::before { content: "[" counter(ref) "]"; font-weight: 600; color: var(--text-3); font-variant-numeric: tabular-nums; }
 .dash-refs a { color: var(--accent); text-underline-offset: 2px; }
-.dash-kind { font-size: 12px; font-weight: 700; color: var(--text-2); background: var(--surface-2); border-radius: 6px; padding: 2px 8px; text-align: center; white-space: nowrap; }
+.dash-kind { font-size: 12px; font-weight: 600; color: var(--text-2); background: var(--surface-2); border-radius: 6px; padding: 2px 8px; text-align: center; white-space: nowrap; }
 .dash-kind.k-reported { color: var(--b); background: color-mix(in srgb, var(--b) 10%, var(--surface)); }
-.dash-cite { font-size: .78em; font-weight: 700; color: var(--accent); text-decoration: none; vertical-align: super; line-height: 0; margin-left: 1px; }
-.dash-finding { margin: 0; background: var(--surface-2); border-radius: 12px; padding: 16px 18px; display: flex; flex-direction: column; gap: 8px; }
-.dash-finding blockquote { margin: 0; font-size: 17px; font-weight: 700; line-height: 1.55; color: var(--text); word-break: keep-all; }
+.dash-cite { font-size: .78em; font-weight: 600; color: var(--accent); text-decoration: none; vertical-align: super; line-height: 0; margin-left: 1px; }
+.dash-finding { margin: 0; background: var(--surface-2); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 8px; }
+.dash-finding blockquote { margin: 0; font-size: 18px; font-weight: 500; line-height: 1.55; color: var(--text); word-break: keep-all; }
 .dash-finding figcaption { font-size: 13px; color: var(--text-3); }
 
 /* 우선순위 배지 */
@@ -60,10 +60,10 @@
 .dash-analog.out .ptr, .dash-analog.bad .ptr { filter: drop-shadow(0 0 .6px currentColor) drop-shadow(0 0 .6px currentColor); }
 
 /* 흔한 실수 카드 (CaseCard) */
-.neo-case { border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; display: flex; flex-direction: column; gap: 12px; background: var(--surface); min-width: 0; }
+.neo-case { border: 1px solid var(--line); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 12px; background: var(--surface); min-width: 0; }
 .neo-case header { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.neo-case h4 { margin: 0; font-size: 17px; line-height: 1.4; word-break: keep-all; }
-.neo-sev { font-size: 12px; font-weight: 800; border-radius: 6px; padding: 3px 8px; white-space: nowrap; }
+.neo-case h4 { margin: 0; font-size: 18px; font-weight: 600; line-height: 1.4; word-break: keep-all; }
+.neo-sev { font-size: 12px; font-weight: 600; border-radius: 6px; padding: 3px 8px; white-space: nowrap; }
 .neo-sev.s-치명 { background: var(--p1); color: var(--p1-on); }
 .neo-sev.s-높음 { background: var(--p2); color: var(--p2-on); }
 .neo-sev.s-보통 { background: var(--surface-2); color: var(--text-2); }
@@ -73,7 +73,7 @@
 .neo-vs-stage { min-width: 0; overflow-x: auto; }
 .neo-case-dl { margin: 0; display: flex; flex-direction: column; gap: 8px; }
 .neo-case-dl > div { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 10px; }
-.neo-case-dl dt { font-size: 13px; font-weight: 800; color: var(--text-3); padding-top: 2px; }
+.neo-case-dl dt { font-size: 13px; font-weight: 600; color: var(--text-3); padding-top: 2px; }
 .neo-case-dl dd { margin: 0; font-size: 15px; line-height: 1.65; color: var(--text-2); word-break: keep-all; }
 .neo-case-dl dd b { color: var(--text); }
 .neo-code { margin: 0; font-size: 12.5px; color: var(--text-3); font-family: ui-monospace, Consolas, monospace; word-break: break-all; }

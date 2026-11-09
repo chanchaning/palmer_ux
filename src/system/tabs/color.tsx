@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react'
 import { Seg } from '../../components/ui'
+import { IconMoon, IconSun } from '../../components/icons'
 import { AA, AAA, contrast, fmtRatio, parseColor, toHex, type RGB } from '../../guides/20-contrast/lib'
 import { resolveComponent, resolveSemantic, useSys, type Mode, type SysConfig } from '../store'
 import { CodeBlock, Note, Section, SysGrid } from '../ui'
@@ -7,7 +8,7 @@ import './color.css'
 
 const rgbOf = (hex: string): RGB => parseColor(hex)?.rgb ?? [255, 0, 255]
 const ratioOf = (a: string, b: string) => contrast(rgbOf(a), rgbOf(b))
-const MODES: readonly (readonly [Mode, string])[] = [['light', '☀ 라이트'], ['dark', '☾ 다크']]
+const MODES: readonly (readonly [Mode, ReactNode])[] = [['light', <><IconSun />라이트</>], ['dark', <><IconMoon />다크</>]]
 
 /* =====================================================================
  * 1. 60:30:10 — 미니 화면을 SVG로 그리고, 같은 화면을 '역할 색'으로 다시 그려 픽셀을 세요

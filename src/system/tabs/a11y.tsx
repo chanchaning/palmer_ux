@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { Range, Seg, useTimers } from '../../components/ui'
+import { IconPlay } from '../../components/icons'
 import { resolveSemantic, useSys, type SysConfig } from '../store'
 import { CodeBlock, Note, Section, SliderRow, SysGrid } from '../ui'
 import './a11y.css'
@@ -115,7 +116,7 @@ button:focus { outline: none; }
       </div>
       <div className="kb-status">
         <span aria-live="polite">{now >= 0 ? <>지금 포커스 <b>{now + 1}. {KB[now].name}</b></> : <>데모 안을 클릭한 뒤 <kbd>Tab</kbd> · <kbd>Shift</kbd>+<kbd>Tab</kbd>으로 움직여 보세요.</>}</span>
-        <button type="button" className="btn ghost sm" onClick={play} data-act="kb-play">▶ Tab 순서 재생</button>
+        <button type="button" className="btn ghost sm" onClick={play} data-act="kb-play"><IconPlay />Tab 순서 재생</button>
       </div>
       {!ring && <Note tone="warn"><b>포커스 링이 꺼졌어요.</b> Tab을 눌러도 지금 어디 있는지 보이지 않아요. <code>outline: none</code>만 쓰고 대신할 표시가 없으면 이런 상태가 돼요.</Note>}
       {order === 'bad' && <Note tone="warn"><b>보이는 순서와 Tab 순서가 달라요.</b> CSS <code>order</code>·grid 배치로 위치만 바꾸면 Tab은 코드 순서대로 움직여서 시선이 이리저리 튀어요. 순서는 HTML에서 바꾸고, 양수 <code>tabindex</code>는 쓰지 않아요.</Note>}
@@ -177,7 +178,7 @@ function ScreenReader() {
         <div className="sr-ctl-row">
           <button type="button" className="btn ghost sm" onClick={() => all(true)}>모두 있음</button>
           <button type="button" className="btn ghost sm" onClick={() => all(false)}>모두 없음</button>
-          <button type="button" className="btn sm" onClick={play} data-act="sr-play">▶ 낭독 재생</button>
+          <button type="button" className="btn sm" onClick={play} data-act="sr-play"><IconPlay />낭독 재생</button>
         </div>
       </div>
       <div className="sr-pair">
@@ -285,7 +286,7 @@ function FontLoading() {
       {row('foit', <>FOIT <code>font-display: block</code></>, '글꼴이 올 때까지 글자를 숨겨요')}
       {row('swap', <><code>font-display: swap</code></>, '대체 글꼴로 먼저 보여줘요')}
       <div className="fl-ctrl">
-        <button type="button" className="btn sm" onClick={() => { setT(0); setRun(r => r + 1) }} data-act="fl-play">▶ 페이지 열기</button>
+        <button type="button" className="btn sm" onClick={() => { setT(0); setRun(r => r + 1) }} data-act="fl-play"><IconPlay />페이지 열기</button>
         <SliderRow label="웹 폰트 도착 시간 (느린 네트워크 가정)" value={arrive.toFixed(1)} unit="초">
           <Range value={arrive} min={0.3} max={4} step={0.1} onChange={v => { setArrive(v); setT(END) }} label="웹 폰트 도착 시간(초)" />
         </SliderRow>

@@ -7,7 +7,7 @@ import { PLAN_TABS, PlanPage } from './plan/PlanPage'
 import { DASH_TABS, DashPage } from './dash/DashPage'
 import { groups, guides } from './guides/registry'
 import { useSlowMotion } from './lib/motion'
-import { IconDoc, IconGrid, IconHome, IconSearch, IconSlow, IconTheme } from './components/icons'
+import { IconDoc, IconGrid, IconHome, IconMenu, IconSearch, IconSlow, IconTheme, IconUp } from './components/icons'
 
 /* 로고: src/assets/logo.webp(+ logo-still.png)가 있으면 이미지, 없으면 'P' 글자 */
 const logoFiles = import.meta.glob<string>('./assets/logo*.{webp,png}', { eager: true, query: '?url', import: 'default' })
@@ -142,7 +142,7 @@ export default function App() {
 
       <div className="main">
         <header className="topbar">
-          <button className="menu-btn" aria-label="메뉴 열기" onClick={() => setDrawer(true)}>☰</button>
+          <button className="menu-btn" aria-label="메뉴 열기" onClick={() => setDrawer(true)}><IconMenu /></button>
           <h1><a href="#/">Palmer의 웹 도감</a></h1>
           {(guide || isSystem || isPlan || isDash) && <span className="crumb">{guide ? guide.nav : isSystem ? '디자인 시스템' : isDash ? '관제 대시보드' : '기획 노트'}</span>}
           <div className="top-actions">
@@ -169,7 +169,7 @@ export default function App() {
       </div>
 
       <button className={'to-top' + (showTop ? ' on' : '')} aria-label="맨 위로"
-        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>↑</button>
+        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}><IconUp /></button>
       <Search open={search} onClose={() => setSearch(false)} />
     </div>
   )

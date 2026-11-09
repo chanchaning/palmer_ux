@@ -10,7 +10,6 @@ export function Home({ onSearch, logo }: { onSearch: () => void; logo: React.Rea
     <section className="page on homepage" data-page="home">
       <header className="home-hero">
         <div className="home-logo">{logo}</div>
-        <div className="home-eyebrow">경험 노하우 · Palmer의 웹 도감</div>
         <h2 className="home-title">질문이 쌓여<br />도감이 됐어요</h2>
         <div className="home-desc">
           <p>
@@ -33,7 +32,7 @@ export function Home({ onSearch, logo }: { onSearch: () => void; logo: React.Rea
         </ul>
         <button className="home-search" onClick={onSearch}>
           <IconSearch />
-          <span>찾고 싶은 패턴을 검색해 보세요 — 예: 토스트, 스와이프, 행간</span>
+          <span>패턴 검색 (토스트, 스와이프, 행간)</span>
           <kbd>⌘K</kbd>
         </button>
         <dl className="home-stats">

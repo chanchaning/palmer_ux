@@ -65,4 +65,5 @@ React 19 · TypeScript · Vite. 외부 UI 라이브러리 없이 CSS와 Web Anim
 
 - 서체: [Pretendard](https://github.com/orioncactus/pretendard) — SIL Open Font License 1.1 (`src/styles/fonts/LICENSE-Pretendard.txt`)
 - UX 법칙 참고: [Laws of UX](https://lawsofux.com) (Jon Yablonski)
+- 디자인 점검: 디자인 마감 점검에 [unslop](https://github.com/heydamir/unslop)(Damir Sokolovsky, @heydamir, CC BY 4.0)을 참고했어요.
 - 화면 속 브랜드·상품·사람 이름은 모두 예시용 가상 데이터예요.
