@@ -1,0 +1,95 @@
+/* 01 렌더링 · 성능 데모 — [data-dev="perf"] 범위 */
+[data-dev="perf"] .pf-col { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+
+/* 01 무한 스크롤 */
+[data-dev="perf"] .pf-scroll { height: 240px; overflow: auto; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); position: relative; overscroll-behavior: contain; }
+[data-dev="perf"] .pf-row { height: 44px; display: flex; align-items: center; gap: 10px; padding: 0 12px; border-bottom: 1px solid var(--line); box-sizing: border-box; }
+[data-dev="perf"] .pf-row b { display: block; font-size: 13.5px; }
+[data-dev="perf"] .pf-row small { font-size: 11.5px; color: var(--text-3); }
+[data-dev="perf"] .pf-av { width: 26px; height: 26px; border-radius: 50%; background: var(--surface-3); flex: none; }
+
+/* 02 memo */
+[data-dev="perf"] .pf-input { flex: 1; min-width: 0; padding: 9px 12px; font: inherit; font-size: 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--text); }
+[data-dev="perf"] .pf-children { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+[data-dev="perf"] .pf-child { display: flex; justify-content: space-between; align-items: center; gap: 6px; padding: 10px 12px; border: 1px solid var(--line); background: var(--surface); color: var(--text); font: inherit; font-size: 13px; font-weight: 600; text-align: left; }
+[data-dev="perf"] .pf-child i { font-style: normal; font-family: var(--mono); font-size: 12px; color: var(--text-3); }
+
+/* 03 표 */
+[data-dev="perf"] .pf-table { height: 260px; overflow: auto; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); }
+[data-dev="perf"] .pf-table table { width: 100%; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; }
+[data-dev="perf"] .pf-table th { position: sticky; top: 0; background: var(--surface-2); text-align: left; padding: 7px 10px; font-size: 12px; color: var(--text-3); z-index: 1; }
+[data-dev="perf"] .pf-table td { padding: 0 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+
+/* 04 리스너 */
+[data-dev="perf"] .pf-browser { border-radius: 10px; border: 1px solid var(--line); background: var(--surface); overflow: hidden; }
+[data-dev="perf"] .pf-url { font-family: var(--mono); font-size: 12px; color: var(--text-3); padding: 7px 12px; background: var(--surface-3); }
+[data-dev="perf"] .pf-page { padding: 16px 14px; display: flex; flex-direction: column; gap: 2px; animation: fade calc(200ms * var(--slow)); }
+[data-dev="perf"] .pf-page small { color: var(--text-3); font-size: 12.5px; }
+
+/* 05 · 07 타임라인 */
+[data-dev="perf"] .pf-lcp, [data-dev="perf"] .pf-tti { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 12px; align-items: start; }
+[data-dev="perf"] .pf-phone-mini { border: 4px solid var(--bezel); border-radius: 14px; background: var(--surface); height: 196px; padding: 8px; display: flex; flex-direction: column; gap: 6px; position: relative; overflow: hidden; }
+[data-dev="perf"] .pf-hero { height: 76px; border-radius: 8px; background: var(--surface-3); display: grid; place-items: center; font-size: 11px; font-weight: 700; color: transparent; transition: background-color .3s, color .3s; text-align: center; padding: 4px; }
+[data-dev="perf"] .pf-hero.on { background: linear-gradient(135deg, var(--accent), var(--b)); color: var(--on-fill); }
+[data-dev="perf"] .pf-mini-line { height: 8px; border-radius: 4px; background: var(--surface-3); }
+[data-dev="perf"] .pf-mini-line.s { width: 60%; }
+[data-dev="perf"] .pf-blank { margin: auto; font-size: 11px; color: var(--text-3); }
+[data-dev="perf"] .pf-buy { width: 100%; }
+[data-dev="perf"] .pf-ok { font-size: 11px; font-weight: 700; color: var(--ok); text-align: center; }
+[data-dev="perf"] .pf-water { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+[data-dev="perf"] .pf-wrow { display: grid; grid-template-columns: minmax(0, 150px) minmax(0, 1fr); gap: 8px; align-items: center; }
+[data-dev="perf"] .pf-wname { font-size: 11.5px; color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+[data-dev="perf"] .pf-wname.hero { color: var(--text); font-weight: 700; }
+[data-dev="perf"] .pf-wtrack { position: relative; height: 14px; background: var(--surface); border-radius: 4px; }
+[data-dev="perf"] .pf-wbar { position: absolute; top: 2px; bottom: 2px; border-radius: 3px; background: var(--text-3); transition: opacity .2s; }
+[data-dev="perf"] .pf-wbar.hero { background: var(--b); }
+[data-dev="perf"] .pf-wbar.js { background: var(--accent); }
+[data-dev="perf"] .pf-wbar.lazy { background: var(--ok); }
+[data-dev="perf"] .pf-wrow.axis .pf-wtrack { background: none; height: 34px; }
+[data-dev="perf"] .pf-wrow.axis i { position: absolute; top: 0; font-style: normal; font-size: 10.5px; color: var(--text-3); transform: translateX(-50%); font-family: var(--mono); }
+[data-dev="perf"] .pf-lcp-mark { position: absolute; top: 16px; transform: translateX(-50%); font-size: 11px; color: var(--b); white-space: nowrap; }
+[data-dev="perf"] .pf-head { position: absolute; top: -170px; bottom: 18px; width: 2px; background: var(--text); opacity: .5; pointer-events: none; }
+[data-dev="perf"] .pf-task { position: absolute; top: 1px; bottom: 1px; border-radius: 3px; transition: opacity .2s; }
+[data-dev="perf"] .pf-task.own { background: var(--accent); }
+[data-dev="perf"] .pf-task.tp, [data-dev="perf"] .pf-legend .tp::before { background: var(--b); }
+[data-dev="perf"] .pf-click { position: absolute; top: -4px; height: 4px; border-radius: 2px; background: var(--danger); }
+[data-dev="perf"] .pf-legend { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 11px; color: var(--text-3); padding-left: 158px; }
+[data-dev="perf"] .pf-legend span { display: inline-flex; align-items: center; gap: 4px; }
+[data-dev="perf"] .pf-legend span::before { content: ""; width: 8px; height: 8px; border-radius: 2px; background: var(--accent); }
+[data-dev="perf"] .pf-tti .pf-head { top: -24px; }
+
+/* 06 캔버스 */
+[data-dev="perf"] .pf-canvas { width: 100%; max-width: 420px; aspect-ratio: 16 / 9; border-radius: 10px; display: block; background: var(--surface-3); }
+
+/* 08 폰트 */
+[data-dev="perf"] .pf-font { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+[data-dev="perf"] .pf-font h5 { margin: 0; font-size: 18px; }
+[data-dev="perf"] .pf-font p { margin: 0; font-size: 14px; color: var(--text-2); }
+[data-dev="perf"] .pf-font.web h5, [data-dev="perf"] .pf-font.web p { line-height: 1.85; }
+[data-dev="perf"] .pf-font.invisible h5, [data-dev="perf"] .pf-font.invisible p { color: transparent; line-height: 1.35; font-family: Georgia, serif; }
+/* 대체 글꼴의 지표를 웹 폰트에 맞춘 상태 — 줄 높이·폭이 같아서 바뀌어도 밀리지 않아요 (흉내: 같은 지표, 옅은 색) */
+[data-dev="perf"] .pf-font.fallback-matched h5, [data-dev="perf"] .pf-font.fallback-matched p { line-height: 1.85; color: var(--text-3); }
+
+/* 09 찢김 */
+[data-dev="perf"] .pf-cells { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+[data-dev="perf"] .pf-cell { display: grid; place-items: center; height: 46px; border-radius: 8px; font-family: var(--mono); font-weight: 700; font-size: 15px; color: var(--text);
+  background: hsl(var(--h) 70% 50% / .22); border: 1px solid hsl(var(--h) 70% 50% / .5); }
+
+/* 10 transform */
+[data-dev="perf"] .pf-arena { position: relative; height: 200px; overflow: hidden; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); }
+[data-dev="perf"] .pf-filler { margin: 0; padding: 10px; font-size: 12px; line-height: 1.6; color: var(--text-3); }
+[data-dev="perf"] .pf-dot { position: absolute; left: 0; top: 0; width: 10px; height: 10px; border-radius: 50%; background: var(--b); }
+[data-dev="perf"] .pf-dot.gpu { background: var(--ok); will-change: transform; }
+[data-dev="perf"] .pf-pipe { display: flex; flex-wrap: wrap; gap: 4px; }
+[data-dev="perf"] .pf-pipe span { font-family: var(--mono); font-size: 11.5px; font-weight: 700; padding: 3px 8px; border-radius: 6px; background: var(--b-soft); color: var(--b); }
+[data-dev="perf"] .pf-pipe span.skip { background: none; color: var(--text-3); text-decoration: line-through; border: 1px dashed var(--line); }
+[data-dev="perf"] .is-fixed .pf-pipe span.hit { background: color-mix(in srgb, var(--ok) 14%, transparent); color: var(--ok); }
+
+@media (max-width: 640px) {
+  [data-dev="perf"] .pf-lcp, [data-dev="perf"] .pf-tti { grid-template-columns: minmax(0, 1fr); }
+  [data-dev="perf"] .pf-phone-mini { width: 140px; }
+  [data-dev="perf"] .pf-wrow { grid-template-columns: minmax(0, 92px) minmax(0, 1fr); }
+  [data-dev="perf"] .pf-legend { padding-left: 0; }
+  [data-dev="perf"] .pf-children { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  [data-dev="perf"] .pf-head { top: -2px; }
+}

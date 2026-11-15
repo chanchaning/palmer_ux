@@ -1,0 +1,147 @@
+/* 10 보안 · 디버깅 데모 — [data-dev="debug"] 범위, 클래스는 모두 dg- */
+[data-dev="debug"] .dg-col { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+[data-dev="debug"] .dg-seg { background: var(--surface); }
+[data-dev="debug"] .dg-on { box-shadow: inset 0 0 0 1.5px var(--text-3); }
+[data-dev="debug"] .dg-input { width: 100%; box-sizing: border-box; padding: 9px 12px; font: inherit; font-size: 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--text); }
+[data-dev="debug"] .dg-ta { font-family: var(--mono); font-size: 13px; line-height: 1.5; resize: vertical; min-height: 76px; }
+[data-dev="debug"] .dg-input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+[data-dev="debug"] code { font-family: var(--mono); font-size: .88em; }
+[data-dev="debug"] .dv-log code { background: var(--surface); padding: 1px 5px; border-radius: 5px; color: var(--text); }
+
+/* 01 XSS */
+[data-dev="debug"] .dg-post { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+[data-dev="debug"] .dg-post-head { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--text-3); font-weight: 600; }
+[data-dev="debug"] .dg-av { width: 22px; height: 22px; border-radius: 50%; background: var(--surface-3); flex: none; }
+[data-dev="debug"] .dg-post-body { margin: 0; font-size: 14px; line-height: 1.6; color: var(--text); overflow-wrap: anywhere; }
+[data-dev="debug"] .dg-pre { white-space: pre-wrap; }
+[data-dev="debug"] .dg-post-body a { color: var(--accent); }
+[data-dev="debug"] .dg-frame { width: 100%; height: 72px; border: 1px dashed color-mix(in srgb, var(--danger) 45%, transparent); border-radius: 8px; background: #fff; display: block; }
+[data-dev="debug"] .dg-hits { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+[data-dev="debug"] .dg-hits li { display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; border-radius: 8px; font-size: 13px; line-height: 1.5; color: var(--text-2); background: var(--surface); border: 1px solid var(--line); min-width: 0; }
+[data-dev="debug"] .dg-hits li.run { border-color: color-mix(in srgb, var(--danger) 45%, transparent); background: color-mix(in srgb, var(--danger) 7%, var(--surface)); }
+[data-dev="debug"] .dg-hits li b { font-size: 12px; color: var(--text-3); }
+[data-dev="debug"] .dg-hits li.run b { color: var(--danger); }
+[data-dev="debug"] .dg-hits li code { color: var(--text); overflow-wrap: anywhere; }
+[data-dev="debug"] .dg-hits li.dg-hit-none { color: var(--text-3); }
+
+/* 02 콘솔 */
+[data-dev="debug"] .dg-login { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+[data-dev="debug"] .dg-login-form { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+[data-dev="debug"] .dg-field { flex: 1 1 140px; min-width: 0; padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; font-size: 13px; color: var(--text-2); background: var(--surface-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+[data-dev="debug"] .dg-login-ok { margin: 0; font-size: 13px; font-weight: 700; color: var(--ok); }
+[data-dev="debug"] .dg-console { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; font-family: var(--mono); font-size: 12px; min-height: 120px; }
+[data-dev="debug"] .dg-console-bar { display: flex; justify-content: space-between; padding: 5px 10px; background: var(--surface-3); color: var(--text-3); font-weight: 700; font-family: inherit; }
+[data-dev="debug"] .dg-console-empty { margin: 0; padding: 10px; color: var(--text-3); }
+[data-dev="debug"] .dg-cl { display: flex; gap: 8px; padding: 4px 10px; border-bottom: 1px solid var(--line); line-height: 1.5; color: var(--text); }
+[data-dev="debug"] .dg-cl i { font-style: normal; flex: none; width: 40px; color: var(--text-3); }
+[data-dev="debug"] .dg-cl span { overflow-wrap: anywhere; min-width: 0; }
+[data-dev="debug"] .dg-cl.warn { background: var(--b-soft); }
+[data-dev="debug"] .dg-cl.warn i { color: var(--b); }
+[data-dev="debug"] .dg-cl.error { background: color-mix(in srgb, var(--danger) 9%, transparent); }
+[data-dev="debug"] .dg-cl.error i { color: var(--danger); }
+[data-dev="debug"] .dg-cl.dropped { color: var(--text-3); font-style: italic; border-bottom: 0; }
+
+/* 03 하얀 화면 */
+[data-dev="debug"] .dg-shell { position: relative; border-radius: 12px; overflow: hidden; border: 1px solid var(--line); background: var(--surface); min-height: 248px; display: flex; flex-direction: column; }
+[data-dev="debug"] .dg-app { display: flex; flex-direction: column; flex: 1; }
+[data-dev="debug"] .dg-app-head { display: flex; justify-content: space-between; padding: 9px 12px; background: var(--surface-3); font-size: 13px; }
+[data-dev="debug"] .dg-app-head span { color: var(--text-3); font-size: 12px; }
+[data-dev="debug"] .dg-app-body { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding: 10px; flex: 1; }
+[data-dev="debug"] .dg-w { background: var(--surface-2); border-radius: 8px; padding: 10px; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; font-size: 12.5px; color: var(--text-2); min-width: 0; }
+[data-dev="debug"] .dg-w h6 { margin: 0; font-size: 13px; color: var(--text); }
+[data-dev="debug"] .dg-w p { margin: 0; line-height: 1.5; }
+[data-dev="debug"] .dg-w-fallback { border: 1px dashed var(--b); background: var(--b-soft); }
+[data-dev="debug"] .dg-reco { margin: 0; padding-left: 16px; line-height: 1.6; }
+[data-dev="debug"] .dg-white { flex: 1; background: var(--bg); display: flex; align-items: flex-end; justify-content: flex-end; padding: 8px; }
+[data-dev="debug"] .dg-white small { font-size: 10.5px; color: var(--text-3); opacity: .6; }
+[data-dev="debug"] .dg-toast { position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); width: max-content; max-width: calc(100% - 20px); padding: 8px 12px; border-radius: 10px; background: var(--text); color: var(--surface); font-size: 12.5px; font-weight: 600; animation: fade .2s; }
+
+/* 04 · 05 · 07 터미널 */
+[data-dev="debug"] .dg-term, [data-dev="debug"] .dg-stack { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; font-family: var(--mono); font-size: 12px; line-height: 1.65; min-height: 180px; overflow-x: auto; }
+[data-dev="debug"] .dg-term.small { min-height: 0; }
+[data-dev="debug"] .dg-stack { min-height: 0; }
+[data-dev="debug"] .dg-tl { color: var(--text); white-space: pre-wrap; overflow-wrap: anywhere; }
+[data-dev="debug"] .dg-tl.dim { color: var(--text-3); }
+[data-dev="debug"] .dg-tl.bad { color: var(--danger); }
+[data-dev="debug"] .dg-tl.good { color: var(--ok); }
+[data-dev="debug"] .dg-tl.warn { color: var(--b); }
+[data-dev="debug"] .dg-caret { animation: dg-blink 1s steps(1) infinite; }
+@keyframes dg-blink { 50% { opacity: 0; } }
+[data-dev="debug"] .dg-stack-empty { padding: 20px 0; }
+
+/* 05 Storybook */
+[data-dev="debug"] .dg-sb { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+[data-dev="debug"] .dg-sb-pane { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; min-width: 0; }
+[data-dev="debug"] .dg-sb-pane small { display: block; padding: 6px 10px; font-size: 11.5px; font-weight: 700; color: var(--text-3); background: var(--surface-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+[data-dev="debug"] .dg-sb-view { height: 96px; display: grid; place-items: center; }
+[data-dev="debug"] .dg-sbtn { display: inline-flex; align-items: center; justify-content: center; min-width: 96px; min-height: 40px; padding: 0 16px; border-radius: 10px; font-size: 14px; font-weight: 700; box-sizing: border-box; }
+[data-dev="debug"] .dg-sbtn.primary, [data-dev="debug"] .dg-sbtn.brand { background: var(--accent); color: var(--on-fill); }
+[data-dev="debug"] .dg-sbtn.ghost { background: var(--surface-2); color: var(--text); }
+[data-dev="debug"] .dg-sbtn.plain { background: var(--surface-3); color: var(--text-3); min-height: 30px; }
+
+/* 06 테스트 */
+[data-dev="debug"] .dg-testcode { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px; font-size: 12.5px; overflow-x: auto; white-space: nowrap; }
+[data-dev="debug"] .dg-dots { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 6px; }
+[data-dev="debug"] .dg-dotr { aspect-ratio: 1; max-height: 38px; border-radius: 8px; display: grid; place-items: center; font-size: 13px; font-weight: 700; background: var(--surface); border: 1px solid var(--line); color: var(--on-fill); }
+[data-dev="debug"] .dg-dotr.wait { background: var(--surface-3); animation: dg-blink 1s steps(1) infinite; }
+[data-dev="debug"] .dg-dotr.pass { background: var(--ok); border-color: var(--ok); }
+[data-dev="debug"] .dg-dotr.fail { background: var(--danger); border-color: var(--danger); }
+
+/* 08 플레임 차트 */
+[data-dev="debug"] .dg-flame { position: relative; height: 122px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; padding: 0; }
+[data-dev="debug"] .dg-fbar { position: absolute; height: 26px; margin: 4px 0 0; border: 0; border-radius: 4px; background: color-mix(in srgb, var(--accent) 30%, var(--surface)); color: var(--text); font-family: var(--mono); font-size: 11.5px; font-weight: 700; text-align: left; padding: 0 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; box-sizing: border-box; border-right: 2px solid var(--surface); cursor: pointer; animation: fade .3s; }
+[data-dev="debug"] .dg-fbar.hot { background: color-mix(in srgb, var(--danger) 35%, var(--surface)); }
+[data-dev="debug"] .dg-fbar.on { box-shadow: inset 0 0 0 2px var(--text); }
+[data-dev="debug"] .dg-detail { font-size: 13px; color: var(--text-2); min-height: 1.6em; overflow-wrap: anywhere; }
+[data-dev="debug"] .dg-detail code { background: var(--surface); padding: 1px 5px; border-radius: 5px; color: var(--text); }
+
+/* 09 분석 */
+[data-dev="debug"] .dg-ticket { background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--b); border-radius: 8px; padding: 8px 12px; font-size: 13px; }
+[data-dev="debug"] .dg-ticket p { margin: 2px 0 0; color: var(--text-2); }
+[data-dev="debug"] .dg-replay { display: grid; grid-template-columns: 132px minmax(0, 1fr); gap: 10px; align-items: start; }
+[data-dev="debug"] .dg-rp-phone { position: relative; border: 4px solid var(--bezel, var(--text-3)); border-radius: 14px; background: var(--surface); height: 190px; padding: 8px; display: flex; flex-direction: column; gap: 6px; overflow: hidden; box-sizing: border-box; }
+[data-dev="debug"] .dg-rp-row { display: flex; flex-direction: column; font-size: 10.5px; color: var(--text-3); }
+[data-dev="debug"] .dg-rp-row i, [data-dev="debug"] .dg-rp-row em { font-style: normal; font-size: 12px; color: var(--text); background: var(--surface-2); border-radius: 5px; padding: 2px 5px; }
+[data-dev="debug"] .dg-rp-row i { color: var(--text-3); letter-spacing: .05em; }
+[data-dev="debug"] .dg-rp-btn { position: relative; margin-top: auto; text-align: center; padding: 6px; border-radius: 7px; background: var(--accent); color: var(--on-fill); font-size: 12px; font-weight: 700; }
+[data-dev="debug"] .dg-rp-btn.off { background: var(--surface-3); color: var(--text-3); }
+[data-dev="debug"] .dg-rp-tap { position: absolute; right: -2px; top: -8px; background: var(--danger); color: var(--on-fill); font-size: 10px; border-radius: 999px; padding: 1px 5px; }
+[data-dev="debug"] .dg-rp-kb { position: absolute; left: 0; right: 0; bottom: 0; height: 58px; background: var(--surface-3); display: grid; place-items: center; font-size: 11px; color: var(--text-3); animation: fade .2s; }
+[data-dev="debug"] .dg-evs { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+[data-dev="debug"] .dg-evs li { display: grid; grid-template-columns: 58px minmax(0, 1fr); column-gap: 6px; font-size: 12px; line-height: 1.45; padding: 4px 6px; border-radius: 6px; opacity: .35; transition: opacity .2s; }
+[data-dev="debug"] .dg-evs li.on { opacity: 1; background: var(--surface); }
+[data-dev="debug"] .dg-evs li.on.bad { background: color-mix(in srgb, var(--danger) 10%, var(--surface)); }
+[data-dev="debug"] .dg-evs li.on.warn { background: var(--b-soft); }
+[data-dev="debug"] .dg-evs time { font-family: var(--mono); color: var(--text-3); grid-row: span 2; }
+[data-dev="debug"] .dg-evs b { font-family: var(--mono); font-size: 12px; }
+[data-dev="debug"] .dg-evs li.bad b { color: var(--danger); }
+[data-dev="debug"] .dg-evs li.warn b { color: var(--b); }
+[data-dev="debug"] .dg-evs span { color: var(--text-2); overflow-wrap: anywhere; }
+
+/* 10 중복 컴포넌트 */
+[data-dev="debug"] .dg-pages { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+[data-dev="debug"] .dg-pages > div { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 8px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+[data-dev="debug"] .dg-pages small { font-size: 11.5px; font-weight: 700; color: var(--text-3); }
+[data-dev="debug"] .dg-dup { font: inherit; color: var(--text); box-sizing: border-box; max-width: 100%; }
+[data-dev="debug"] .dg-dup.a { height: 30px; font-size: 12px; border: 1px solid var(--text-3); border-radius: 2px; background: var(--surface); padding: 0 4px; }
+[data-dev="debug"] .dg-dup.b { position: relative; height: 44px; display: flex; align-items: center; justify-content: space-between; padding: 0 12px; border-radius: 22px; background: var(--surface-3); font-size: 14px; font-weight: 600; cursor: pointer; user-select: none; }
+[data-dev="debug"] .dg-dd-list { position: absolute; left: 0; right: 0; top: 46px; z-index: 3; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 6px 20px rgba(0,0,0,.15); overflow: hidden; }
+[data-dev="debug"] .dg-dd-list div { padding: 8px 12px; font-size: 13px; }
+[data-dev="debug"] .dg-dd-list div:hover { background: var(--surface-2); }
+[data-dev="debug"] .dg-dup.c { display: flex; flex-wrap: wrap; gap: 4px; }
+[data-dev="debug"] .dg-dup.c button { border: 1px solid var(--line); background: var(--surface); color: var(--text-2); font: inherit; font-size: 11.5px; padding: 3px 7px; border-radius: 999px; }
+[data-dev="debug"] .dg-dup.c button.on { background: var(--b); border-color: var(--b); color: var(--on-fill); }
+[data-dev="debug"] .dg-ds { display: flex; flex-direction: column; gap: 3px; font-size: 12px; font-weight: 600; color: var(--text-2); }
+[data-dev="debug"] .dg-ds select { height: 40px; width: 100%; padding: 0 10px; font: inherit; font-size: 14px; color: var(--text); background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; }
+[data-dev="debug"] .dg-ds select:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+[data-dev="debug"] .dg-inv { width: 100%; border-collapse: collapse; font-size: 12.5px; background: var(--surface); border-radius: 10px; overflow: hidden; }
+[data-dev="debug"] .dg-inv th { text-align: left; font-size: 11.5px; color: var(--text-3); background: var(--surface-3); padding: 5px 10px; }
+[data-dev="debug"] .dg-inv td { padding: 5px 10px; border-top: 1px solid var(--line); color: var(--text-2); }
+[data-dev="debug"] .dg-inv code { color: var(--text); }
+
+@media (max-width: 640px) {
+  [data-dev="debug"] .dg-app-body, [data-dev="debug"] .dg-pages { grid-template-columns: minmax(0, 1fr); }
+  [data-dev="debug"] .dg-replay { grid-template-columns: minmax(0, 1fr); }
+  [data-dev="debug"] .dg-rp-phone { width: 150px; }
+  [data-dev="debug"] .dg-dots { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+}

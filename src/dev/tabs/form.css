@@ -1,0 +1,119 @@
+/* 07 폼 · 입력 데모 — [data-dev="form"] 범위 */
+[data-dev="form"] .fm-col { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+[data-dev="form"] .fm-grow { flex: 1; min-width: 0; }
+[data-dev="form"] .fm-input {
+  width: 100%; box-sizing: border-box; padding: 9px 12px; font: inherit; font-size: 16px; line-height: 1.3;
+  border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--text); min-width: 0;
+}
+[data-dev="form"] .fm-input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+[data-dev="form"] .fm-input.is-err { border-color: var(--danger); }
+[data-dev="form"] .fm-err { color: var(--danger); font-size: 12.5px; font-weight: 600; }
+[data-dev="form"] .fm-okmsg { color: var(--ok); font-size: 12.5px; font-weight: 600; }
+
+/* 01 IME */
+[data-dev="form"] .fm-chat { height: 150px; overflow: auto; overscroll-behavior: contain; display: flex; flex-direction: column; gap: 6px; padding: 10px; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); }
+[data-dev="form"] .fm-bubble { align-self: flex-start; max-width: 80%; padding: 7px 11px; border-radius: 14px 14px 14px 4px; background: var(--surface-3); color: var(--text); font-size: 14px; line-height: 1.4; word-break: keep-all; overflow-wrap: anywhere; }
+[data-dev="form"] .fm-bubble.me { align-self: flex-end; border-radius: 14px 14px 4px 14px; background: var(--accent); color: var(--accent-text); }
+
+/* 02 동적 필드 */
+[data-dev="form"] .fm-rows { display: flex; flex-direction: column; gap: 8px; }
+[data-dev="form"] .fm-frow { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; gap: 8px; align-items: start; animation: fade calc(200ms * var(--slow)); }
+[data-dev="form"] .fm-fnum { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--text-3); padding-top: 11px; text-align: right; }
+[data-dev="form"] .fm-fcell { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+[data-dev="form"] .fm-frow .btn { margin-top: 2px; }
+
+/* 03 자동 완성 */
+[data-dev="form"] .fm-af { border-radius: 10px; border: 1px solid var(--line); background: var(--surface); overflow: hidden; }
+[data-dev="form"] .fm-af-top { display: flex; align-items: center; gap: 10px; padding: 8px 10px; background: var(--surface-3); }
+[data-dev="form"] .fm-af-top b { font-size: 14px; flex: none; }
+[data-dev="form"] .fm-af-top form { display: flex; }
+[data-dev="form"] .fm-af-body { padding: 12px; }
+[data-dev="form"] .fm-af-body h5 { margin: 0 0 8px; font-size: 15px; }
+[data-dev="form"] .fm-af-form { display: flex; flex-direction: column; gap: 8px; }
+[data-dev="form"] .fm-af-form label { display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; font-weight: 600; color: var(--text-2); }
+[data-dev="form"] .fm-input.fm-filled { background: var(--accent-soft); border-color: var(--accent); }
+[data-dev="form"] .fm-input.fm-wrong { background: color-mix(in srgb, var(--danger) 12%, var(--surface)); border-color: var(--danger); }
+[data-dev="form"] .fm-input.fm-suggest { border-color: var(--ok); border-style: dashed; }
+[data-dev="form"] .fm-fills { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--text-2); }
+[data-dev="form"] .fm-fills li { padding-left: 18px; position: relative; overflow-wrap: anywhere; }
+[data-dev="form"] .fm-fills li::before { position: absolute; left: 0; font-weight: 700; }
+[data-dev="form"] .fm-fills li.bad::before { content: "✕"; color: var(--danger); }
+[data-dev="form"] .fm-fills li.good::before { content: "✓"; color: var(--ok); }
+[data-dev="form"] .fm-fills b { color: var(--text); }
+
+/* 04 휠 */
+[data-dev="form"] .fm-sheet { height: 210px; overflow: auto; overscroll-behavior: contain; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); padding: 4px 12px; }
+[data-dev="form"] .fm-sheet-line { display: flex; justify-content: space-between; gap: 10px; padding: 11px 0; border-bottom: 1px solid var(--line); font-size: 13.5px; }
+[data-dev="form"] .fm-sheet-line span { color: var(--text-3); }
+[data-dev="form"] .fm-sheet-field { display: flex; flex-direction: column; gap: 4px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 12.5px; font-weight: 600; color: var(--text-2); }
+[data-dev="form"] .fm-sheet-field .fm-input { font-variant-numeric: tabular-nums; font-weight: 700; }
+
+/* 05 드래그 앤 드롭 */
+[data-dev="form"] .fm-dnd-wrap { position: relative; display: flex; flex-direction: column; gap: 10px; padding: 10px; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); min-height: 200px; }
+[data-dev="form"] .fm-post { display: flex; flex-direction: column; gap: 6px; }
+[data-dev="form"] .fm-post span { font-size: 12px; color: var(--text-3); }
+[data-dev="form"] .fm-post-line { height: 8px; border-radius: 4px; background: var(--surface-3); }
+[data-dev="form"] .fm-post-line.s { width: 55%; }
+[data-dev="form"] .fm-zone { flex: 1; min-height: 120px; display: grid; place-items: center; text-align: center; padding: 10px; border: 2px dashed var(--line); border-radius: 10px; font-size: 13.5px; color: var(--text-3); transition: border-color .15s, background-color .15s; }
+[data-dev="form"] .fm-zone.on { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
+[data-dev="form"] .fm-thumbs { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 8px; width: 100%; }
+[data-dev="form"] .fm-thumbs figure { margin: 0; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+[data-dev="form"] .fm-thumbs img, [data-dev="form"] .fm-thumbs i { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 6px; background: var(--surface-3); display: grid; place-items: center; font-style: normal; font-size: 12px; }
+[data-dev="form"] .fm-thumbs figcaption { font-size: 11px; color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+[data-dev="form"] .fm-left { position: absolute; inset: 0; z-index: 2; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 16px; text-align: center; border-radius: 10px; background: var(--surface-3); animation: fade calc(200ms * var(--slow)); }
+[data-dev="form"] .fm-left b { color: var(--danger); font-size: 15px; }
+[data-dev="form"] .fm-left code { font-family: var(--mono); font-size: 11.5px; color: var(--text-2); background: var(--surface); padding: 4px 8px; border-radius: 6px; max-width: 100%; overflow-wrap: anywhere; }
+[data-dev="form"] .fm-left small { font-size: 12px; color: var(--text-3); }
+
+/* 06 키보드 */
+[data-dev="form"] .fm-kb-wrap { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 14px; align-items: start; }
+[data-dev="form"] .fm-ph { position: relative; width: 250px; height: 440px; border: 6px solid var(--bezel); border-radius: 28px; background: var(--surface); overflow: hidden; box-sizing: border-box; }
+[data-dev="form"] .fm-ph-screen { position: absolute; inset: 0; display: flex; flex-direction: column; transition: bottom .25s var(--ease); }
+[data-dev="form"] .fm-ph-head { flex: none; height: 40px; display: grid; place-items: center; font-size: 13px; font-weight: 700; border-bottom: 1px solid var(--line); }
+[data-dev="form"] .fm-ph-body { flex: 1; min-height: 0; overflow: auto; overscroll-behavior: contain; padding: 10px 12px; display: flex; flex-direction: column; gap: 10px; }
+[data-dev="form"] .fm-ph-field { display: flex; flex-direction: column; gap: 4px; font-size: 12px; font-weight: 600; color: var(--text-2); }
+[data-dev="form"] .fm-ph-line { flex: none; height: 8px; border-radius: 4px; background: var(--surface-3); }
+[data-dev="form"] .fm-ph-line.s { width: 60%; }
+[data-dev="form"] .fm-ph-bar { flex: none; padding: 8px 10px; border-top: 1px solid var(--line); background: var(--surface); }
+[data-dev="form"] .fm-ph-pay { width: 100%; }
+[data-dev="form"] .fm-keys { position: absolute; left: 0; right: 0; bottom: 0; height: 190px; z-index: 3; box-sizing: border-box; padding: 8px 3px; display: flex; flex-direction: column; gap: 6px; background: var(--surface-3); transform: translateY(100%); transition: transform .25s var(--ease); }
+[data-dev="form"] .fm-keys.on { transform: none; }
+[data-dev="form"] .fm-keys > div { display: flex; gap: 3px; justify-content: center; }
+[data-dev="form"] .fm-keys span, [data-dev="form"] .fm-keys button { flex: 1; max-width: 22px; height: 34px; display: grid; place-items: center; border-radius: 5px; background: var(--surface); color: var(--text); font-size: 12px; border: 0; padding: 0; font-family: inherit; }
+[data-dev="form"] .fm-keys .w { max-width: 40px; }
+[data-dev="form"] .fm-keys .sp { max-width: 110px; font-size: 11px; color: var(--text-3); }
+[data-dev="form"] .fm-keys button { max-width: 52px; background: var(--accent); color: var(--accent-text); font-weight: 700; }
+
+/* 07 사진 줄이기 */
+[data-dev="form"] .fm-shots { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+[data-dev="form"] .fm-shots figure { margin: 0; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+[data-dev="form"] .fm-shots img, [data-dev="form"] .fm-shots figure.empty::before { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 8px; background: var(--surface-3); display: block; }
+[data-dev="form"] .fm-shots figure.empty::before { content: ""; }
+[data-dev="form"] .fm-shots figcaption { font-size: 12px; color: var(--text-2); font-family: var(--mono); overflow-wrap: anywhere; }
+
+/* 08 날짜 */
+[data-dev="form"] .fm-date { display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; font-weight: 600; color: var(--text-2); max-width: 260px; }
+[data-dev="form"] .fm-date .fm-input { font-family: var(--mono); letter-spacing: .02em; }
+[data-dev="form"] .fm-dtable { width: 100%; border-collapse: collapse; font-size: 13px; background: var(--surface); border-radius: 10px; overflow: hidden; }
+[data-dev="form"] .fm-dtable th { text-align: left; font-size: 12px; color: var(--text-3); padding: 6px 10px; background: var(--surface-3); }
+[data-dev="form"] .fm-dtable td { padding: 6px 10px; border-top: 1px solid var(--line); }
+[data-dev="form"] .fm-dtable td:first-child { font-family: var(--mono); }
+[data-dev="form"] .fm-dtable tr.bad td { color: var(--danger); font-weight: 600; }
+
+/* 09 Enter 제출 */
+[data-dev="form"] .fm-order { display: flex; flex-direction: column; gap: 10px; padding: 12px; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); }
+[data-dev="form"] .fm-order label { display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; font-weight: 600; color: var(--text-2); }
+
+/* 10 제어 · 비제어 */
+[data-dev="form"] .fm-terms { display: flex; flex-direction: column; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); overflow: hidden; }
+[data-dev="form"] .fm-check { display: flex; align-items: center; gap: 10px; padding: 10px 12px; font-size: 14px; border-top: 1px solid var(--line); cursor: pointer; }
+[data-dev="form"] .fm-check:first-child { border-top: 0; }
+[data-dev="form"] .fm-check.all { font-weight: 700; background: var(--surface-3); }
+[data-dev="form"] .fm-check input { width: 20px; height: 20px; margin: 0; accent-color: var(--accent); flex: none; }
+[data-dev="form"] .fm-check em { margin-left: auto; font-style: normal; font-family: var(--mono); font-size: 11.5px; color: var(--text-3); padding: 1px 6px; border-radius: 5px; white-space: nowrap; }
+[data-dev="form"] .fm-check em.off { color: var(--danger); background: color-mix(in srgb, var(--danger) 12%, transparent); }
+
+@media (max-width: 640px) {
+  [data-dev="form"] .fm-kb-wrap { grid-template-columns: minmax(0, 1fr); justify-items: center; }
+  [data-dev="form"] .fm-kb-side { width: 100%; }
+}

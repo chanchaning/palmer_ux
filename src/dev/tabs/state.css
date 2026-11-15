@@ -1,0 +1,102 @@
+/* 02 상태 관리 데모 — [data-dev="state"] 범위, 클래스는 모두 st2- */
+[data-dev="state"] .st2-col { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+[data-dev="state"] .st2-muted { color: var(--text-3); font-size: 12.5px; }
+/* Meter 값 안에 ref용 span을 넣을 때 — 공용 .dv-meter span(라벨) 스타일을 덮어요 */
+[data-dev="state"] .dv-meter b span { font: inherit; color: inherit; }
+[data-dev="state"] .st2-n { font-style: normal; font-family: var(--mono); font-size: 11.5px; color: var(--text-3); }
+
+/* 위젯 격자 (01 · 07) */
+[data-dev="state"] .st2-widgets { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+[data-dev="state"] .st2-w { position: relative; display: flex; flex-direction: column; gap: 1px; padding: 7px 9px; border-radius: 9px; background: var(--surface); border: 1px solid var(--line); min-width: 0; }
+[data-dev="state"] .st2-w small { font-size: 11px; color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 14px; }
+[data-dev="state"] .st2-w b { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+[data-dev="state"] .st2-w .st2-n { position: absolute; top: 6px; right: 8px; }
+
+/* 변경 기록 */
+[data-dev="state"] .st2-log { list-style: none; margin: 0; padding: 8px 10px; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; min-height: 34px; }
+[data-dev="state"] .st2-log li { display: flex; flex-wrap: wrap; gap: 2px 10px; align-items: baseline; min-width: 0; }
+[data-dev="state"] .st2-log code { font-family: var(--mono); font-size: 12px; color: var(--text); overflow-wrap: anywhere; }
+[data-dev="state"] .st2-bad { color: var(--danger); font-weight: 600; }
+[data-dev="state"] .st2-ok { color: var(--ok); font-weight: 600; }
+
+/* 02 컴포넌트 트리 */
+[data-dev="state"] .st2-box { border: 1px dashed var(--line); border-radius: 9px; padding: 6px 8px 8px; background: var(--surface); display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+[data-dev="state"] .st2-box .st2-box { background: var(--surface-2); }
+[data-dev="state"] .st2-box .st2-box .st2-box { background: var(--surface); }
+[data-dev="state"] .st2-box.pass { border-style: solid; border-color: color-mix(in srgb, var(--danger) 45%, transparent); }
+[data-dev="state"] .st2-box.use { border-style: solid; border-color: var(--accent); }
+[data-dev="state"] .st2-box-h { display: flex; align-items: center; gap: 6px; font-size: 12px; min-width: 0; }
+[data-dev="state"] .st2-box-h code { font-family: var(--mono); font-size: 10.5px; padding: 0 5px; border-radius: 4px; background: var(--surface-3); color: var(--text-2); white-space: nowrap; }
+[data-dev="state"] .st2-box.pass > .st2-box-h code { color: var(--danger); background: color-mix(in srgb, var(--danger) 12%, transparent); }
+[data-dev="state"] .st2-box.use > .st2-box-h code { color: var(--accent); background: var(--accent-soft); }
+[data-dev="state"] .st2-box-h .st2-n { margin-left: auto; }
+[data-dev="state"] .st2-avatar { align-self: flex-start; font-size: 13px; font-weight: 700; padding: 3px 10px; border-radius: 999px; background: var(--accent); color: var(--on-fill); }
+
+/* 03 패널 */
+[data-dev="state"] .st2-panels { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+[data-dev="state"] .st2-panel { border-radius: 10px; background: var(--surface); border: 1px solid var(--line); padding: 8px 10px; min-height: 120px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+[data-dev="state"] .st2-panel > small { font-size: 11.5px; font-weight: 700; color: var(--text-3); }
+[data-dev="state"] .st2-panel-b { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; }
+[data-dev="state"] .st2-li { font-size: 12.5px; padding: 3px 8px; border-radius: 6px; background: var(--surface-2); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+[data-dev="state"] .st2-err { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; color: var(--danger); }
+[data-dev="state"] .st2-skel { display: block; height: 18px; width: 100%; border-radius: 6px; background: var(--surface-3); animation: st2-pulse 1s ease-in-out infinite alternate; }
+[data-dev="state"] .st2-skel.s { width: 65%; }
+[data-dev="state"] .st2-spin { display: inline-block; width: 18px; height: 18px; border-radius: 50%; border: 2.5px solid var(--surface-3); border-top-color: var(--b); animation: st2-rot .8s linear infinite; flex: none; }
+[data-dev="state"] .st2-spin.sm { width: 12px; height: 12px; border-width: 2px; margin-right: 6px; vertical-align: -1px; border-color: color-mix(in srgb, var(--on-fill) 35%, transparent); border-top-color: var(--on-fill); }
+@keyframes st2-rot { to { transform: rotate(360deg); } }
+@keyframes st2-pulse { to { opacity: .45; } }
+
+/* 04 · 05 작은 앱 */
+[data-dev="state"] .st2-app { border-radius: 10px; background: var(--surface); border: 1px solid var(--line); overflow: hidden; }
+[data-dev="state"] .st2-app-h { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 12px; background: var(--surface-3); font-size: 14px; flex-wrap: wrap; }
+[data-dev="state"] .st2-app-h small { font-size: 11px; color: var(--text-3); font-family: var(--mono); }
+[data-dev="state"] .st2-cart { margin: 10px 12px 12px; padding: 8px 10px; border-radius: 8px; border: 1.5px solid var(--line); display: flex; flex-wrap: wrap; gap: 5px; align-items: center; transition: border-color .2s; }
+[data-dev="state"] .st2-cart small { width: 100%; font-size: 11.5px; color: var(--text-3); font-family: var(--mono); }
+[data-dev="state"] .st2-cart.wrong { border-color: var(--danger); background: color-mix(in srgb, var(--danger) 7%, transparent); }
+[data-dev="state"] .st2-cart.wrong small { color: var(--danger); font-weight: 700; }
+[data-dev="state"] .st2-sample { margin: 12px; color: var(--text); transition: font-size .2s; }
+[data-dev="state"] .st2-sample.S { font-size: 12.5px; }
+[data-dev="state"] .st2-sample.M { font-size: 15px; }
+[data-dev="state"] .st2-sample.L { font-size: 19px; }
+[data-dev="state"] .st2-seg { display: flex; margin: 0 12px 12px; border: 1px solid var(--line); border-radius: 9px; overflow: hidden; }
+[data-dev="state"] .st2-seg button { flex: 1; padding: 7px 0; font: inherit; font-size: 13px; border: 0; background: none; color: var(--text-2); cursor: pointer; }
+[data-dev="state"] .st2-seg button + button { border-left: 1px solid var(--line); }
+[data-dev="state"] .st2-seg button.on { background: var(--accent); color: var(--on-fill); font-weight: 700; }
+[data-dev="state"] .st2-white { min-height: 150px; border-radius: 10px; background: #fff; border: 1px solid var(--line); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 14px; text-align: center; color: #888; }
+[data-dev="state"] .st2-white b { font-size: 13px; color: #aaa; }
+[data-dev="state"] .st2-white code { font-family: var(--mono); font-size: 12px; color: #c0392b; overflow-wrap: anywhere; }
+[data-dev="state"] .st2-white small { font-size: 11.5px; }
+
+/* 06 폼 */
+[data-dev="state"] .st2-form { height: 230px; overflow: auto; overscroll-behavior: contain; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; padding: 8px; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); align-content: start; }
+[data-dev="state"] .st2-field { display: flex; flex-direction: column; gap: 2px; padding: 3px 5px 5px; border-radius: 7px; min-width: 0; }
+[data-dev="state"] .st2-field label { display: flex; justify-content: space-between; gap: 6px; font-size: 11px; color: var(--text-3); font-weight: 600; }
+[data-dev="state"] .st2-input { width: 100%; min-width: 0; box-sizing: border-box; padding: 6px 8px; font: inherit; font-size: 16px; border: 1px solid var(--line); border-radius: 7px; background: var(--surface-2); color: var(--text); }
+[data-dev="state"] .st2-input:focus-visible { outline: 2px solid var(--accent); outline-offset: 0; }
+
+/* 08 Vue 템플릿 */
+[data-dev="state"] .st2-vue { border-radius: 10px; background: var(--surface); border: 1px solid var(--line); padding: 8px 12px 10px; display: flex; flex-direction: column; gap: 6px; }
+[data-dev="state"] .st2-vue-h { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+[data-dev="state"] .st2-vue-h code { font-family: var(--mono); font-size: 12px; color: var(--ok); }
+[data-dev="state"] .st2-vue-h small { font-size: 11px; color: var(--text-3); }
+[data-dev="state"] .st2-vue p { margin: 0; display: grid; grid-template-columns: minmax(0, 130px) minmax(0, 1fr); gap: 8px; align-items: baseline; }
+[data-dev="state"] .st2-vue p .st2-muted { font-family: var(--mono); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+[data-dev="state"] .st2-vue p b { font-size: 15px; overflow-wrap: anywhere; }
+
+/* 09 · 10 브라우저 틀 */
+[data-dev="state"] .st2-browser { border-radius: 10px; border: 1px solid var(--line); background: var(--surface); overflow: hidden; }
+[data-dev="state"] .st2-url { display: flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 12px; color: var(--text-3); padding: 6px 10px; background: var(--surface-3); min-width: 0; overflow: hidden; white-space: nowrap; }
+[data-dev="state"] .st2-back { flex: none; width: 26px; height: 22px; border-radius: 6px; border: 1px solid var(--line); background: var(--surface); color: var(--text); font: inherit; font-size: 13px; cursor: pointer; padding: 0; }
+[data-dev="state"] .st2-back:disabled { opacity: .35; cursor: default; }
+[data-dev="state"] .st2-back:not(:disabled) { border-color: var(--accent); color: var(--accent); font-weight: 700; }
+[data-dev="state"] .st2-page { padding: 14px; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; min-height: 96px; }
+[data-dev="state"] .st2-page small { color: var(--text-3); font-size: 12.5px; }
+
+@media (max-width: 640px) {
+  [data-dev="state"] .st2-widgets, [data-dev="state"] .st2-widgets.four { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  [data-dev="state"] .st2-form { grid-template-columns: minmax(0, 1fr); }
+  [data-dev="state"] .st2-vue p { grid-template-columns: minmax(0, 1fr); gap: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-dev="state"] .st2-spin, [data-dev="state"] .st2-skel { animation-duration: 3s; }
+}

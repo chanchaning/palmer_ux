@@ -1,0 +1,150 @@
+/* 06 스타일 · 디자인 시스템 데모 — [data-dev="style"] 범위, 클래스는 모두 sy- 접두어 */
+[data-dev="style"] .sy-col { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+[data-dev="style"] .sy-chip { display: inline-flex; align-items: center; font-family: var(--mono); font-size: 11.5px; font-weight: 600; padding: 2px 8px; border-radius: 6px; background: var(--surface); border: 1px solid var(--line); color: var(--text-2); }
+[data-dev="style"] .sy-chip.good { border-color: color-mix(in srgb, var(--ok) 50%, transparent); color: var(--ok); background: color-mix(in srgb, var(--ok) 10%, transparent); }
+[data-dev="style"] .sy-chip.off { color: var(--text-3); border-style: dashed; background: none; text-decoration: line-through; }
+[data-dev="style"] .sy-ok { color: var(--ok); font-weight: 700; }
+[data-dev="style"] .sy-bad { color: var(--danger); font-weight: 700; }
+[data-dev="style"] .sy-check, [data-dev="style"] .sy-range { display: flex; align-items: center; gap: 8px; font-size: 13.5px; color: var(--text-2); flex-wrap: wrap; }
+[data-dev="style"] .sy-range input { flex: 1; min-width: 120px; max-width: 260px; accent-color: var(--accent); }
+[data-dev="style"] .sy-range b { font-family: var(--mono); font-size: 13px; color: var(--text); }
+
+/* 01 토큰 */
+[data-dev="style"] .sy-tk-src { display: flex; flex-wrap: wrap; gap: 6px; }
+[data-dev="style"] .sy-tk-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+[data-dev="style"] .sy-tk-prev { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; min-width: 0; }
+[data-dev="style"] .sy-tk-plat { font-size: 11px; font-weight: 700; color: var(--text-3); }
+[data-dev="style"] .sy-tk-title { font-weight: 700; letter-spacing: -.01em; }
+[data-dev="style"] .sy-tk-body { margin: 0 0 8px; color: var(--text-2); }
+[data-dev="style"] .sy-tk-btn { display: flex; align-items: center; justify-content: center; align-self: stretch; background: var(--accent); color: var(--on-fill); font-size: 14px; font-weight: 700; box-sizing: border-box; }
+
+/* 02 !important */
+[data-dev="style"] .sy-imp-card { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px; }
+[data-dev="style"] .sy-imp-cell { display: flex; flex-direction: column; align-items: center; gap: 4px; position: relative; font-size: 12px; }
+[data-dev="style"] .sy-imp-btn { display: block; width: 100%; text-align: center; padding: 9px 4px; border-radius: 8px; font-size: 14px; font-weight: 700; }
+[data-dev="style"] .sy-imp-ref { position: absolute; width: 1px; height: 1px; visibility: hidden; }
+[data-dev="style"] .sy-imp-rules { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+[data-dev="style"] .sy-imp-rules li { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-size: 12px; padding: 5px 8px; border-radius: 8px; background: var(--surface); border: 1px solid var(--line); min-width: 0; }
+[data-dev="style"] .sy-imp-rules code { font-family: var(--mono); font-size: 11.5px; color: var(--text); overflow-wrap: anywhere; min-width: 0; flex: 1 1 160px; }
+[data-dev="style"] .sy-imp-spec { font-family: var(--mono); font-weight: 700; color: var(--b); }
+[data-dev="style"] .sy-imp-flag { font-family: var(--mono); font-weight: 700; font-size: 11px; color: var(--danger); background: color-mix(in srgb, var(--danger) 12%, transparent); border-radius: 5px; padding: 0 5px; }
+[data-dev="style"] .sy-imp-layer { font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--ok); }
+
+/* 03 Tailwind */
+[data-dev="style"] .sy-tw-files { display: flex; flex-direction: column; gap: 6px; }
+[data-dev="style"] .sy-tw-file { border: 1px solid var(--line); border-radius: 10px; background: var(--surface); overflow: hidden; }
+[data-dev="style"] .sy-tw-file.dim { opacity: .75; }
+[data-dev="style"] .sy-tw-file span { display: block; font-size: 11px; font-weight: 700; color: var(--text-3); padding: 4px 10px; border-bottom: 1px solid var(--line); }
+[data-dev="style"] .sy-tw-file pre { margin: 0; padding: 6px 10px; font-family: var(--mono); font-size: 11.5px; line-height: 1.55; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--text); }
+[data-dev="style"] .sy-tw-built small { display: block; font-size: 11.5px; font-weight: 700; color: var(--text-3); margin-bottom: 4px; }
+[data-dev="style"] .sy-tw-built div { display: flex; flex-wrap: wrap; gap: 4px; }
+[data-dev="style"] .sy-tw-out { display: flex; gap: 8px; padding: 12px; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); }
+[data-dev="style"] .sy-tw-badge { font-size: 13px; outline: 1px dashed var(--line); outline-offset: 2px; }
+
+/* 04 CSS-in-JS */
+[data-dev="style"] .sy-cj-list { height: 200px; overflow: auto; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); font-size: 13px; overscroll-behavior: contain; }
+[data-dev="style"] .sy-cj-row { display: flex; align-items: center; gap: 8px; padding: 0 10px; height: 28px; border-bottom: 1px solid var(--line); color: color-mix(in srgb, var(--accent) var(--sy-p), var(--b)); }
+[data-dev="style"] .sy-cj-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; flex: none; }
+
+/* 05 포털 */
+[data-dev="style"] .sy-pt-card { width: 100%; max-width: 320px; height: 150px; border-radius: 14px; overflow: hidden; background: var(--surface); border: 1px solid var(--line); }
+[data-dev="style"] .sy-pt-cover { height: 78px; background: linear-gradient(135deg, var(--b), var(--accent)); }
+[data-dev="style"] .sy-pt-body { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 12px; }
+[data-dev="style"] .sy-pt-body b { display: block; font-size: 14.5px; }
+[data-dev="style"] .sy-pt-body small { font-size: 12px; color: var(--text-3); }
+[data-dev="style"] .sy-pt-anchor { position: relative; }
+[data-dev="style"] .sy-pt-more { width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface-2); font-size: 18px; line-height: 1; }
+[data-dev="style"] .sy-pt-menu { position: absolute; top: calc(100% + 4px); right: 0; width: 168px; z-index: 5; display: flex; flex-direction: column; padding: 4px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--pop); }
+[data-dev="style"] .sy-pt-menu.fixed { position: fixed; top: 0; right: auto; z-index: 1000; }
+[data-dev="style"] .sy-pt-menu button { text-align: left; padding: 9px 10px; border: 0; background: none; border-radius: 8px; font-size: 14px; color: var(--text); }
+[data-dev="style"] .sy-pt-menu button:hover, [data-dev="style"] .sy-pt-menu button:focus-visible { background: var(--surface-2); }
+
+/* 06 다크 모드 — 미리보기 화면 둘은 테마와 상관없이 각자 라이트 · 다크 팔레트를 써요 */
+[data-dev="style"] .sy-dk-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+[data-dev="style"] .sy-dk-scr { border-radius: 12px; padding: 10px; display: flex; flex-direction: column; gap: 8px; min-width: 0; border: 1px solid var(--line); background: var(--sy-bg); color: var(--sy-fg); }
+[data-dev="style"] .sy-dk-scr.light { --sy-bg: #ffffff; --sy-fg: #1b1b19; --sy-sub: #6b6b66; --sy-grid: #e6e6e1; }
+[data-dev="style"] .sy-dk-scr.dark { --sy-bg: #1c1c1a; --sy-fg: #f1f1ec; --sy-sub: #a8a8a0; --sy-grid: #3a3a36; }
+[data-dev="style"] .sy-dk-mode { font-size: 11px; font-weight: 700; color: var(--sy-sub); }
+[data-dev="style"] .sy-dk-logo { height: 20px; width: auto; align-self: flex-start; }
+[data-dev="style"] .sy-dk-chart { width: 100%; height: auto; display: block; }
+[data-dev="style"] .sy-dk-img { width: 100%; height: auto; border-radius: 8px; display: block; }
+
+/* 07 끈적한 hover */
+[data-dev="style"] .sy-sh-wrap { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 160px); gap: 10px; align-items: start; }
+[data-dev="style"] .sy-sh-phone { position: relative; border: 4px solid var(--bezel); border-radius: 18px; background: var(--surface); padding: 12px; display: flex; flex-direction: column; gap: 8px; touch-action: manipulation; }
+[data-dev="style"] .sy-sh-cap { font-size: 11.5px; color: var(--text-3); }
+[data-dev="style"] .sy-sh-btn { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface-2); color: var(--text); font-size: 14px; font-weight: 600; text-align: left; -webkit-tap-highlight-color: transparent; }
+[data-dev="style"] .sy-sh-btn[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+/* ✕ 문제: 터치 기기에 남은 :hover 를 흉내 낸 클래스에도 hover 색이 그대로 */
+[data-dev="style"] .sy-sh-bad .sy-sh-btn.sy-sh-hov, [data-dev="style"] .sy-sh-ref { background: var(--accent); border-color: var(--accent); color: var(--on-fill); }
+[data-dev="style"] .sy-sh-btn.sy-sh-press { background: var(--surface-3); }
+[data-dev="style"] .sy-sh-ref { position: absolute; width: 1px; height: 1px; visibility: hidden; }
+[data-dev="style"] .sy-sh-real { display: flex; flex-direction: column; gap: 6px; }
+[data-dev="style"] .sy-sh-real small { font-size: 11.5px; color: var(--text-3); }
+[data-dev="style"] .sy-sh-rbtn { padding: 10px 8px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--text); font-family: var(--mono); font-size: 12px; -webkit-tap-highlight-color: transparent; }
+[data-dev="style"] .sy-sh-rbtn:active { background: var(--surface-3); }
+[data-dev="style"] .sy-sh-rbtn.bad:hover { background: var(--accent); color: var(--on-fill); }
+@media (hover: hover) and (pointer: fine) {
+  [data-dev="style"] .sy-sh-rbtn.good:hover { background: var(--accent); color: var(--on-fill); }
+}
+
+/* 08 긴 언어 */
+[data-dev="style"] .sy-i18n { display: flex; flex-direction: column; gap: 10px; max-width: 360px; }
+[data-dev="style"] .sy-i18n-card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+[data-dev="style"] .sy-i18n-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 14.5px; }
+[data-dev="style"] .sy-i18n-badge { font-size: 11.5px; font-weight: 700; color: var(--ok); background: color-mix(in srgb, var(--ok) 12%, transparent); border-radius: 6px; padding: 2px 6px; }
+[data-dev="style"] .sy-i18n-btns { display: flex; gap: 6px; }
+[data-dev="style"] .sy-i18n-btn { border: 1px solid var(--line); background: var(--surface-2); color: var(--text); border-radius: 10px; font-size: 13.5px; font-weight: 600; padding: 0 8px; }
+[data-dev="style"] .sy-i18n-btn.main { background: var(--accent); border-color: var(--accent); color: var(--on-fill); }
+[data-dev="style"] .sy-i18n-tabs { display: flex; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 6px 2px; }
+[data-dev="style"] .sy-i18n-tab { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 11.5px; color: var(--text-3); text-align: center; }
+[data-dev="style"] .sy-i18n-tab.on { color: var(--accent); font-weight: 700; }
+[data-dev="style"] .sy-i18n-tab i { width: 18px; height: 18px; border-radius: 6px; background: currentColor; opacity: .35; }
+[data-dev="style"] .sy-i18n [data-sy-m] { display: block; }
+/* ✕ 문제: 한국어에 맞춘 고정 폭 · 한 줄 고정 */
+[data-dev="style"] .sy-i18n.bad .sy-i18n-badge { width: 60px; white-space: nowrap; }
+[data-dev="style"] .sy-i18n.bad .sy-i18n-btn { width: 96px; height: 40px; flex: none; white-space: nowrap; }
+[data-dev="style"] .sy-i18n.bad .sy-i18n-btn.main { width: 112px; }
+[data-dev="style"] .sy-i18n.bad .sy-i18n-tab { width: 25%; white-space: nowrap; }
+[data-dev="style"] .sy-i18n.bad .sy-i18n-tab [data-sy-m] { width: 100%; }
+/* ✓ 해결: 최소 폭 + 늘어남 + 줄바꿈 + 하이픈 */
+[data-dev="style"] .sy-i18n.good .sy-i18n-top { flex-wrap: wrap; }
+[data-dev="style"] .sy-i18n.good .sy-i18n-btns { flex-wrap: wrap; }
+[data-dev="style"] .sy-i18n.good .sy-i18n-btn { flex: 1 1 auto; min-width: 88px; min-height: 40px; padding: 8px 12px; line-height: 1.3; }
+[data-dev="style"] .sy-i18n.good .sy-i18n-tab { flex: 1 1 0; min-width: 0; overflow-wrap: anywhere; hyphens: auto; line-height: 1.25; }
+
+/* 09 모달 접근성 */
+[data-dev="style"] .sy-ay-page { position: relative; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); min-height: 200px; overflow: hidden; }
+[data-dev="style"] .sy-ay-bg { padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+[data-dev="style"] .sy-ay-bg p { margin: 0; font-size: 13.5px; color: var(--text-2); }
+[data-dev="style"] .sy-ay-bg a { font-size: 14px; color: var(--accent); }
+[data-dev="style"] .sy-ay-nav { display: flex; gap: 6px; }
+[data-dev="style"] .sy-ay-nav button { padding: 5px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface-2); font-size: 13px; }
+[data-dev="style"] .sy-ay-dim { position: absolute; inset: 0; background: var(--dim); display: grid; place-items: center; padding: 12px; }
+[data-dev="style"] .sy-ay-modal { position: relative; width: 100%; max-width: 280px; background: var(--surface); border-radius: 14px; padding: 16px; box-shadow: var(--pop); display: flex; flex-direction: column; gap: 6px; }
+[data-dev="style"] .sy-ay-modal b { font-size: 16px; padding-right: 28px; }
+[data-dev="style"] .sy-ay-modal p { margin: 0 0 6px; font-size: 13.5px; color: var(--text-2); }
+[data-dev="style"] .sy-ay-x { position: absolute; top: 8px; right: 8px; width: 32px; height: 32px; border-radius: 8px; display: grid; place-items: center; border: 0; background: none; color: var(--text-3); cursor: pointer; font-size: 14px; }
+[data-dev="style"] .sy-ay-fake { padding: 8px 12px; border-radius: 8px; background: var(--surface-2); font-size: 14px; font-weight: 600; cursor: pointer; }
+[data-dev="style"] .sy-ay-modal :focus-visible, [data-dev="style"] .sy-ay-bg :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* 10 말줄임 */
+[data-dev="style"] .sy-el-list { list-style: none; margin: 0; padding: 4px; max-width: 100%; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; }
+[data-dev="style"] .sy-el-list li { display: flex; align-items: center; gap: 8px; padding: 6px; min-width: 0; }
+[data-dev="style"] .sy-el-list li > i { flex: none; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-style: normal; font-size: 12px; font-weight: 700; background: var(--surface-3); color: var(--text-2); }
+[data-dev="style"] .sy-el-cell { position: relative; flex: 1; min-width: 0; }
+[data-dev="style"] .sy-el-text { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 14px; border-radius: 4px; }
+[data-dev="style"] .sy-el-text[data-sy-reveal] { cursor: help; text-decoration: underline dotted var(--text-3); text-underline-offset: 3px; }
+[data-dev="style"] .sy-el-text:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+[data-dev="style"] .sy-el-tip {
+  position: absolute; left: 0; top: calc(100% + 4px); z-index: 5; width: max-content; max-width: min(280px, 80vw); padding: 6px 10px; border-radius: 8px;
+  background: var(--text); color: var(--bg); font-size: 12.5px; line-height: 1.45; box-shadow: var(--pop); opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .12s;
+}
+[data-dev="style"] .sy-el-text:focus + .sy-el-tip { opacity: 1; visibility: visible; }
+@media (hover: hover) {
+  [data-dev="style"] .sy-el-text:hover + .sy-el-tip { opacity: 1; visibility: visible; transition-delay: .25s; }
+}
+
+@media (max-width: 640px) {
+  [data-dev="style"] .sy-sh-wrap { grid-template-columns: minmax(0, 1fr); }
+}

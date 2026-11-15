@@ -1,0 +1,151 @@
+/* 08 빌드 · 배포 데모 — [data-dev="build"] 범위, 클래스는 모두 bd- */
+[data-dev="build"] .bd-col { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+[data-dev="build"] .bd-seg { background: var(--surface-3); max-width: 100%; }
+[data-dev="build"] .bd-seg button { text-align: left; }
+[data-dev="build"] .bd-term {
+  margin: 0; padding: 10px 12px; border-radius: 10px; background: var(--surface); border: 1px solid var(--line);
+  font-family: var(--mono); font-size: 12px; line-height: 1.55; color: var(--text); overflow: auto; white-space: pre; min-width: 0;
+}
+[data-dev="build"] .bd-two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
+[data-dev="build"] .bd-out { font-family: var(--mono); font-size: 12.5px; line-height: 1.5; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); overflow-wrap: anywhere; }
+[data-dev="build"] .bd-out.ok { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 40%, transparent); }
+[data-dev="build"] .bd-out.warn { color: var(--b); border-color: color-mix(in srgb, var(--b) 40%, transparent); }
+[data-dev="build"] .bd-out.err { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 40%, transparent); }
+[data-dev="build"] .bd-out b { color: inherit; }
+[data-dev="build"] .dv-log code, [data-dev="build"] .bd-check code { font-family: var(--mono); font-size: .9em; background: var(--surface); padding: 1px 5px; border-radius: 5px; }
+
+/* 01 단계 막대 */
+[data-dev="build"] .bd-steps { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); }
+[data-dev="build"] .bd-steps-h { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; }
+[data-dev="build"] .bd-steps-h span { font-family: var(--mono); color: var(--text-2); font-variant-numeric: tabular-nums; }
+[data-dev="build"] .bd-track { display: flex; height: 12px; border-radius: 6px; background: var(--surface-3); overflow: hidden; }
+[data-dev="build"] .bd-seg-bar { height: 100%; background: var(--text-3); border-right: 1px solid var(--surface); }
+[data-dev="build"] .bd-seg-bar.bad { background: var(--danger); }
+[data-dev="build"] .bd-seg-bar.good { background: var(--ok); }
+[data-dev="build"] .bd-step-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; font-size: 12px; color: var(--text-2); }
+[data-dev="build"] .bd-step-list li { display: flex; justify-content: space-between; gap: 8px; }
+[data-dev="build"] .bd-step-list b { font-family: var(--mono); font-weight: 600; white-space: nowrap; }
+[data-dev="build"] .bd-step-list li.bad b { color: var(--danger); }
+[data-dev="build"] .bd-step-list li.good b { color: var(--ok); }
+
+/* 02 트리맵 */
+[data-dev="build"] .bd-tmap { display: flex; gap: 2px; height: 64px; min-width: 40%; transition: width .4s var(--ease); }
+[data-dev="build"] .bd-tbox { display: flex; flex-basis: 0; min-width: 4px; border-radius: 6px; overflow: hidden; outline: 2px solid transparent; transition: outline-color .15s; }
+[data-dev="build"] .bd-tbox.on { outline-color: var(--text); }
+[data-dev="build"] .bd-tused { flex-basis: 0; min-width: 2px; background: var(--c); }
+[data-dev="build"] .bd-tdead { flex-basis: 0; background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--c) 55%, transparent) 0 5px, color-mix(in srgb, var(--c) 22%, transparent) 5px 10px); }
+[data-dev="build"] .bd-k-app { --c: var(--accent); }
+[data-dev="build"] .bd-k-react { --c: var(--text-3); }
+[data-dev="build"] .bd-k-lib { --c: var(--b); }
+[data-dev="build"] .bd-legend-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 3px; font-size: 12.5px; }
+[data-dev="build"] .bd-legend-list li { display: flex; align-items: center; gap: 8px; padding: 2px 6px; border-radius: 6px; }
+[data-dev="build"] .bd-legend-list li.on { background: var(--surface); }
+[data-dev="build"] .bd-legend-list span { flex: 1; min-width: 0; color: var(--text-2); }
+[data-dev="build"] .bd-legend-list b { font-family: var(--mono); font-weight: 600; }
+[data-dev="build"] .bd-legend-list em { font-style: normal; font-size: 11.5px; color: var(--danger); white-space: nowrap; }
+[data-dev="build"] .bd-sw { width: 10px; height: 10px; border-radius: 3px; background: var(--c); flex: none; }
+
+/* 03 개발자 도구 */
+[data-dev="build"] .bd-dt { border-radius: 10px; border: 1px solid var(--line); background: var(--surface); overflow: hidden; }
+[data-dev="build"] .bd-dt-bar { display: flex; gap: 2px; padding: 0 6px; background: var(--surface-3); font-size: 11.5px; color: var(--text-3); overflow: hidden; }
+[data-dev="build"] .bd-dt-bar span { padding: 6px 8px; white-space: nowrap; }
+[data-dev="build"] .bd-dt-bar span.on { color: var(--text); box-shadow: inset 0 -2px var(--accent); }
+[data-dev="build"] .bd-dt-body { display: grid; grid-template-columns: minmax(0, 190px) minmax(0, 1fr); min-height: 170px; }
+[data-dev="build"] .bd-dt-tree { list-style: none; margin: 0; padding: 6px 0; border-right: 1px solid var(--line); font-size: 11.5px; font-family: var(--mono); overflow: hidden; }
+[data-dev="build"] .bd-dt-tree li.dir { padding: 3px 8px; color: var(--text-3); }
+[data-dev="build"] .bd-dt-tree button { display: block; width: 100%; text-align: left; border: 0; background: none; color: var(--text-2); font: inherit; padding: 3px 8px 3px 18px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
+[data-dev="build"] .bd-dt-tree button.on { background: var(--accent-soft); color: var(--text); }
+[data-dev="build"] .bd-dt-code { margin: 0; padding: 8px 10px; font-family: var(--mono); font-size: 11.5px; line-height: 1.55; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--text); max-height: 220px; overflow: auto; }
+[data-dev="build"] .bd-tracker { display: flex; flex-direction: column; gap: 2px; padding: 8px 12px; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); font-size: 12.5px; min-width: 0; }
+[data-dev="build"] .bd-tracker code { font-family: var(--mono); font-size: 11.5px; color: var(--danger); white-space: pre-wrap; overflow-wrap: anywhere; }
+[data-dev="build"] .bd-tracker small { color: var(--text-3); }
+
+/* 05 CDN */
+[data-dev="build"] .bd-range { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--text-2); }
+[data-dev="build"] .bd-range input { width: 100%; accent-color: var(--accent); }
+[data-dev="build"] .bd-check { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-2); }
+[data-dev="build"] .bd-files { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
+[data-dev="build"] .bd-file { display: flex; flex-direction: column; gap: 3px; padding: 10px 12px; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); min-width: 0; }
+[data-dev="build"] .bd-file code { font-family: var(--mono); font-size: 12.5px; font-weight: 700; overflow-wrap: anywhere; }
+[data-dev="build"] .bd-file small { font-size: 11.5px; color: var(--text-3); overflow-wrap: anywhere; }
+[data-dev="build"] .bd-ver { align-self: flex-start; font-family: var(--mono); font-size: 12px; font-weight: 700; padding: 1px 8px; border-radius: 999px; }
+[data-dev="build"] .bd-ver.v1 { background: color-mix(in srgb, var(--danger) 14%, transparent); color: var(--danger); }
+[data-dev="build"] .bd-ver.v2 { background: color-mix(in srgb, var(--ok) 14%, transparent); color: var(--ok); }
+
+/* 06 SPA fallback */
+[data-dev="build"] .bd-browser { border-radius: 10px; border: 1px solid var(--line); background: var(--surface); overflow: hidden; }
+[data-dev="build"] .bd-url { display: flex; align-items: center; gap: 2px; padding: 4px 4px 4px 12px; background: var(--surface-3); font-family: var(--mono); font-size: 12px; color: var(--text-3); min-width: 0; }
+[data-dev="build"] .bd-url b { color: var(--text); font-weight: 600; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+[data-dev="build"] .bd-url .btn { flex: none; padding: 4px 10px; font-size: 12px; }
+[data-dev="build"] .bd-view { min-height: 76px; display: grid; place-items: center; padding: 10px 12px; text-align: center; font-size: 13.5px; animation: fade calc(200ms * var(--slow)); }
+[data-dev="build"] .bd-view.ok b { color: var(--ok); }
+[data-dev="build"] .bd-view.warn b { color: var(--b); }
+[data-dev="build"] .bd-view pre { margin: 0; font-family: var(--mono); font-size: 11.5px; text-align: left; color: var(--danger); white-space: pre-wrap; overflow-wrap: anywhere; }
+[data-dev="build"] .bd-paths { display: flex; flex-wrap: wrap; gap: 4px; }
+[data-dev="build"] .bd-paths button { border: 1px solid var(--line); background: var(--surface); color: var(--text-2); font-family: var(--mono); font-size: 11.5px; padding: 4px 8px; border-radius: 6px; cursor: pointer; max-width: 100%; overflow-wrap: anywhere; }
+[data-dev="build"] .bd-paths button.on { border-color: var(--accent); color: var(--text); background: var(--accent-soft); }
+[data-dev="build"] .bd-req { width: 100%; border-collapse: collapse; font-size: 12.5px; background: var(--surface); border-radius: 10px; overflow: hidden; table-layout: fixed; }
+[data-dev="build"] .bd-req th { width: 34%; text-align: left; font-weight: 600; color: var(--text-3); padding: 6px 10px; border-bottom: 1px solid var(--line); vertical-align: top; overflow-wrap: anywhere; }
+[data-dev="build"] .bd-req td { padding: 6px 10px; border-bottom: 1px solid var(--line); color: var(--text); overflow-wrap: anywhere; font-family: var(--mono); font-size: 12px; }
+[data-dev="build"] .bd-req tr:last-child th, [data-dev="build"] .bd-req tr:last-child td { border-bottom: 0; }
+[data-dev="build"] .bd-req code { font-family: var(--mono); font-size: 11.5px; color: var(--text); }
+[data-dev="build"] .bd-req small { color: var(--text-3); font-size: 11px; }
+[data-dev="build"] .bd-env th { width: 46%; }
+[data-dev="build"] .bd-req tr.bad td { color: var(--danger); }
+[data-dev="build"] .bd-req tr.bad { background: color-mix(in srgb, var(--danger) 7%, transparent); }
+
+/* 07 서비스 워커 */
+[data-dev="build"] .bd-sw-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+[data-dev="build"] .bd-sw-slot, [data-dev="build"] .bd-sw-page { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 4px; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); transition: border-color .2s, background-color .2s; min-width: 0; }
+[data-dev="build"] .bd-sw-slot small, [data-dev="build"] .bd-sw-page small { font-family: var(--mono); font-size: 10.5px; color: var(--text-3); }
+[data-dev="build"] .bd-sw-slot b, [data-dev="build"] .bd-sw-page b { font-family: var(--mono); font-size: 17px; }
+[data-dev="build"] .bd-sw-slot.empty b { color: var(--text-3); }
+[data-dev="build"] .bd-sw-slot.ing { border-color: var(--accent); }
+[data-dev="build"] .bd-sw-slot.wait { border-color: var(--b); background: var(--b-soft); }
+[data-dev="build"] .bd-sw-slot.wait b { color: var(--b); }
+[data-dev="build"] .bd-sw-slot.act { border-color: color-mix(in srgb, var(--ok) 50%, transparent); }
+[data-dev="build"] .bd-sw-page { border-width: 2px; border-color: var(--ok); }
+[data-dev="build"] .bd-sw-page b { color: var(--ok); }
+[data-dev="build"] .bd-sw-page.old { border-color: var(--danger); }
+[data-dev="build"] .bd-sw-page.old b { color: var(--danger); }
+[data-dev="build"] .bd-toast { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 8px 8px 14px; border-radius: 10px; background: var(--text); color: var(--surface); font-size: 13.5px; font-weight: 600; animation: fade calc(200ms * var(--slow)); }
+
+/* 08 진짜 env */
+[data-dev="build"] .bd-real { display: flex; flex-direction: column; gap: 4px; padding: 10px 12px; border-radius: 10px; border: 1px dashed var(--accent); background: var(--accent-soft); font-size: 12.5px; }
+[data-dev="build"] .bd-real ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 2px 12px; }
+[data-dev="build"] .bd-real li { display: flex; justify-content: space-between; gap: 6px; font-family: var(--mono); font-size: 11.5px; }
+[data-dev="build"] .bd-real li span { color: var(--accent); overflow-wrap: anywhere; }
+[data-dev="build"] .bd-real code { font-family: var(--mono); }
+[data-dev="build"] .bd-real small { color: var(--text-3); }
+
+/* 09 OOM */
+[data-dev="build"] .bd-oom { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 10px; }
+[data-dev="build"] .bd-gauge { position: relative; height: 200px; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); overflow: hidden; }
+[data-dev="build"] .bd-fill { position: absolute; bottom: 0; left: 18px; right: 18px; border-radius: 4px 4px 0 0; }
+[data-dev="build"] .bd-fill.rss { background: color-mix(in srgb, var(--ok) 25%, transparent); }
+[data-dev="build"] .bd-fill.heap { background: var(--ok); left: 30px; right: 30px; }
+[data-dev="build"] .bd-line { position: absolute; left: 0; right: 0; height: 0; border-top: 2px dashed var(--danger); z-index: 1; }
+[data-dev="build"] .bd-line.heap { border-top-color: var(--b); }
+[data-dev="build"] .bd-line i { position: absolute; left: 4px; top: -15px; font-style: normal; font-size: 9.5px; font-weight: 700; color: var(--danger); white-space: nowrap; background: var(--surface); padding: 0 2px; border-radius: 3px; }
+[data-dev="build"] .bd-line.heap i { color: var(--b); top: 2px; }
+[data-dev="build"] .bd-oom-log { min-height: 200px; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 11.5px; }
+
+/* 10 .env */
+[data-dev="build"] .bd-envs { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 6px; }
+[data-dev="build"] .bd-envf { display: flex; flex-direction: column; align-items: stretch; gap: 2px; text-align: left; padding: 8px 10px; border-radius: 10px; border: 1px dashed var(--line); background: none; color: var(--text-3); font: inherit; cursor: pointer; min-width: 0; opacity: .7; }
+[data-dev="build"] .bd-envf.on { border-style: solid; border-color: var(--text-3); background: var(--surface); color: var(--text-2); opacity: 1; }
+[data-dev="build"] .bd-envf-h { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+[data-dev="build"] .bd-envf-h code { font-family: var(--mono); font-size: 12.5px; font-weight: 700; color: var(--text); }
+[data-dev="build"] .bd-envf-h small { font-size: 10.5px; color: var(--text-3); }
+[data-dev="build"] .bd-envf-l { font-family: var(--mono); font-size: 11px; overflow-wrap: anywhere; text-decoration: line-through; text-decoration-color: var(--text-3); }
+[data-dev="build"] .bd-envf:not(.on) .bd-envf-l { text-decoration: none; }
+[data-dev="build"] .bd-envf-l.win { text-decoration: none; color: var(--accent); font-weight: 700; }
+
+@media (max-width: 640px) {
+  [data-dev="build"] .bd-two, [data-dev="build"] .bd-files, [data-dev="build"] .bd-envs { grid-template-columns: minmax(0, 1fr); }
+  [data-dev="build"] .bd-dt-body { grid-template-columns: minmax(0, 1fr); }
+  [data-dev="build"] .bd-dt-tree { border-right: 0; border-bottom: 1px solid var(--line); }
+  [data-dev="build"] .bd-oom { grid-template-columns: minmax(0, 1fr); }
+  [data-dev="build"] .bd-gauge { height: 150px; }
+  [data-dev="build"] .bd-oom-log { min-height: 0; }
+}
