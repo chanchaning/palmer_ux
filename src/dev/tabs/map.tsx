@@ -24,7 +24,7 @@ export default function MapTab() {
   return (
     <div className="dv-map">
       <TabIntro>
-        버그 이름을 몰라도 괜찮아요. <b>사용자가 본 증상</b>으로 찾으면 돼요. 각 항목은 <b>문제를 직접 재현해 보고 → 원인을 이해하고 → 바로 고치기 · 근본 대책 · 재발 방지</b> 순서로 정리돼 있어요.
+        버그 이름을 몰라도 돼요. QA나 고객센터에서 들은 말 그대로 검색해 보세요.
       </TabIntro>
       <div className="dv-map-tools">
         <input className="dv-map-q" type="search" value={q} onChange={e => setQ(e.target.value)} placeholder="증상으로 찾기 — 예: 새로고침, 두 번, 하얀 화면" aria-label="증상으로 찾기" />

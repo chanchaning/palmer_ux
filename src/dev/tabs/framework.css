@@ -8,10 +8,10 @@
 [data-dev="framework"] .fw-seg button { font-size: 12.5px; white-space: nowrap; }
 [data-dev="framework"] .fw-steps { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 3px; font-size: 12.5px; line-height: 1.5; max-height: 210px; overflow: auto; }
 [data-dev="framework"] .fw-steps:empty { display: none; }
-[data-dev="framework"] .fw-steps li { padding: 3px 8px; border-radius: 6px; background: var(--surface); border-left: 3px solid var(--line); color: var(--text-2); overflow-wrap: anywhere; }
+[data-dev="framework"] .fw-steps li { padding: 3px 8px; border-radius: 6px; background: var(--surface); color: var(--text-2); overflow-wrap: anywhere; }
 [data-dev="framework"] .fw-steps li.skip { color: var(--text-3); }
-[data-dev="framework"] .fw-steps li.bad { border-left-color: var(--danger); color: var(--danger); font-weight: 700; }
-[data-dev="framework"] .fw-steps li.ok { border-left-color: var(--ok); }
+[data-dev="framework"] .fw-steps li.bad { color: var(--danger); font-weight: 700; }
+[data-dev="framework"] .fw-steps li.ok { color: var(--text); }
 
 /* 01 effect 루프 */
 [data-dev="framework"] .fw-profile { display: flex; align-items: center; gap: 12px; }

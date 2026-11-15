@@ -43,7 +43,7 @@ export function Issue({ id, cause, demo, demoNote, diagram, quick, root, prevent
             <>
               <div className="dv-demo-bar">
                 <Seg value={fixed ? 1 : 0} onChange={v => setFixed(v === 1)} className="dv-seg"
-                  options={[[0, <><span className="dv-dot bad" />문제 그대로</>], [1, <><span className="dv-dot good" />해결 적용</>]]} />
+                  options={[[0, '고치기 전'], [1, '고친 뒤']]} />
               </div>
               <div className={'dv-stage' + (fixed ? ' is-fixed' : ' is-bad')} key={String(fixed)}>{demo(fixed)}</div>
             </>
@@ -56,18 +56,18 @@ export function Issue({ id, cause, demo, demoNote, diagram, quick, root, prevent
         </div>
       </div>
       <div className="dv-fix">
-        <div className="dv-step"><span className="dv-step-n">①</span><b>바로 고치기</b></div>
+        <h4>바로 고치기</h4>
         <div className="dv-codes">
-          <DevCode tone="bad" label={'문제 코드' + (quick.lang ? ' · ' + quick.lang : '')} code={quick.bad} />
-          <DevCode tone="good" label={'해결 코드' + (quick.lang ? ' · ' + quick.lang : '')} code={quick.good} />
+          <DevCode tone="bad" label={'고치기 전' + (quick.lang ? ' · ' + quick.lang : '')} code={quick.bad} />
+          <DevCode tone="good" label={'고친 뒤' + (quick.lang ? ' · ' + quick.lang : '')} code={quick.good} />
         </div>
         <div className="dv-fix-row">
           <div>
-            <div className="dv-step"><span className="dv-step-n">②</span><b>근본 대책</b></div>
+            <h4>근본 대책</h4>
             <div className="dv-prose">{root}</div>
           </div>
           <div>
-            <div className="dv-step"><span className="dv-step-n">③</span><b>재발 방지</b></div>
+            <h4>다시 안 생기게</h4>
             <ul className="dv-check">{prevent.map((p, i) => <li key={i}>{p}</li>)}</ul>
           </div>
         </div>
@@ -94,7 +94,7 @@ function IssueHead({ it }: { it: DevItem }) {
         <a className="dv-anchor" href={`#/dev/${it.tab}/${it.id}`} aria-label={it.title + ' 링크'}>#</a>
       </div>
       <h3>{it.title}</h3>
-      <p className="dv-symptom"><b>증상</b>{it.symptom}</p>
+      <p className="dv-symptom">“{it.symptom}”</p>
     </header>
   )
 }

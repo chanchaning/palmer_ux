@@ -96,7 +96,7 @@
 [data-dev="debug"] .dg-detail code { background: var(--surface); padding: 1px 5px; border-radius: 5px; color: var(--text); }
 
 /* 09 분석 */
-[data-dev="debug"] .dg-ticket { background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--b); border-radius: 8px; padding: 8px 12px; font-size: 13px; }
+[data-dev="debug"] .dg-ticket { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; font-size: 13px; }
 [data-dev="debug"] .dg-ticket p { margin: 2px 0 0; color: var(--text-2); }
 [data-dev="debug"] .dg-replay { display: grid; grid-template-columns: 132px minmax(0, 1fr); gap: 10px; align-items: start; }
 [data-dev="debug"] .dg-rp-phone { position: relative; border: 4px solid var(--bezel, var(--text-3)); border-radius: 14px; background: var(--surface); height: 190px; padding: 8px; display: flex; flex-direction: column; gap: 6px; overflow: hidden; box-sizing: border-box; }

@@ -304,7 +304,7 @@ export function WhiteDemo({ fixed }: { fixed: boolean }) {
         <button type="button" className="btn sm ghost" onClick={restart}>처음으로</button>
       </div>
       <div className="dg-shell">
-        {/* 데모 껍데기 바운더리 — '문제 그대로'에서 하얀 화면을 보여주되 진짜 페이지는 지켜요 */}
+        {/* 데모 껍데기 바운더리 — '고치기 전'에서 하얀 화면을 보여주되 진짜 페이지는 지켜요 */}
         <Boundary key={shell} onError={() => setWhite(true)} fallback={() => <div className="dg-white" aria-label="하얀 화면"><small>(이 데모 칸만 하얘진 거예요)</small></div>}>
           <MiniApp fixed={fixed} reco={reco} onBroke={b => { setBroke(b); if (!b) setReco(GOOD_RECO) }} onCoupon={coupon} />
         </Boundary>
