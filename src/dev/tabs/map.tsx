@@ -1,4 +1,4 @@
-/* 00 한눈에 보기 — 100가지 함정을 증상으로 찾아요 */
+/* 00 한눈에 보기 — 함정을 증상으로 찾아요 */
 import { useMemo, useState } from 'react'
 import { Seg } from '../../components/ui'
 import { DEV_TABS } from '../DevPage'
@@ -12,13 +12,15 @@ export default function MapTab() {
   const [q, setQ] = useState('')
   const [sev, setSev] = useState<Sev | 'all'>('all')
   const [tags, setTags] = useState<Tag[]>([])
+  const [lived, setLived] = useState(false)
   const list = useMemo(() => {
     const k = norm(q)
     return DEV_ITEMS.filter(i =>
       (sev === 'all' || i.sev === sev) &&
+      (!lived || i.lived) &&
       (!tags.length || tags.some(t => i.tags.includes(t))) &&
       (!k || norm(i.title + i.symptom).includes(k)))
-  }, [q, sev, tags])
+  }, [q, sev, tags, lived])
   const count = (s: Sev) => DEV_ITEMS.filter(i => i.sev === s).length
 
   return (
@@ -34,6 +36,7 @@ export default function MapTab() {
             <button key={t} type="button" className="chip" aria-pressed={tags.includes(t)}
               onClick={() => setTags(s => (s.includes(t) ? s.filter(x => x !== t) : [...s, t]))}>{t}</button>
           ))}
+          <button type="button" className="chip" aria-pressed={lived} onClick={() => setLived(v => !v)}>겪어 본 문제</button>
         </div>
       </div>
       <p className="dv-map-count" aria-live="polite">{list.length}개 항목</p>
@@ -49,7 +52,7 @@ export default function MapTab() {
                   <a href={`#/dev/${i.tab}/${i.id}`} className={'sev-' + i.sev}>
                     <span className={'dv-sev ' + i.sev}>{SEV_LABEL[i.sev]}</span>
                     <b>{i.symptom}</b>
-                    <small>{i.title} · {i.tags.join(' · ')}</small>
+                    <small>{i.title} · {i.tags.join(' · ')}{i.lived && <em className="dv-lived">겪어 본 문제</em>}</small>
                   </a>
                 </li>
               ))}

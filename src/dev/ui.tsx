@@ -91,6 +91,7 @@ function IssueHead({ it }: { it: DevItem }) {
         <span className="dv-num">{it.num}</span>
         <span className={'dv-sev ' + it.sev}>{SEV_LABEL[it.sev]}</span>
         {it.tags.map(t => <span className="dv-tag" key={t}>{t}</span>)}
+        {it.lived && <span className="dv-lived">겪어 본 문제</span>}
         <a className="dv-anchor" href={`#/dev/${it.tab}/${it.id}`} aria-label={it.title + ' 링크'}>#</a>
       </div>
       <h3>{it.title}</h3>

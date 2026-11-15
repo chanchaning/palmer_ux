@@ -8,6 +8,8 @@
 [data-page="dev"] .dv-sev.high { color: var(--danger); }
 [data-page="dev"] .dv-tag { font-size: 12.5px; color: var(--text-3); }
 [data-page="dev"] .dv-tag::before { content: "· "; }
+[data-page="dev"] .dv-lived { font-size: 12.5px; font-weight: 600; color: var(--accent); }
+[data-page="dev"] .dv-lived::before { content: "· "; color: var(--text-3); font-weight: 400; }
 [data-page="dev"] .dv-num { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--text-3); }
 
 /* 함정 카드 */

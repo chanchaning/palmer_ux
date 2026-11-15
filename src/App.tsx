@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { ErrorBoundary } from './components/ErrorBoundary'
 import { GuidePage } from './components/GuidePage'
 import { Home } from './components/Home'
 import { Search } from './components/Search'
@@ -38,6 +39,31 @@ function useHashRoute() {
     return () => window.removeEventListener('hashchange', on)
   }, [])
   return id
+}
+
+/* 스크롤 복원 — 방문 기록 칸마다 이름표(history.state.k)를 붙이고 위치를 sessionStorage에 적어 둬요.
+ * 이름표가 이미 있는 칸으로 오면 뒤로·앞으로 가기라서 그 위치로 돌려 놓고, 없으면 새 이동이라 맨 위에서 시작해요. */
+const SCROLL_KEY = 'palmer-scroll'
+const readScroll = (): Record<string, number> => {
+  try { return JSON.parse(sessionStorage.getItem(SCROLL_KEY) || '{}') } catch { return {} }
+}
+const writeScroll = (m: Record<string, number>) => {
+  try { sessionStorage.setItem(SCROLL_KEY, JSON.stringify(m)) } catch { /* 저장 불가 환경 */ }
+}
+const entryKey = () => (history.state as { k?: string } | null)?.k
+/** 화면이 lazy로 늦게 길어지니, 목표 위치까지 스크롤할 수 있을 때까지 잠깐 기다렸다 옮겨요 */
+function restoreTo(y: number) {
+  let n = 0, raf = 0
+  const stop = () => { cancelAnimationFrame(raf); removeEventListener('wheel', stop); removeEventListener('touchstart', stop); removeEventListener('keydown', stop) }
+  const tick = () => {
+    const max = document.documentElement.scrollHeight - innerHeight
+    if (max >= y || n++ > 90) { window.scrollTo({ top: Math.min(y, Math.max(max, 0)), behavior: 'instant' }); stop(); return }
+    raf = requestAnimationFrame(tick)
+  }
+  // 기다리는 사이 사용자가 직접 스크롤하면 손대지 않아요
+  addEventListener('wheel', stop, { passive: true }); addEventListener('touchstart', stop, { passive: true }); addEventListener('keydown', stop)
+  tick()
+  return stop
 }
 
 type Theme = 'light' | 'dark' | null
@@ -83,9 +109,29 @@ export default function App() {
   const bar = useRef<HTMLDivElement>(null)
   const [showTop, setShowTop] = useState(false)
 
-  // 페이지 이동 시 맨 위로 (즉시)
+  // 페이지 이동: 새로 온 곳은 맨 위, 뒤로·앞으로 가기는 떠날 때 위치로
+  const pageKey = (guide?.id ?? route.g) + '/' + (isArea ? route.c : '')
+  const navKey = route.g + '/' + route.c + '/' + route.i
+  const lastPage = useRef<string | null>(null)
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'instant' })
+    if ('scrollRestoration' in history) history.scrollRestoration = 'manual'
+    let k = entryKey()
+    const revisit = !!k
+    if (!k) {
+      k = Date.now().toString(36) + Math.random().toString(36).slice(2, 6)
+      history.replaceState({ ...(history.state as object | null), k }, '')
+    }
+    const pageChanged = lastPage.current !== pageKey
+    lastPage.current = pageKey
+    if (revisit) {
+      const y = readScroll()[k]
+      if (y != null) return restoreTo(y)
+    }
+    // 같은 페이지 안의 카드·항목 주소는 각 화면이 그 위치로 스크롤해요
+    if (pageChanged) window.scrollTo({ top: 0, behavior: 'instant' })
+  }, [navKey]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
     setDrawer(false)
     document.title = guide ? `${guide.nav} · Palmer의 웹 도감` : 'Palmer의 웹 도감 · 경험 노하우'
     requestAnimationFrame(() => window.dispatchEvent(new Event('resize')))
@@ -100,6 +146,8 @@ export default function App() {
         const max = document.documentElement.scrollHeight - innerHeight
         if (bar.current) bar.current.style.transform = `scaleX(${max > 0 ? scrollY / max : 0})`
         setShowTop(scrollY > innerHeight * 0.8)
+        const k = entryKey()
+        if (k) { const m = readScroll(); m[k] = Math.round(scrollY); writeScroll(m) }
       })
     }
     window.addEventListener('scroll', on, { passive: true })
@@ -164,6 +212,7 @@ export default function App() {
           <div className="scroll-progress" ref={bar} />
         </header>
         <div className="content">
+          <ErrorBoundary resetKey={navKey}>
           {isDev
             ? <DevPage tab={route.c} item={route.i} />
             : isDash
@@ -175,6 +224,7 @@ export default function App() {
             : guide
               ? <GuidePage guide={guide} focusCard={route.c} key={guide.id} />
               : <Home onSearch={() => setSearch(true)} logo={<Logo size={72} />} />}
+          </ErrorBoundary>
           <footer>Palmer의 웹 도감 · 질문이 생길 때마다 채워가요</footer>
         </div>
       </div>

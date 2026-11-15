@@ -1,0 +1,85 @@
+/* 11 실시간 통신 · MQTT 데모 — [data-dev="realtime"] 범위, 클래스는 모두 rcm- */
+[data-dev="realtime"] .rcm-col { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+[data-dev="realtime"] .rcm-empty { color: var(--text-3); font-size: 12.5px; list-style: none; }
+[data-dev="realtime"] .rcm-sub { font-size: 11.5px; color: var(--text-3); overflow-wrap: anywhere; }
+[data-dev="realtime"] .rcm-col code { font-family: var(--mono); font-size: .92em; overflow-wrap: anywhere; }
+
+/* 기록 */
+[data-dev="realtime"] .rcm-log {
+  margin: 0; padding: 6px 0; list-style: none; overflow: auto; border-radius: 10px; background: var(--surface); border: 1px solid var(--line);
+  font-size: 12.5px; line-height: 1.5; overscroll-behavior: contain;
+}
+[data-dev="realtime"] .rcm-l { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 8px; padding: 2px 10px; color: var(--text-2); }
+[data-dev="realtime"] .rcm-l time { font-family: var(--mono); font-size: 11px; color: var(--text-3); padding-top: 1px; font-variant-numeric: tabular-nums; }
+[data-dev="realtime"] .rcm-l span { min-width: 0; overflow-wrap: anywhere; }
+[data-dev="realtime"] .rcm-l.bad { color: var(--danger); }
+[data-dev="realtime"] .rcm-l.ok { color: var(--ok); }
+[data-dev="realtime"] .rcm-l.rcm-empty { display: block; }
+[data-dev="realtime"] .rcm-l b { color: var(--text); }
+
+/* 상태 상자 (탭 · 기기 · 대시보드) */
+[data-dev="realtime"] .rcm-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+[data-dev="realtime"] .rcm-box {
+  min-width: 0; display: flex; flex-direction: column; gap: 3px; padding: 10px 12px; border-radius: 10px;
+  background: var(--surface); border: 1px solid var(--line); transition: border-color .2s;
+}
+[data-dev="realtime"] .rcm-box small { font-size: 11.5px; font-weight: 700; color: var(--text-3); }
+[data-dev="realtime"] .rcm-box > code { font-size: 12px; color: var(--text); }
+[data-dev="realtime"] .rcm-box.off { border-color: color-mix(in srgb, var(--danger) 45%, transparent); }
+[data-dev="realtime"] .rcm-box.wrong { box-shadow: 0 0 0 2px color-mix(in srgb, var(--danger) 35%, transparent); }
+[data-dev="realtime"] .rcm-state { display: inline-flex; align-items: center; gap: 6px; font-size: 13.5px; font-weight: 700; color: var(--text); }
+[data-dev="realtime"] .rcm-state i { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); flex: none; }
+[data-dev="realtime"] .rcm-box.off .rcm-state i, [data-dev="realtime"] .rcm-state.off i { background: var(--danger); }
+[data-dev="realtime"] .rcm-state.off { color: var(--danger); }
+
+/* 02 retained — 작은 대시보드 화면 */
+[data-dev="realtime"] .rcm-screen { border-radius: 12px; background: var(--surface); border: 1px solid var(--line); padding: 0 12px 12px; display: flex; flex-direction: column; gap: 8px; min-height: 120px; }
+[data-dev="realtime"] .rcm-screen-bar {
+  margin: 0 -12px; padding: 8px 12px; font-size: 12.5px; font-weight: 700; color: var(--text-2); border-bottom: 1px solid var(--line);
+  background: var(--surface-2); border-radius: 12px 12px 0 0; display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; justify-content: space-between;
+}
+[data-dev="realtime"] .rcm-pill { font-size: 11.5px; padding: 1px 8px; border-radius: 99px; background: var(--surface-3); }
+[data-dev="realtime"] .rcm-pill.ok { color: var(--ok); }
+[data-dev="realtime"] .rcm-pill.off { color: var(--danger); }
+[data-dev="realtime"] .rcm-blank { margin: auto; font-size: 12.5px; color: var(--text-3); text-align: center; }
+[data-dev="realtime"] .rcm-temp { display: flex; flex-direction: column; gap: 2px; padding: 4px 2px; }
+[data-dev="realtime"] .rcm-temp b { font-family: var(--mono); font-size: 34px; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+[data-dev="realtime"] .rcm-temp b small { font-size: 16px; margin-left: 2px; color: var(--text-3); }
+[data-dev="realtime"] .rcm-temp span { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; color: var(--text-2); }
+[data-dev="realtime"] .rcm-temp span i { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); }
+[data-dev="realtime"] .rcm-temp span i.off { background: var(--text-3); }
+[data-dev="realtime"] .rcm-temp.stale b { color: var(--text-3); }
+
+/* 03 QoS — 명령 칸 */
+[data-dev="realtime"] .rcm-qos-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 4px 10px; font-size: 12.5px; color: var(--text-2); }
+[data-dev="realtime"] .rcm-qos-head .rcm-state { font-size: 12.5px; }
+[data-dev="realtime"] .rcm-cmds { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 5px; }
+[data-dev="realtime"] .rcm-cmds li {
+  position: relative; display: grid; place-items: center; height: 32px; border-radius: 7px; font-family: var(--mono); font-size: 12px; font-weight: 700;
+  background: var(--surface); border: 1px solid var(--line); color: var(--text-3); transition: background .15s, color .15s;
+}
+[data-dev="realtime"] .rcm-cmds li.fly { border-color: var(--accent); color: var(--accent); }
+[data-dev="realtime"] .rcm-cmds li.ok { background: color-mix(in srgb, var(--ok) 18%, var(--surface)); color: var(--ok); border-color: transparent; }
+[data-dev="realtime"] .rcm-cmds li.lost { background: color-mix(in srgb, var(--danger) 16%, var(--surface)); color: var(--danger); border-color: transparent; text-decoration: line-through; }
+[data-dev="realtime"] .rcm-cmds li.queued { background: var(--b-soft); color: var(--text); border-style: dashed; border-color: var(--b); }
+[data-dev="realtime"] .rcm-cmds sup { position: absolute; top: 1px; right: 3px; font-size: 9px; color: var(--text-2); }
+[data-dev="realtime"] .rcm-legend { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; font-size: 12px; color: var(--text-3); }
+[data-dev="realtime"] .rcm-legend i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; margin-left: 4px; }
+[data-dev="realtime"] .rcm-legend i.ok { background: var(--ok); }
+[data-dev="realtime"] .rcm-legend i.lost { background: var(--danger); }
+[data-dev="realtime"] .rcm-legend i.queued { background: var(--b); }
+
+/* 05 와일드카드 — 받은 메시지 흐름 */
+[data-dev="realtime"] .rcm-feed {
+  margin: 0; padding: 6px 10px; list-style: none; display: flex; flex-direction: column; gap: 2px; min-height: 126px;
+  border-radius: 10px; background: var(--surface); border: 1px solid var(--line); font-size: 12px; overflow: hidden;
+}
+[data-dev="realtime"] .rcm-feed li { display: flex; align-items: baseline; gap: 6px; min-width: 0; color: var(--text-2); }
+[data-dev="realtime"] .rcm-feed li code { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; overflow-wrap: normal; }
+[data-dev="realtime"] .rcm-feed li.bad { color: var(--danger); }
+[data-dev="realtime"] .rcm-feed em { flex: none; font-style: normal; font-size: 10.5px; font-weight: 700; padding: 0 5px; border-radius: 4px; background: color-mix(in srgb, var(--danger) 14%, transparent); }
+
+@media (max-width: 480px) {
+  [data-dev="realtime"] .rcm-tabs { grid-template-columns: minmax(0, 1fr); }
+  [data-dev="realtime"] .rcm-cmds { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}

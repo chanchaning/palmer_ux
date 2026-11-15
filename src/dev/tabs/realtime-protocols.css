@@ -1,0 +1,102 @@
+/* 11 실시간 통신 — 어떤 방식을 쓸까 (고르기 · 비교표 · MQTT 한눈에). 클래스는 모두 rcp- */
+[data-dev="realtime"] .rcp { margin: 0 0 8px; }
+[data-dev="realtime"] .rcp-h { margin: 32px 0 6px; font-size: 20px; letter-spacing: -.02em; }
+[data-dev="realtime"] .rcp-h:first-child { margin-top: 8px; }
+[data-dev="realtime"] .rcp-lead { margin: 0 0 14px; font-size: 15px; line-height: 1.7; color: var(--text-2); max-width: 820px; }
+[data-dev="realtime"] .rcp code, [data-dev="realtime"] .rcp-note code { font-family: var(--mono); font-size: .88em; background: var(--surface-2); padding: 1px 5px; border-radius: 5px; color: var(--text); overflow-wrap: anywhere; }
+[data-dev="realtime"] .rcp-seg { max-width: 100%; }
+[data-dev="realtime"] .rcp-seg button { font-size: 13px; }
+
+/* 1. 고르기 */
+[data-dev="realtime"] .rcp-picker {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px;
+}
+[data-dev="realtime"] .rcp-qs { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+[data-dev="realtime"] .rcp-q { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+[data-dev="realtime"] .rcp-q-l, [data-dev="realtime"] .rcp-l { font-size: 12.5px; font-weight: 700; color: var(--text-3); }
+[data-dev="realtime"] .rcp-ans { min-width: 0; border-radius: 12px; background: var(--surface-2); padding: 16px 18px; display: flex; flex-direction: column; gap: 8px; align-self: start; }
+[data-dev="realtime"] .rcp-ans small { font-size: 12.5px; font-weight: 700; color: var(--text-3); }
+[data-dev="realtime"] .rcp-ans-name { font-size: 22px; letter-spacing: -.02em; color: var(--accent); }
+[data-dev="realtime"] .rcp-ans p { margin: 0; font-size: 15px; line-height: 1.7; color: var(--text-2); }
+[data-dev="realtime"] .rcp-also, [data-dev="realtime"] .rcp-notes { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; font-size: 14px; line-height: 1.6; color: var(--text-2); }
+[data-dev="realtime"] .rcp-also b { color: var(--text); }
+[data-dev="realtime"] .rcp-notes { list-style: none; padding: 10px 0 0; border-top: 1px solid var(--line); }
+[data-dev="realtime"] .rcp-go { align-self: flex-start; font-size: 14px; font-weight: 600; color: var(--accent); text-decoration: none; }
+[data-dev="realtime"] .rcp-go:hover { text-decoration: underline; }
+
+/* 2. 비교표 (sys-table 위에 살짝) */
+[data-dev="realtime"] .rcp-table { min-width: 1080px; font-size: 13.5px; line-height: 1.55; }
+[data-dev="realtime"] .rcp-table td:first-child { white-space: nowrap; }
+[data-dev="realtime"] .rcp-table code { overflow-wrap: normal; white-space: nowrap; }
+[data-dev="realtime"] .rcp-table tr.rcp-hit td { background: var(--accent-soft); }
+[data-dev="realtime"] .rcp-hit-tag { margin-left: 6px; font-size: 11px; font-weight: 700; color: var(--accent); }
+
+/* 3. MQTT 한눈에 */
+[data-dev="realtime"] .rcp-terms { margin: 0 0 14px; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 10px; }
+[data-dev="realtime"] .rcp-terms > div { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; min-width: 0; }
+[data-dev="realtime"] .rcp-terms dt { font-size: 14.5px; font-weight: 700; margin-bottom: 4px; }
+[data-dev="realtime"] .rcp-terms dd { margin: 0; font-size: 14px; line-height: 1.65; color: var(--text-2); }
+[data-dev="realtime"] .rcp-terms a { color: var(--accent); font-weight: 600; text-decoration: none; white-space: nowrap; }
+[data-dev="realtime"] .rcp-terms a:hover { text-decoration: underline; }
+[data-dev="realtime"] .rcp-note { margin: 8px 0 0; font-size: 12.5px; color: var(--text-3); line-height: 1.5; }
+
+[data-dev="realtime"] .rcp-mq { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; background: var(--surface-2); border-radius: var(--radius); padding: 14px; }
+[data-dev="realtime"] .rcp-mq-col { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+[data-dev="realtime"] .rcp-box { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+[data-dev="realtime"] .rcp-box-h { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; font-size: 13px; font-weight: 700; }
+[data-dev="realtime"] .rcp-box-h small { font-size: 11.5px; font-weight: 500; color: var(--text-3); }
+[data-dev="realtime"] .rcp-dot { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; color: var(--danger); }
+[data-dev="realtime"] .rcp-dot::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+[data-dev="realtime"] .rcp-dot.on { color: var(--ok); }
+[data-dev="realtime"] .rcp-box-h .rcp-dot { margin-left: auto; }
+[data-dev="realtime"] .rcp-ctl { display: flex; flex-direction: column; gap: 4px; }
+[data-dev="realtime"] .rcp-check { display: inline-flex; align-items: center; gap: 6px; font-size: 13.5px; color: var(--text-2); cursor: pointer; }
+[data-dev="realtime"] .rcp-check input { width: 16px; height: 16px; accent-color: var(--accent); margin: 0; flex: none; }
+[data-dev="realtime"] .rcp-form { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+[data-dev="realtime"] .rcp-in {
+  flex: 1 1 160px; min-width: 0; padding: 7px 10px; font: inherit; font-family: var(--mono); font-size: 16px;
+  border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--text);
+}
+[data-dev="realtime"] .rcp-in-s { flex: 1 1 90px; }
+[data-dev="realtime"] .rcp-in:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+[data-dev="realtime"] .rcp-err { margin: 0; font-size: 12.5px; color: var(--danger); }
+[data-dev="realtime"] .rcp-presets { display: flex; flex-wrap: wrap; gap: 4px; }
+[data-dev="realtime"] .rcp-chip { border: 1px dashed var(--line); background: none; border-radius: 6px; padding: 2px 7px; font-family: var(--mono); font-size: 12px; color: var(--text-2); cursor: pointer; }
+[data-dev="realtime"] .rcp-chip:hover { border-color: var(--text-3); color: var(--text); }
+
+[data-dev="realtime"] .rcp-subs, [data-dev="realtime"] .rcp-got, [data-dev="realtime"] .rcp-ret, [data-dev="realtime"] .rcp-devs, [data-dev="realtime"] .rcp-log { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; }
+[data-dev="realtime"] .rcp-empty { font-size: 12.5px; color: var(--text-3); }
+[data-dev="realtime"] .rcp-subs li { display: flex; align-items: center; gap: 8px; padding: 3px 0; font-size: 13px; }
+[data-dev="realtime"] .rcp-subs small { font-size: 11.5px; color: var(--text-3); }
+[data-dev="realtime"] .rcp-x { margin-left: auto; border: 0; background: none; color: var(--text-3); font-size: 16px; line-height: 1; padding: 2px 6px; border-radius: 6px; cursor: pointer; }
+[data-dev="realtime"] .rcp-x:hover { background: var(--surface-2); color: var(--text); }
+
+[data-dev="realtime"] .rcp-devs li { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; padding: 6px 0; border-top: 1px solid var(--line); }
+[data-dev="realtime"] .rcp-devs li:first-child { border-top: 0; padding-top: 0; }
+[data-dev="realtime"] .rcp-devs b { font-family: var(--mono); font-size: 13px; }
+[data-dev="realtime"] .rcp-devs small { flex: 1 1 180px; font-size: 12px; color: var(--text-3); font-variant-numeric: tabular-nums; }
+[data-dev="realtime"] .rcp-devs .btn { padding: 5px 10px; font-size: 13px; }
+
+[data-dev="realtime"] .rcp-got li, [data-dev="realtime"] .rcp-ret li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; padding: 3px 0; font-size: 12.5px; border-top: 1px solid var(--line); animation: rcp-in .2s var(--ease); }
+[data-dev="realtime"] .rcp-got li:first-child, [data-dev="realtime"] .rcp-ret li:first-child { border-top: 0; }
+[data-dev="realtime"] .rcp-got b, [data-dev="realtime"] .rcp-ret b { font-family: var(--mono); font-size: 12.5px; }
+[data-dev="realtime"] .rcp-got li.dup { background: color-mix(in srgb, var(--danger) 8%, transparent); }
+[data-dev="realtime"] .rcp-tags { margin-left: auto; display: inline-flex; gap: 4px; }
+[data-dev="realtime"] .rcp-tags i { font-style: normal; font-size: 11px; font-weight: 600; color: var(--text-3); }
+[data-dev="realtime"] .rcp-tags i.ret { color: var(--b); }
+[data-dev="realtime"] .rcp-tags i.dup { color: var(--danger); }
+
+[data-dev="realtime"] .rcp-log li { font-family: var(--mono); font-size: 11.5px; line-height: 1.5; color: var(--text-2); padding: 2px 0; overflow-wrap: anywhere; animation: rcp-in .2s var(--ease); }
+[data-dev="realtime"] .rcp-log li.bad { color: var(--danger); }
+[data-dev="realtime"] .rcp-log li.ok { color: var(--ok); }
+[data-dev="realtime"] .rcp-log li.rcp-empty { font-family: inherit; }
+@keyframes rcp-in { from { opacity: 0; transform: translateY(3px); } }
+
+@media (max-width: 1100px) {
+  [data-dev="realtime"] .rcp-picker, [data-dev="realtime"] .rcp-mq { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 640px) {
+  [data-dev="realtime"] .rcp-picker { padding: 14px; }
+  [data-dev="realtime"] .rcp-mq { padding: 10px; }
+}

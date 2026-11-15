@@ -168,7 +168,7 @@ function Layout() {
           <>목록을 30번째쯤까지 내리고 상세 → 뒤로 가기를 했을 때 같은 상품이 보이는지, 느린 3G에서도 확인해요. 빠른 네트워크에선 문제가 숨어요</>,
           <>‘맨 위로’ 코드는 PUSH일 때만 돌게 해요(<code>useNavigationType() !== 'POP'</code>)</>,
         ]}
-        ours={<>페이지를 옮기면 <code>App.tsx</code>에서 <code>window.scrollTo(&#123; top: 0 &#125;)</code>로 맨 위로 보내요. 뒤로 가기도 구분하지 않아서 다른 가이드에 갔다 돌아오면 맨 위부터 보여요. 항목 주소(<code>#/dev/routing/rt-scroll</code>)로 들어오면 그 항목까지는 스크롤해 줘요.</>}
+        ours={<><code>App.tsx</code>가 방문 기록 칸마다 <code>history.state</code>에 이름표를 붙이고, 스크롤 위치를 <code>sessionStorage</code>에 적어 둬요. 이름표가 있는 칸으로 돌아오면 뒤로 가기로 보고 그 위치로 돌려 놓고, 처음 가는 곳은 맨 위에서 시작해요. 화면이 늦게 길어지는 탭도 있어서 그 높이가 될 때까지 잠깐 기다렸다 옮겨요.</>}
         links={[['#/layout/layout-back', '07 앱 화면 구성 · 뒤로 가기']]}
       />
 

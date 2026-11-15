@@ -1,0 +1,104 @@
+/* 11 실시간 · WebSocket 데모 — 접두사 rcw- */
+[data-dev="realtime"] .rcw-col { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+[data-dev="realtime"] .rcw-col .dv-log code { font-family: var(--mono); font-size: .92em; }
+
+/* 실시간 값 상자 */
+[data-dev="realtime"] .rcw-live { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; padding: 10px 12px; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); min-width: 0; }
+[data-dev="realtime"] .rcw-live > div { min-width: 0; }
+[data-dev="realtime"] .rcw-live small { display: block; font-size: 11.5px; font-weight: 700; color: var(--text-3); }
+[data-dev="realtime"] .rcw-live b { font-family: var(--mono); font-size: 28px; font-variant-numeric: tabular-nums; transition: color .3s; }
+[data-dev="realtime"] .rcw-live b.frozen { color: var(--text-3); }
+[data-dev="realtime"] .rcw-live b em { font-style: normal; font-size: 14px; margin-left: 2px; color: var(--text-3); }
+[data-dev="realtime"] .rcw-seqno { margin-left: 8px; font-family: var(--mono); font-size: 12px; color: var(--text-3); }
+[data-dev="realtime"] .rcw-pill { font-size: 12px; font-weight: 700; padding: 3px 9px; border-radius: 999px; white-space: nowrap; flex: none; }
+[data-dev="realtime"] .rcw-pill.open { background: color-mix(in srgb, var(--ok) 15%, transparent); color: var(--ok); }
+[data-dev="realtime"] .rcw-pill.connecting { background: var(--b-soft); color: var(--b); }
+[data-dev="realtime"] .rcw-pill.closed { background: color-mix(in srgb, var(--danger) 14%, transparent); color: var(--danger); }
+[data-dev="realtime"] .rcw-banner { padding: 8px 10px; border-radius: 8px; font-size: 12.5px; font-weight: 600; background: var(--b-soft); color: var(--text); border: 1px solid color-mix(in srgb, var(--b) 40%, transparent); }
+
+/* 이벤트 칸 */
+[data-dev="realtime"] .rcw-cells { display: grid; grid-template-columns: repeat(20, minmax(0, 1fr)); gap: 3px; }
+[data-dev="realtime"] .rcw-cell { height: 14px; border-radius: 3px; background: var(--accent); }
+[data-dev="realtime"] .rcw-cell.replay { background: transparent; box-shadow: inset 0 0 0 2px var(--ok); }
+[data-dev="realtime"] .rcw-cell.miss { background: color-mix(in srgb, var(--danger) 70%, transparent); }
+[data-dev="realtime"] .rcw-legend { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 11.5px; color: var(--text-3); }
+[data-dev="realtime"] .rcw-legend span { display: inline-flex; align-items: center; gap: 5px; }
+[data-dev="realtime"] .rcw-legend span::before { content: ""; width: 10px; height: 10px; border-radius: 3px; background: var(--accent); }
+[data-dev="realtime"] .rcw-legend .replay::before { background: transparent; box-shadow: inset 0 0 0 2px var(--ok); }
+[data-dev="realtime"] .rcw-legend .miss::before { background: color-mix(in srgb, var(--danger) 70%, transparent); }
+
+/* 재연결 폭주 */
+[data-dev="realtime"] .rcw-server { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+[data-dev="realtime"] .rcw-server small { font-size: 12px; color: var(--text-3); }
+[data-dev="realtime"] .rcw-dots { display: grid; grid-template-columns: repeat(20, minmax(0, 1fr)); gap: 4px; }
+[data-dev="realtime"] .rcw-dots i { aspect-ratio: 1; border-radius: 50%; background: var(--surface-3); transition: background .15s; }
+[data-dev="realtime"] .rcw-dots i.on { background: var(--accent); }
+[data-dev="realtime"] .rcw-bars { position: relative; height: 64px; display: flex; align-items: flex-end; gap: 2px; padding: 0 0 1px; border-bottom: 1px solid var(--line); }
+[data-dev="realtime"] .rcw-bars i { flex: 1; min-width: 0; background: var(--accent); border-radius: 2px 2px 0 0; }
+[data-dev="realtime"] .rcw-bars i.over { background: var(--danger); }
+[data-dev="realtime"] .rcw-cap { position: absolute; left: 0; right: 0; border-top: 1px dashed var(--danger); pointer-events: none; }
+
+/* 앱 복귀 */
+[data-dev="realtime"] .rcw-phone { position: relative; }
+[data-dev="realtime"] .rcw-lock { position: absolute; inset: 0; display: grid; place-items: center; border-radius: 10px; background: color-mix(in srgb, var(--text) 82%, transparent); color: var(--surface); font-size: 13px; font-weight: 700; }
+
+/* 인증 */
+[data-dev="realtime"] .rcw-app { border: 1px solid var(--line); border-radius: 10px; background: var(--surface); overflow: hidden; }
+[data-dev="realtime"] .rcw-app-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; padding: 8px 12px; border-bottom: 1px solid var(--line); }
+[data-dev="realtime"] .rcw-app-bar b { font-size: 14px; }
+[data-dev="realtime"] .rcw-app-bar small { font-size: 12px; color: var(--text-3); font-variant-numeric: tabular-nums; }
+[data-dev="realtime"] .rcw-app-bar .rcw-pill { margin-left: auto; }
+[data-dev="realtime"] .rcw-notes { list-style: none; margin: 0; padding: 6px 12px; min-height: 108px; display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--text-2); }
+[data-dev="realtime"] .rcw-notes li { display: flex; flex-wrap: wrap; gap: 2px 8px; }
+[data-dev="realtime"] .rcw-notes li.leak { color: var(--danger); font-weight: 600; }
+[data-dev="realtime"] .rcw-notes em { font-style: normal; font-size: 11.5px; padding: 0 6px; border-radius: 5px; background: color-mix(in srgb, var(--danger) 14%, transparent); }
+[data-dev="realtime"] .rcw-empty { color: var(--text-3); }
+[data-dev="realtime"] .rcw-mini-log { list-style: none; margin: 0; padding: 0; min-height: 3.9em; font-size: 12px; line-height: 1.3; color: var(--text-3); display: flex; flex-direction: column; gap: 2px; overflow-wrap: anywhere; }
+
+/* 서버 여러 대 */
+[data-dev="realtime"] .rcw-lb { text-align: center; font-size: 12px; font-weight: 700; color: var(--text-3); padding: 6px; border: 1px dashed var(--line); border-radius: 8px; }
+[data-dev="realtime"] .rcw-nodes { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
+[data-dev="realtime"] .rcw-node { padding: 8px 10px; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); min-width: 0; }
+[data-dev="realtime"] .rcw-node > b { display: block; font-size: 12.5px; margin-bottom: 6px; }
+[data-dev="realtime"] .rcw-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+[data-dev="realtime"] .rcw-chip { display: inline-flex; align-items: baseline; gap: 4px; font-size: 12.5px; padding: 3px 8px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--line); transition: background .2s, border-color .2s; }
+[data-dev="realtime"] .rcw-chip small { font-family: var(--mono); font-size: 11px; color: var(--text-3); }
+[data-dev="realtime"] .rcw-chip.from { background: var(--accent-soft); border-color: var(--accent); }
+[data-dev="realtime"] .rcw-chip.ok { border-color: var(--ok); }
+[data-dev="realtime"] .rcw-chip.miss { border-color: var(--danger); background: color-mix(in srgb, var(--danger) 12%, transparent); }
+[data-dev="realtime"] .rcw-bus { text-align: center; font-size: 12px; font-weight: 600; padding: 6px; border-radius: 8px; color: var(--text-3); border: 1px dashed var(--line); }
+[data-dev="realtime"] .rcw-bus.on { color: var(--ok); border: 1px solid var(--ok); background: color-mix(in srgb, var(--ok) 8%, transparent); }
+
+/* 순서 · 중복 */
+[data-dev="realtime"] .rcw-panes { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
+[data-dev="realtime"] .rcw-pane { padding: 8px; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); min-width: 0; }
+[data-dev="realtime"] .rcw-pane small { display: block; font-size: 11.5px; font-weight: 700; color: var(--text-3); margin-bottom: 6px; }
+[data-dev="realtime"] .rcw-pane ol { list-style: none; margin: 0; padding: 0; min-height: 150px; display: flex; flex-direction: column; gap: 4px; }
+[data-dev="realtime"] .rcw-pane li { align-self: flex-start; max-width: 100%; font-size: 12.5px; padding: 4px 9px; border-radius: 10px; background: var(--surface-2); overflow-wrap: anywhere; }
+[data-dev="realtime"] .rcw-pane li.me { align-self: flex-end; background: var(--accent-soft); }
+[data-dev="realtime"] .rcw-pane li.pending { opacity: .6; }
+[data-dev="realtime"] .rcw-pane li em { font-style: normal; font-size: 10.5px; margin-left: 5px; color: var(--text-3); }
+
+/* 폭주 */
+[data-dev="realtime"] .rcw-ticker { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; }
+[data-dev="realtime"] .rcw-ticker li { display: flex; flex-direction: column; padding: 4px 7px; border-radius: 6px; background: var(--surface); border: 1px solid var(--line); min-width: 0; }
+[data-dev="realtime"] .rcw-ticker span { font-size: 11px; color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+[data-dev="realtime"] .rcw-ticker b { font-family: var(--mono); font-size: 13px; font-variant-numeric: tabular-nums; }
+[data-dev="realtime"] .rcw-input { width: 100%; box-sizing: border-box; padding: 8px 12px; font: inherit; font-size: 16px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--text); }
+[data-dev="realtime"] .rcw-input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+/* bufferedAmount */
+[data-dev="realtime"] .rcw-buf { display: flex; flex-direction: column; gap: 4px; }
+[data-dev="realtime"] .rcw-buf small { font-size: 11.5px; font-weight: 700; color: var(--text-3); font-variant-numeric: tabular-nums; }
+[data-dev="realtime"] .rcw-track { height: 10px; border-radius: 999px; background: var(--surface-3); overflow: hidden; }
+[data-dev="realtime"] .rcw-track i { display: block; height: 100%; background: var(--b); transition: width .1s linear; }
+[data-dev="realtime"] .rcw-track.ok i { background: var(--ok); }
+[data-dev="realtime"] .rcw-chats { list-style: none; margin: 0; padding: 0; min-height: 96px; display: flex; flex-direction: column; gap: 2px; font-size: 12.5px; color: var(--text-2); }
+[data-dev="realtime"] .rcw-chats li { display: flex; justify-content: space-between; gap: 8px; padding: 1px 4px; }
+[data-dev="realtime"] .rcw-chats b { font-weight: 600; font-variant-numeric: tabular-nums; }
+[data-dev="realtime"] .rcw-chats li.slow { color: var(--danger); }
+
+@media (max-width: 640px) {
+  [data-dev="realtime"] .rcw-cells, [data-dev="realtime"] .rcw-dots { grid-template-columns: repeat(10, minmax(0, 1fr)); }
+  [data-dev="realtime"] .rcw-ticker { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

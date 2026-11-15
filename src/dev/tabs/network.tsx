@@ -2,7 +2,7 @@
 import { Term } from '../../components/Term'
 import { Issue, TabIntro } from '../ui'
 import './network.css'
-import { DoubleDemo, GraphqlDemo, InterceptorDemo, LocalDeviceDemo, OfflineDemo, RefreshDemo, RetryDemo, SchemaDemo, SseLimitDemo, WsDemo } from './network-demos'
+import { DoubleDemo, GraphqlDemo, InterceptorDemo, LocalDeviceDemo, OfflineDemo, RefreshDemo, RetryDemo, SchemaDemo } from './network-demos'
 
 const SIM = '이 데모 안의 가짜 서버로 만든 시뮬레이션이에요. 진짜 주소로는 요청을 보내지 않아요.'
 
@@ -10,7 +10,7 @@ export default function NetworkTab() {
   return (
     <div data-dev="network">
       <TabIntro>
-        로컬에서는 API가 늘 빠르고 한 번에 와요. 사용자 환경은 그렇지 않아요. 데모는 전부 이 페이지 안의 가짜 서버로 돌아서 바깥으로 요청이 나가지 않아요. 07 BroadcastChannel, 08 온라인 상태만 브라우저의 진짜 기능이에요.
+        로컬에서는 API가 늘 빠르고 한 번에 와요. 사용자 환경은 그렇지 않아요. 데모는 전부 이 페이지 안의 가짜 서버로 돌아서 바깥으로 요청이 나가지 않아요. 06의 온라인 상태만 브라우저의 진짜 기능이에요. 웹소켓·SSE는 ‘11 실시간 통신’ 탭으로 옮겼어요.
       </TabIntro>
 
       <Issue id="net-local-device"
@@ -227,91 +227,6 @@ const resolvers = { Post: {
           <>개발 모드에서 화면 하나가 보낸 GraphQL 요청 수를 세고, 기준(예: 3개)을 넘으면 경고해요</>,
           <>서버 테스트에서 요청 하나당 DB 쿼리 수를 재고, 기준을 넘으면 실패시켜요</>,
         ]}
-      />
-
-      <Issue id="net-ws"
-        demo={f => <WsDemo fixed={f} />}
-        demoNote={<>{SIM} 서버는 0.4초마다 순서 번호가 붙은 값을 보내고, 최근 값을 보관해 둬요.</>}
-        cause={<>
-          <p>웹소켓은 끊겨도 스스로 다시 연결하지 않아요. 재연결을 붙여도 연결 직후 보내던 <b>구독 메시지를 다시 안 보내면</b>, 화면엔 ‘연결됨’이 떠 있는데 값이 안 와요.</p>
-          <p>다시 붙어도 끊긴 동안의 이벤트는 사라져요. 서버가 이벤트마다 순서 번호(seq)를 붙이고 화면이 ‘마지막으로 받은 번호 이후’를 달라고 해야 빈 구간이 메워져요. 끊김을 빨리 알아채려면 하트비트도 필요해요.</p>
-        </>}
-        quick={{
-          lang: 'TypeScript',
-          bad: `
-function connect() {
-  const ws = new WebSocket(URL)
-  ws.onmessage = e => render(JSON.parse(e.data))
-- ws.onclose = () => setTimeout(connect, 1000)   // 1초마다 똑같이
-  return ws
-}
-const ws = connect()
-- ws.onopen = () => ws.send(sub('line-3'))       // 첫 연결에서만 구독`,
-          good: `
-let lastSeq = 0, tries = 0
-function connect() {
-  const ws = new WebSocket(URL)
-+ ws.onopen = () => {                  // 연결될 때마다 다시 구독 + 이어 받기
-+   tries = 0
-+   ws.send(JSON.stringify({ type: 'sub', topic: 'line-3', since: lastSeq }))
-+ }
-  ws.onmessage = e => {
-    const m = JSON.parse(e.data)
-+   if (m.seq <= lastSeq) return       // 다시 받은 중복은 버려요
-    lastSeq = m.seq; render(m)
-  }
-  ws.onclose = () => {
-+   const wait = Math.random() * Math.min(30_000, 500 * 2 ** tries++)
-    setTimeout(connect, wait)          // 백오프 + 지터
-  }
-}`,
-        }}
-        root={<>
-          <p>연결 관리는 공용 모듈 하나에 모아요. 재연결(백오프 + 지터), 하트비트, 재구독, <code>since</code>로 이어 받기, 끊김 배너를 거기서 처리하고 화면은 구독만 해요. Socket.IO는 재연결이 기본이고, 이어 받기는 ‘connection state recovery’ 옵션을 켜야 해요.</p>
-          <p>서버가 보관한 범위보다 오래 끊겼으면 이어 받기를 포기하고 REST로 최신 스냅숏을 다시 받아요. 서버가 보내기만 하는 화면이라면 재연결과 <code>Last-Event-ID</code>가 표준에 들어 있는 SSE가 더 간단해요.</p>
-        </>}
-        prevent={[
-          <>개발자 도구 Network의 ‘Offline’으로 10초 끊었다 살리고, 놓친 값이 채워지는지 봐요</>,
-          <>메시지마다 seq가 있는지, 서버가 최근 몇 분을 보관하는지 API 명세에 적어요</>,
-          <>‘연결됨’인데 N초 동안 메시지가 없으면 경고하는 감시를 둬요</>,
-        ]}
-        links={[['#/dash/fe', '관제 대시보드 · FE 구현 (폴링 · SSE · 웹소켓 비교)']]}
-      />
-
-      <Issue id="net-sse-limit"
-        demo={f => <SseLimitDemo fixed={f} />}
-        demoNote={<>연결 자리는 시뮬레이션이에요. ‘리더 탭’ 방식에서 다른 탭으로 알림을 나눠 주는 건 이 데모 이름으로 연 진짜 BroadcastChannel이에요.</>}
-        cause={<>
-          <p>HTTP/1.1에서 브라우저는 한 도메인에 동시 연결을 6개까지만 열고, 이 한도는 탭마다가 아니라 <b>브라우저 전체</b>에 걸려요. SSE는 연결 하나를 계속 붙잡고 있어서 탭 6개가 각자 SSE를 열면 자리가 꽉 차요. 그 뒤로는 어느 탭에서든 같은 도메인으로 가는 API 요청이 자리가 날 때까지 줄을 서고, 모든 API가 멈춘 것처럼 보여요.</p>
-        </>}
-        quick={{
-          lang: 'TypeScript',
-          bad: `
-// 탭마다 실행돼요 — 탭 6개면 연결 6개
-- const es = new EventSource('/api/notices/stream')
-es.onmessage = e => showNotice(JSON.parse(e.data))`,
-          good: `
-+ const bc = new BroadcastChannel('notices')
-bc.onmessage = e => showNotice(e.data)     // 다른 탭이 나눠 준 알림
-
-// 리더 탭 하나만 연결해요. 리더가 닫히면 다음 탭이 잠금을 이어받아요
-+ navigator.locks.request('notices-leader', () => new Promise(() => {
-+   const es = new EventSource('/api/notices/stream')
-+   es.onmessage = e => {
-+     const data = JSON.parse(e.data)
-+     showNotice(data)
-+     bc.postMessage(data)                 // 나머지 탭에 나눠 줘요
-+   }
-+ }))`,
-        }}
-        root={<>
-          <p>서버를 HTTP/2 이상으로 바꾸는 게 가장 확실해요. 연결 하나에 여러 요청을 동시에 흘려서(멀티플렉싱) 탭이 많아도 막히지 않아요. 동시 스트림 수는 서버 설정이 정하는데 보통 100개쯤이에요. 개발자 도구 Network의 Protocol 열이 <code>h2</code>·<code>h3</code>인지 확인해요. 사내 프록시가 1.1로 낮추는 경우가 있어서 스테이징과 운영 둘 다 봐야 해요.</p>
-          <p>연결도 탭 전체에서 하나만 둬요. Web Locks로 리더를 뽑고 BroadcastChannel로 나누거나, SharedWorker가 연결을 들게 해요(안드로이드 Chrome은 SharedWorker를 지원하지 않아요). 숨겨진 탭에서 연결을 닫는 방법도 있어요.</p>
-        </>}
-        prevent={[
-          <>QA 시나리오에 같은 사이트 탭 7개 열기를 넣어요</>,
-        ]}
-        links={[['#/dash/fe', '관제 대시보드 · FE 구현 (연결은 하나만)']]}
       />
 
       <Issue id="net-offline"

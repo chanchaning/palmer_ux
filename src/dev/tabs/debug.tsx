@@ -127,6 +127,7 @@ const res = await api.post('/login', { email, password })
           <>API 응답을 zod 같은 스키마로 검사해서 <code>null</code>이 렌더까지 내려오기 전에 걸러요</>,
           <>E2E에 API를 일부러 500·빈 값으로 바꾼 시나리오를 넣어요</>,
         ]}
+        ours={<><code>App.tsx</code>가 화면 본문을 <code>ErrorBoundary</code> 하나로 감싸요. 한 화면이 터지면 사이드바와 상단 바는 남고 그 자리에만 ‘다시 시도 · 홈으로’가 떠요. 주소가 바뀌면 에러를 지우고 새로 그려요. 배포 직후 옛 청크를 못 찾는 에러는 따로 알아보고 새로고침 버튼을 보여 줘요.</>}
         links={[['#/empty/empty-error', '05 빈 화면 · 오류 화면']]}
       />
 

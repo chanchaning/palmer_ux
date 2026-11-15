@@ -1,4 +1,4 @@
-/* FE 개발 노트 — 100가지 함정 목록 (지도 탭 · 검색 · 딥링크용)
+/* FE 개발 노트 — 함정 목록 (지도 탭 · 검색 · 딥링크용)
  * 본문(데모·해결 코드)은 src/dev/tabs/<tab>.tsx 에서 같은 id로 그려요. */
 
 export type Sev = 'high' | 'mid' | 'low'
@@ -13,11 +13,13 @@ export interface DevItem {
   symptom: string
   sev: Sev
   tags: Tag[]
+  /** 사이트 주인이 실제로 겪어 본 문제 */
+  lived?: boolean
 }
 
 export const SEV_LABEL: Record<Sev, string> = { high: '서비스 중단·보안', mid: '성능·데이터', low: '사용성' }
 
-type Row = [id: string, title: string, symptom: string, sev: Sev, tags: Tag[]]
+type Row = [id: string, title: string, symptom: string, sev: Sev, tags: Tag[], lived?: boolean]
 
 const T: Record<string, Row[]> = {
   perf: [
@@ -62,8 +64,6 @@ const T: Record<string, Row[]> = {
     ['net-retry', '재시도 · 대체 UI 없음', '잠깐 실패했을 뿐인데 빈 화면이 떠요', 'mid', ['공통']],
     ['net-double', '저장 연타로 중복 호출', '저장을 두 번 눌렀더니 글이 두 개 생겼어요', 'high', ['공통']],
     ['net-graphql-n1', 'GraphQL Under-fetching과 N+1 요청', '목록 하나 여는데 요청이 수십 개 나가요', 'mid', ['공통']],
-    ['net-ws', 'WebSocket 재연결 · 누락 이벤트 복구 실패', '와이파이가 잠깐 끊긴 뒤로 실시간 값이 멈춰요', 'high', ['공통']],
-    ['net-sse-limit', '탭마다 SSE로 연결 수 제한 초과', '탭을 여러 개 열면 모든 API가 멈춰요', 'high', ['공통']],
     ['net-offline', '오프라인 안내 없음', '터널에서 버튼을 눌러도 아무 반응이 없어요', 'low', ['모바일']],
     ['net-schema', '예고 없는 API 스키마 변경', '배포한 적 없는데 어느 날 화면이 하얗게 죽어요', 'high', ['공통']],
     ['net-interceptor', '인터셉터 에러가 묻힘', '실패했는데 화면엔 아무 안내도 없어요', 'mid', ['공통']],
@@ -140,10 +140,35 @@ const T: Record<string, Row[]> = {
     ['dbg-analytics', '행동 분석 도구 없음', '"여기서 안 넘어가요" 문의를 재현할 수 없어요', 'mid', ['공통']],
     ['dbg-naming', '같은 컴포넌트 중복 생성', 'SelectBox, Dropdown, Picker가 다 같은 기능이에요', 'low', ['공통']],
   ],
+  realtime: [
+    // 폴링 · SSE
+    ['rc-poll-overlap', 'setInterval 폴링의 요청 겹침', '서버가 느려지면 요청이 쌓여서 더 느려져요', 'mid', ['공통']],
+    ['rc-sse-buffer', '프록시 버퍼링으로 몰려 오는 SSE', '실시간 알림이 한참 안 오다가 한꺼번에 쏟아져요', 'mid', ['공통'], true],
+    ['rc-sse-timeout', '게이트웨이 idle timeout으로 주기적 끊김', '1분마다 연결이 끊겼다 다시 붙어요', 'mid', ['공통'], true],
+    ['rc-sse-limit', '탭마다 SSE로 연결 수 제한 초과', '탭을 여러 개 열면 모든 API가 멈춰요', 'high', ['공통'], true],
+    ['rc-sse-lastid', '재연결 사이에 놓친 이벤트 (Last-Event-ID)', '잠깐 끊겼다 붙으면 그 사이 알림이 사라져요', 'high', ['공통'], true],
+    ['rc-sse-token', 'EventSource에 헤더를 못 붙여 URL에 토큰', '서버 접근 로그에 토큰이 그대로 찍혀요', 'high', ['보안']],
+    // WebSocket · Socket.IO
+    ['rc-ws-heartbeat', '하트비트 없는 반쯤 열린 연결', '‘연결됨’인데 값이 몇 분째 안 바뀌어요', 'high', ['공통'], true],
+    ['rc-ws-storm', '재연결 폭주 (Thundering Herd)', '서버를 재시작하면 다시 붙는 요청에 또 죽어요', 'high', ['공통'], true],
+    ['rc-ws-resub', '재연결 후 구독 · 누락 이벤트 복구 실패', '와이파이가 잠깐 끊긴 뒤로 실시간 값이 멈춰요', 'high', ['공통'], true],
+    ['rc-ws-resume', '앱 복귀 후 끊겨 있는 소켓', '앱으로 돌아오면 실시간 화면이 멈춰 있어요', 'mid', ['모바일'], true],
+    ['rc-ws-auth', '토큰 만료 · 로그아웃 뒤에도 열린 소켓', '로그아웃했는데 알림이 계속 와요', 'high', ['보안'], true],
+    ['rc-ws-scale', '서버 여러 대에서 메시지 누락', '같은 방인데 어떤 사람은 메시지를 못 받아요', 'high', ['공통'], true],
+    ['rc-ws-order', '메시지 순서 뒤바뀜 · 중복', '채팅이 두 번 찍히거나 순서가 뒤섞여요', 'mid', ['공통'], true],
+    ['rc-ws-flood', '메시지 폭주로 렌더링 과부하', '값이 빨리 바뀌면 화면이 버벅이고 입력이 밀려요', 'mid', ['React', '공통'], true],
+    ['rc-ws-backpressure', '큰 메시지 전송과 bufferedAmount', '큰 파일을 소켓으로 보내면 다른 메시지가 한참 막혀요', 'mid', ['공통']],
+    // MQTT
+    ['rc-mqtt-clientid', 'clientId 충돌로 서로 끊어내기', '탭 두 개를 열면 번갈아 가며 연결이 끊겨요', 'high', ['공통'], true],
+    ['rc-mqtt-retained', 'retained 메시지의 옛 값', '켜자마자 한참 전 값이 지금 값처럼 떠요', 'mid', ['공통'], true],
+    ['rc-mqtt-qos', 'QoS 0 메시지 유실', '망이 불안하면 명령이 가끔 안 먹혀요', 'high', ['공통'], true],
+    ['rc-mqtt-lwt', 'keepalive · LWT 없이 오프라인 감지 실패', '꺼진 기기가 계속 온라인으로 보여요', 'mid', ['공통'], true],
+    ['rc-mqtt-wildcard', '# 와일드카드 구독과 토픽 권한', '대시보드를 켜면 모든 기기 메시지가 브라우저로 쏟아져요', 'mid', ['보안']],
+  ],
 }
 
 export const DEV_ITEMS: DevItem[] = Object.entries(T).flatMap(([tab, rows]) =>
-  rows.map(([id, title, symptom, sev, tags], i) => ({ id, tab, num: String(i + 1).padStart(2, '0'), title, symptom, sev, tags })),
+  rows.map(([id, title, symptom, sev, tags, lived], i) => ({ id, tab, num: String(i + 1).padStart(2, '0'), title, symptom, sev, tags, lived })),
 )
 
 export const itemById = (id: string) => {

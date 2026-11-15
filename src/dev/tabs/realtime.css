@@ -1,0 +1,2 @@
+/* 11 실시간 통신 — 공용 (부분별 스타일은 realtime-<part>.css) */
+[data-dev="realtime"] .rc-group { margin: 40px 0 14px; font-size: 20px; letter-spacing: -.02em; scroll-margin-top: calc(var(--top-h) + 64px); }

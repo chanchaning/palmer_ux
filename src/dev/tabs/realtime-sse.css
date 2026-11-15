@@ -1,0 +1,104 @@
+/* 11 실시간 통신 · 폴링·SSE 데모 — [data-dev="realtime"] 범위, 클래스는 모두 rcs- */
+[data-dev="realtime"] .rcs-col { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+[data-dev="realtime"] .rcs-empty { margin: 0; font-size: 12.5px; color: var(--text-3); list-style: none; }
+[data-dev="realtime"] .rcs-seg { max-width: 100%; }
+[data-dev="realtime"] .rcs-seg button { font-size: 13px; }
+[data-dev="realtime"] .rcs-hint { margin: 0; font-size: 12.5px; font-weight: 600; color: var(--b); }
+[data-dev="realtime"] .rcs-hint.bad { color: var(--danger); }
+[data-dev="realtime"] .rcs-hint.ok { color: var(--ok); }
+
+/* 상태 줄 · 알약 */
+[data-dev="realtime"] .rcs-live { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); min-width: 0; }
+[data-dev="realtime"] .rcs-live small { display: block; font-size: 11.5px; font-weight: 700; color: var(--text-3); }
+[data-dev="realtime"] .rcs-live b { font-family: var(--mono); font-size: 22px; font-variant-numeric: tabular-nums; }
+[data-dev="realtime"] .rcs-pill { font-size: 12px; font-weight: 700; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
+[data-dev="realtime"] .rcs-pill.open { background: color-mix(in srgb, var(--ok) 15%, transparent); color: var(--ok); }
+[data-dev="realtime"] .rcs-pill.connecting { background: var(--b-soft); color: var(--b); }
+[data-dev="realtime"] .rcs-pill.closed { background: color-mix(in srgb, var(--danger) 14%, transparent); color: var(--danger); }
+
+/* 기록 */
+[data-dev="realtime"] .rcs-log { margin: 0; padding: 6px 0; list-style: none; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); font-size: 12.5px; line-height: 1.5; min-height: 64px; }
+[data-dev="realtime"] .rcs-l { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 8px; padding: 2px 10px; color: var(--text-2); }
+[data-dev="realtime"] .rcs-l time { font-family: var(--mono); font-size: 11px; color: var(--text-3); padding-top: 1px; font-variant-numeric: tabular-nums; }
+[data-dev="realtime"] .rcs-l.ok { color: var(--ok); }
+[data-dev="realtime"] .rcs-l.bad { color: var(--danger); }
+[data-dev="realtime"] .rcs-l.warn { color: var(--b); }
+[data-dev="realtime"] .rcs-l.rcs-empty { display: block; }
+
+/* 범례 */
+[data-dev="realtime"] .rcs-legend { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 11.5px; color: var(--text-3); }
+[data-dev="realtime"] .rcs-legend span { display: inline-flex; align-items: center; gap: 5px; }
+[data-dev="realtime"] .rcs-legend span::before { content: ""; width: 10px; height: 10px; border-radius: 3px; background: var(--accent); }
+[data-dev="realtime"] .rcs-legend .open::before { background: var(--b); }
+[data-dev="realtime"] .rcs-legend .stale::before { background: var(--danger); }
+[data-dev="realtime"] .rcs-legend .replay::before { background: transparent; box-shadow: inset 0 0 0 2px var(--ok); }
+[data-dev="realtime"] .rcs-legend .miss::before { background: color-mix(in srgb, var(--danger) 70%, transparent); }
+
+/* 01 폴링 요청 줄 */
+[data-dev="realtime"] .rcs-lanes { display: flex; flex-direction: column; gap: 3px; padding: 8px 10px; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); min-height: 132px; }
+[data-dev="realtime"] .rcs-lanes-head { display: flex; justify-content: space-between; font-size: 11.5px; font-weight: 700; color: var(--text-3); margin-bottom: 2px; }
+[data-dev="realtime"] .rcs-lane { display: grid; grid-template-columns: 32px minmax(0, 1fr); align-items: center; gap: 6px; }
+[data-dev="realtime"] .rcs-lane > span { font-family: var(--mono); font-size: 10.5px; color: var(--text-3); }
+[data-dev="realtime"] .rcs-track { position: relative; height: 8px; border-radius: 4px; background: var(--surface-2); overflow: hidden; }
+[data-dev="realtime"] .rcs-bar { position: absolute; top: 0; bottom: 0; border-radius: 4px; background: var(--accent); }
+[data-dev="realtime"] .rcs-bar.open { background: var(--b); }
+[data-dev="realtime"] .rcs-bar.stale { background: var(--danger); }
+
+/* 02 알림 흐름 */
+[data-dev="realtime"] .rcs-flow { display: flex; flex-direction: column; gap: 8px; padding: 10px; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); }
+[data-dev="realtime"] .rcs-flow-row { display: grid; grid-template-columns: 78px minmax(0, 1fr); align-items: center; gap: 8px; }
+[data-dev="realtime"] .rcs-flow-row small { font-size: 11.5px; font-weight: 700; color: var(--text-3); }
+[data-dev="realtime"] .rcs-dots { position: relative; height: 18px; border-radius: 9px; background: var(--surface-2); overflow: hidden; }
+[data-dev="realtime"] .rcs-dots i { position: absolute; top: 4px; width: 10px; height: 10px; margin-left: -5px; border-radius: 50%; background: var(--b); }
+[data-dev="realtime"] .rcs-dots.got i { background: var(--accent); }
+[data-dev="realtime"] .rcs-dots.got i.many { top: 1px; width: auto; min-width: 16px; height: 16px; margin-left: -8px; padding: 0 4px; border-radius: 8px; font-style: normal; font-family: var(--mono); font-size: 10.5px; font-weight: 700; line-height: 16px; text-align: center; color: var(--on-fill); }
+
+/* 게이지 (버퍼 · idle 타이머) */
+[data-dev="realtime"] .rcs-gauge { display: flex; flex-direction: column; gap: 5px; }
+[data-dev="realtime"] .rcs-gauge small { font-size: 11.5px; font-weight: 700; color: var(--text-3); overflow-wrap: anywhere; }
+[data-dev="realtime"] .rcs-gauge > div { height: 8px; border-radius: 4px; background: var(--surface); border: 1px solid var(--line); overflow: hidden; }
+[data-dev="realtime"] .rcs-gauge i { display: block; height: 100%; background: var(--b); transition: width .1s linear; }
+[data-dev="realtime"] .rcs-gauge.hot i { background: var(--danger); }
+
+/* 04 탭 · 연결 자리 */
+[data-dev="realtime"] .rcs-tabs { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 6px; }
+[data-dev="realtime"] .rcs-tab { display: flex; flex-direction: column; gap: 1px; padding: 6px 9px; border-radius: 8px 8px 4px 4px; background: var(--surface); border: 1px solid var(--line); border-top: 3px solid var(--accent); min-width: 0; }
+[data-dev="realtime"] .rcs-tab b { font-size: 12.5px; display: flex; align-items: center; gap: 4px; }
+[data-dev="realtime"] .rcs-tab b em { font-style: normal; font-size: 10.5px; padding: 0 5px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); }
+[data-dev="realtime"] .rcs-tab small { font-size: 11px; color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+[data-dev="realtime"] .rcs-tab.follow { border-top-color: var(--ok); }
+[data-dev="realtime"] .rcs-tab.stuck { border-top-color: var(--danger); }
+[data-dev="realtime"] .rcs-tab.stuck small { color: var(--danger); }
+[data-dev="realtime"] .rcs-slots { display: flex; flex-direction: column; gap: 5px; padding: 8px 10px; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); }
+[data-dev="realtime"] .rcs-slots > small { font-size: 11.5px; font-weight: 700; color: var(--text-3); }
+[data-dev="realtime"] .rcs-slots > div { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 4px; }
+[data-dev="realtime"] .rcs-slot { font-size: 10.5px; font-weight: 700; text-align: center; padding: 6px 2px; border-radius: 6px; border: 1px dashed var(--line); color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+[data-dev="realtime"] .rcs-slot.sse { border: 0; background: var(--b); color: var(--on-fill); }
+[data-dev="realtime"] .rcs-slot.req { border: 0; background: var(--accent); color: var(--on-fill); }
+[data-dev="realtime"] .rcs-slot.h2 { grid-column: 1 / -1; border: 0; background: color-mix(in srgb, var(--ok) 15%, transparent); color: var(--ok); white-space: normal; }
+
+/* 05 이벤트 칸 */
+[data-dev="realtime"] .rcs-cells { display: grid; grid-template-columns: repeat(20, minmax(0, 1fr)); gap: 3px; }
+[data-dev="realtime"] .rcs-cell { height: 14px; border-radius: 3px; background: var(--accent); }
+[data-dev="realtime"] .rcs-cell.replay { background: transparent; box-shadow: inset 0 0 0 2px var(--ok); }
+[data-dev="realtime"] .rcs-cell.miss { background: color-mix(in srgb, var(--danger) 70%, transparent); }
+
+/* 06 접근 로그 */
+[data-dev="realtime"] .rcs-code-line { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+[data-dev="realtime"] .rcs-code-line small, [data-dev="realtime"] .rcs-access > small { font-size: 11.5px; font-weight: 700; color: var(--text-3); }
+[data-dev="realtime"] .rcs-code-line code { font-family: var(--mono); font-size: 12px; padding: 6px 8px; border-radius: 6px; background: var(--surface); border: 1px solid var(--line); overflow-wrap: anywhere; }
+[data-dev="realtime"] .rcs-access { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+[data-dev="realtime"] .rcs-access ol { margin: 0; padding: 6px 8px; list-style: none; border-radius: 8px; background: var(--surface); border: 1px solid var(--line); min-height: 72px; display: flex; flex-direction: column; gap: 4px; }
+[data-dev="realtime"] .rcs-access li { font-family: var(--mono); font-size: 11px; line-height: 1.45; color: var(--text-2); overflow-wrap: anywhere; }
+[data-dev="realtime"] .rcs-access li.bad { color: var(--danger); }
+[data-dev="realtime"] .rcs-access li.ok { color: var(--ok); }
+[data-dev="realtime"] .rcs-access li.rcs-empty { font-family: inherit; font-size: 12.5px; color: var(--text-3); }
+
+@media (max-width: 640px) {
+  [data-dev="realtime"] .rcs-slots > div { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  [data-dev="realtime"] .rcs-cells { grid-template-columns: repeat(10, minmax(0, 1fr)); }
+  [data-dev="realtime"] .rcs-flow-row { grid-template-columns: minmax(0, 1fr); gap: 3px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-dev="realtime"] .rcs-gauge i { transition: none; }
+}
