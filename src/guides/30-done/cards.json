@@ -1,0 +1,11 @@
+[
+ { "id": "done-check", "num": "01", "title": "체크 그리기", "en": "Check Draw", "desc": "원이 그려지고 그 안에 체크가 쓱 그어져요. 가장 짧고 확실한 ‘끝났어요’예요." },
+ { "id": "done-strike", "num": "02", "title": "할 일 줄긋기", "en": "Strike-through", "desc": "글자 위로 줄이 그어진 뒤, 끝낸 일은 아래로 비켜나요. 종이 메모에 줄 긋는 기분이에요." },
+ { "id": "done-morph", "num": "03", "title": "버튼 모핑", "en": "Button Morph", "desc": "누른 버튼이 동그랗게 줄어 돌다가, 체크로 바뀌고 다시 펼쳐져요. 눈을 다른 데로 옮기지 않아도 돼요." },
+ { "id": "done-progress", "num": "04", "title": "진행률 완료", "en": "Progress to Complete", "desc": "막대가 끝까지 차면 초록 체크와 ‘완료’로 바뀌어요. 끝을 분명히 보여줘야 기다림이 보상받아요." },
+ { "id": "done-sent", "num": "05", "title": "보냄 애니메이션", "en": "Sent", "desc": "종이비행기가 날아가고 말풍선이 올라가요. 내 손을 떠났다는 걸 눈으로 보여줘요." },
+ { "id": "done-stamp", "num": "06", "title": "스탬프", "en": "Stamp", "desc": "도장이 위에서 ‘쾅’ 내려와 살짝 눌렸다 자리를 잡아요. 기록이 남았다는 무게감을 줘요." },
+ { "id": "done-badge", "num": "07", "title": "배지 획득", "en": "Badge Unlock", "desc": "배지가 톡 튀어나오며 빛이 한 번 훑고 지나가요. 쌓아 온 노력에 이름을 붙여 줘요." },
+ { "id": "done-confetti", "num": "08", "title": "컨페티", "en": "Confetti", "desc": "색종이 조각이 양옆에서 터져 올랐다 떨어져요. 오래 기다린 큰 목표에만 쓰는 축하예요." },
+ { "id": "done-screen", "num": "09", "title": "완료 화면", "en": "Success Screen", "desc": "긴 흐름의 끝에 결과를 정리해 보여주는 한 화면이에요. 축하보다 ‘다음에 뭘 하면 되는지’가 중요해요." }
+]

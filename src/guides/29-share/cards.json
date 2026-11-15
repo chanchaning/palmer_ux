@@ -1,0 +1,11 @@
+[
+ { "id": "share-ios", "num": "01", "title": "iOS 스타일 공유", "en": "Share Sheet (iOS style)", "desc": "아이폰 계열의 공유 시트예요. 위에서부터 사람, 앱, 작업 목록이 세 층으로 쌓여요." },
+ { "id": "share-android", "num": "02", "title": "안드로이드 스타일 공유", "en": "Sharesheet (Android style)", "desc": "안드로이드 계열의 공유 시트예요. 미리보기 옆 복사 칩, 사람에게 바로 보내기 줄, 앱 격자로 나뉘어요." },
+ { "id": "share-forward", "num": "03", "title": "전달", "en": "Forward", "desc": "이미 받은 메시지를 다른 대화방으로 그대로 옮겨요. 원래 누가 보냈는지 꼬리표가 따라가요." },
+ { "id": "share-send", "num": "04", "title": "보내기", "en": "Send to Friends · In-app Share", "desc": "앱 밖으로 나가지 않고 앱 안의 친구에게 콘텐츠를 건네요. 여러 명을 고르고 한마디를 붙일 수 있어요." },
+ { "id": "share-link", "num": "05", "title": "링크 복사", "en": "Copy Link", "desc": "주소를 클립보드에 담아 어디든 붙여넣게 해요. 눌렀는지 모르기 쉬워서 피드백이 핵심이에요." },
+ { "id": "share-repost", "num": "06", "title": "리포스트 · 인용", "en": "Repost · Quote", "desc": "남의 글을 내 피드에 다시 올려요. 그대로 퍼가면 리포스트, 내 의견을 붙이면 인용이에요." },
+ { "id": "share-qr", "num": "07", "title": "QR 공유", "en": "QR Code Share", "desc": "주소를 네모 무늬로 바꿔 화면에 띄워요. 옆에 있는 사람이 카메라로 찍으면 바로 열려요." },
+ { "id": "share-nearby", "num": "08", "title": "근처 공유", "en": "Nearby Share · Proximity Share", "desc": "블루투스·와이파이로 가까이 있는 기기를 찾아 인터넷 없이 바로 보내요. 받는 쪽이 수락해야 와요." },
+ { "id": "share-web", "num": "09", "title": "공유 시트 (웹)", "en": "Web Share API · Native vs Custom", "desc": "웹에서도 navigator.share로 휴대폰의 기본 공유 시트를 부를 수 있어요. 안 되는 곳에선 직접 만든 시트로 대신해요." }
+]

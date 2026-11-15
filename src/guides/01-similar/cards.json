@@ -61,5 +61,68 @@
   "title": "스테퍼 · 슬라이더",
   "en": "",
   "desc": "정확한 숫자를 하나씩 바꾸면 스테퍼, 넓은 범위에서 대략 고르면 슬라이더."
+ },
+ {
+  "id": "c-dropdown",
+  "num": "10",
+  "title": "드롭다운 · 셀렉트",
+  "en": "Dropdown Menu · Select",
+  "desc": "눌러서 명령을 고르면 드롭다운 메뉴, 폼에 들어갈 값 하나를 고르면 셀렉트."
+ },
+ {
+  "id": "c-button",
+  "num": "11",
+  "title": "버튼 · 링크",
+  "en": "Button · Link",
+  "desc": "지금 화면에서 무언가를 실행하면 버튼, 다른 페이지나 위치로 옮겨 가면 링크."
+ },
+ {
+  "id": "c-placeholder",
+  "num": "12",
+  "title": "플레이스홀더 · 라벨",
+  "en": "Placeholder · Label",
+  "desc": "입력하면 사라지는 흐린 힌트는 플레이스홀더, 입력해도 칸 위에 남는 이름은 라벨."
+ },
+ {
+  "id": "c-hamburger",
+  "num": "13",
+  "title": "햄버거 · 케밥",
+  "en": "Hamburger Menu · Kebab Menu",
+  "desc": "앱 전체의 길(메뉴)을 열면 햄버거 ☰, 이 항목·이 화면에서 할 작업을 열면 케밥 ⋮."
+ },
+ {
+  "id": "c-appbar",
+  "num": "14",
+  "title": "앱 바 · 탭바",
+  "en": "Top App Bar · Tab Bar",
+  "desc": "지금 화면의 제목과 작업을 위에 두면 앱 바, 앱의 큰 구역 사이를 오가게 아래에 두면 탭바."
+ },
+ {
+  "id": "c-card",
+  "num": "15",
+  "title": "카드 · 리스트",
+  "en": "Card · List",
+  "desc": "항목마다 사진과 정보를 상자에 담아 따로 보여주면 카드, 한 줄씩 촘촘히 쌓아 견주게 하면 리스트."
+ },
+ {
+  "id": "c-avatar",
+  "num": "16",
+  "title": "아바타 · 썸네일",
+  "en": "Avatar · Thumbnail",
+  "desc": "‘누가’를 작은 동그라미로 보여주면 아바타, ‘무엇’을 작게 미리 보여주면 썸네일."
+ },
+ {
+  "id": "c-banner",
+  "num": "17",
+  "title": "배너 · 팝업",
+  "en": "Banner · Popup",
+  "desc": "페이지 안에 자리를 잡고 하던 일을 막지 않으면 배너, 위를 덮어서 닫기 전까지 아무것도 못 하게 하면 팝업."
+ },
+ {
+  "id": "c-fab",
+  "num": "18",
+  "title": "FAB · 아이콘 버튼",
+  "en": "Floating Action Button · Icon Button",
+  "desc": "화면에서 가장 중요한 행동 하나를 떠 있는 둥근 버튼으로 두면 FAB, 곁에서 돕는 작은 행동들은 아이콘 버튼."
  }
 ]

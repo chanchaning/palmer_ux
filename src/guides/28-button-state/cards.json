@@ -1,0 +1,11 @@
+[
+ { "id": "bstate-default", "num": "01", "title": "기본", "en": "Default · Enabled", "desc": "아무 일도 일어나지 않은 평소 모습이에요. 다른 모든 상태는 이 모습에서 ‘무엇이 바뀌는지’로 정해져요." },
+ { "id": "bstate-hover", "num": "02", "title": "호버", "en": "Hover", "desc": "마우스를 올렸을 때 살짝 바뀌는 모습이에요. ‘이건 누를 수 있어요’라는 작은 신호예요." },
+ { "id": "bstate-focus", "num": "03", "title": "포커스", "en": "Focus · :focus-visible", "desc": "키보드로 버튼에 들어왔을 때 둘레에 생기는 링이에요. 마우스 커서 대신 ‘지금 여기 있어요’를 알려줘요." },
+ { "id": "bstate-pressed", "num": "04", "title": "눌림", "en": "Pressed · :active", "desc": "손가락이나 마우스가 버튼을 누르고 있는 그 짧은 순간이에요. ‘눌렸어요’를 바로 느끼게 해줘요." },
+ { "id": "bstate-selected", "num": "05", "title": "선택됨", "en": "Selected · Toggle On", "desc": "눌러서 켜 두면 다시 누를 때까지 유지되는 상태예요. 순간인 ‘눌림’과 달리 계속 남아요." },
+ { "id": "bstate-disabled", "num": "06", "title": "비활성", "en": "Disabled", "desc": "지금은 누를 수 없다는 상태예요. 흐린 모습만으로는 ‘왜’ 안 되는지 알 수 없어서 쓰는 방법이 중요해요." },
+ { "id": "bstate-loading", "num": "07", "title": "로딩", "en": "Loading · Busy", "desc": "누른 뒤 결과를 기다리는 동안의 모습이에요. ‘받았어요, 처리 중이에요’를 알리고 두 번 눌리지 않게 막아요." },
+ { "id": "bstate-success", "num": "08", "title": "성공", "en": "Success", "desc": "일이 잘 끝났다고 버튼 자리에서 잠깐 알려주는 모습이에요. 1~2초 뒤엔 다시 쓸 수 있게 돌아와요." },
+ { "id": "bstate-error", "num": "09", "title": "오류", "en": "Error", "desc": "눌렀지만 일이 실패했을 때의 모습이에요. 무엇이 잘못됐고 어떻게 하면 되는지까지 버튼 곁에서 알려줘요." }
+]

@@ -1,0 +1,132 @@
+/* GUIDE 28 — 버튼 상태 (접두어 bs-)
+ * 값은 디자인 시스템 ‘상태’ 탭과 같아요: 호버 12% 진하게, 눌림 22% + scale(.97), 포커스 링 2px · 간격 2px */
+[data-page="button-state"] {
+  --bs-dur: calc(120ms * var(--slow));
+  --bs-hover: color-mix(in srgb, var(--accent), #000 12%);
+  --bs-press: color-mix(in srgb, var(--accent), #000 22%);
+}
+[data-page="button-state"] .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+[data-page="button-state"] .bs-box { gap: 12px; padding: 16px 14px; min-height: 280px; }
+[data-page="button-state"] .bs-box > .seg-x { align-self: center; justify-content: center; }
+[data-page="button-state"] .bs-sheet { width: 100%; max-width: 280px; display: flex; flex-direction: column; gap: 12px; padding: 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
+[data-page="button-state"] .bs-sum { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 14px; color: var(--text-2); }
+[data-page="button-state"] .bs-sum b { color: var(--text); font-variant-numeric: tabular-nums; }
+[data-page="button-state"] .bs-tags { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; font-size: 12px; color: var(--text-3); }
+[data-page="button-state"] .bs-tags span { background: var(--surface-2); border-radius: 6px; padding: 2px 8px; }
+[data-page="button-state"] .bs-tags b { color: var(--text); font-weight: 600; margin-left: 2px; }
+[data-page="button-state"] .bs-center { display: flex; justify-content: center; }
+
+/* ---------- 버튼 본체 ---------- */
+[data-page="button-state"] .bs-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-width: 104px; height: 44px; padding: 0 18px;
+  border: 0; border-radius: 10px; font: inherit; font-size: 15px; font-weight: 700; white-space: nowrap; cursor: pointer;
+  background: var(--accent); color: var(--accent-text);
+  transition: background-color var(--bs-dur) cubic-bezier(.2,0,0,1), color var(--bs-dur), transform calc(100ms * var(--slow)) cubic-bezier(.2,0,0,1), box-shadow var(--bs-dur), opacity var(--bs-dur);
+}
+[data-page="button-state"] .bs-btn.wide { width: 100%; }
+[data-page="button-state"] .bs-btn.ghost { background: var(--surface-2); color: var(--text); }
+
+/* 호버 — 마우스가 있는 기기에서만 */
+@media (hover: hover) {
+  [data-page="button-state"] .bs-box:not(.bs-nohover) .bs-btn:hover:not(:disabled):not([aria-disabled="true"]):not([aria-busy]):not(.is-ok):not(.is-err):not(.ghost):not(.faint):not(.textonly) { background: var(--bs-hover); }
+  [data-page="button-state"] .bs-box:not(.bs-nohover) .bs-btn.ghost:hover:not(:disabled) { background: var(--surface-3); }
+}
+[data-page="button-state"] .bs-btn.is-hover { background: var(--bs-hover); }
+[data-page="button-state"] .bs-nohover .bs-btn { cursor: default; }
+
+/* 눌림 */
+[data-page="button-state"] .bs-box:not(.bs-nopress) .bs-btn:active:not(:disabled):not([aria-disabled="true"]):not([aria-busy]):not(.ghost):not(.faint):not(.textonly):not(.is-ok):not(.is-err),
+[data-page="button-state"] .bs-box:not(.bs-nopress) .bs-btn.is-press { background: var(--bs-press); transform: scale(.97); }
+[data-page="button-state"] .bs-box:not(.bs-nopress) .bs-btn.ghost:active, [data-page="button-state"] .bs-box:not(.bs-nopress) .bs-btn.faint:active, [data-page="button-state"] .bs-box:not(.bs-nopress) .bs-btn.textonly:active { background: var(--surface-3); transform: scale(.97); }
+[data-page="button-state"] .bs-nopress .bs-btn { transition: none; }
+
+/* 포커스 — 키보드일 때만 */
+[data-page="button-state"] .bs-btn:focus-visible, [data-page="button-state"] .bs-btn.is-focus { outline: 2px solid var(--accent); outline-offset: 2px; }
+[data-page="button-state"] .bs-noring .bs-btn, [data-page="button-state"] .bs-noring .bs-btn:focus-visible { outline: none !important; }
+
+/* 비활성 */
+[data-page="button-state"] .bs-btn:disabled, [data-page="button-state"] .bs-btn[aria-disabled="true"]:not([aria-busy]) { background: var(--surface-3); color: var(--text-3); cursor: not-allowed; transform: none; }
+[data-page="button-state"] .bs-btn:disabled { pointer-events: none; }
+
+/* 로딩 · 성공 · 오류 */
+[data-page="button-state"] .bs-btn[aria-busy="true"] { cursor: progress; }
+[data-page="button-state"] .bs-btn.is-ok { background: var(--ok); color: var(--on-fill); }
+[data-page="button-state"] .bs-btn.is-err { background: var(--danger); color: var(--on-fill); }
+[data-page="button-state"] .bs-pop { display: inline-flex; align-items: center; gap: 6px; animation: bs-pop calc(260ms * var(--slow)) cubic-bezier(.34,1.56,.64,1); }
+@keyframes bs-pop { from { transform: scale(.6); opacity: 0; } }
+[data-page="button-state"] .bs-spin { display: inline-block; width: 16px; height: 16px; border-radius: 50%; border: 2px solid color-mix(in srgb, currentColor 30%, transparent); border-top-color: currentColor; animation: spin calc(700ms * var(--slow)) linear infinite; }
+[data-page="button-state"] .bs-ico { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ---------- 01 기본 ---------- */
+[data-page="button-state"] .bs-btn.faint { background: var(--accent-soft); color: color-mix(in srgb, var(--accent) 45%, var(--accent-soft)); }
+[data-page="button-state"] .bs-btn.textonly { background: none; color: var(--text); font-weight: 500; }
+[data-page="button-state"] .bs-measure { position: relative; }
+[data-page="button-state"] .bs-ruler { position: absolute; right: 10px; top: 0; bottom: 0; display: flex; align-items: center; font-size: 10px; font-weight: 700; color: var(--accent-text); opacity: .7; pointer-events: none; }
+
+/* ---------- 02 호버 ---------- */
+[data-page="button-state"] .bs-tipwrap { position: relative; display: inline-block; margin-left: 4px; vertical-align: 1px; }
+[data-page="button-state"] .bs-info { width: 18px; height: 18px; border-radius: 50%; border: 1px solid var(--text-3); background: none; color: var(--text-3); font-size: 11px; font-weight: 700; font-style: italic; padding: 0; line-height: 1; display: grid; place-items: center; font-family: Georgia, serif; }
+[data-page="button-state"] .bs-tip { position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%); background: var(--text); color: var(--bg); font-size: 12px; padding: 6px 9px; border-radius: 8px; white-space: nowrap; box-shadow: var(--pop); z-index: 5; animation: fade calc(150ms * var(--slow)); }
+
+/* ---------- 03 포커스 ---------- */
+[data-page="button-state"] .bs-doc { display: flex; flex-direction: column; gap: 2px; font-size: 14px; }
+[data-page="button-state"] .bs-doc span { color: var(--text-3); font-size: 13px; }
+[data-page="button-state"] .bs-row { display: flex; gap: 6px; }
+[data-page="button-state"] .bs-row .bs-btn { flex: 1; min-width: 0; padding: 0 8px; font-size: 14px; }
+[data-page="button-state"] .bs-keys { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text-3); }
+[data-page="button-state"] .bs-keys span { margin-right: 8px; }
+[data-page="button-state"] .bs-keys kbd.hit { animation: bs-key calc(260ms * var(--slow)); }
+@keyframes bs-key { 40% { transform: translateY(2px); border-bottom-width: 1px; background: var(--accent-soft); color: var(--accent); } }
+
+/* ---------- 04 눌림 ---------- */
+[data-page="button-state"] .bs-steps { display: flex; gap: 4px; }
+[data-page="button-state"] .bs-steps i { flex: 1; height: 4px; border-radius: 2px; background: var(--surface-3); transition: background-color .2s; }
+[data-page="button-state"] .bs-steps i.on { background: var(--accent); }
+
+/* ---------- 05 선택됨 ---------- */
+[data-page="button-state"] .bs-tools { display: flex; gap: 4px; padding: 4px; border-radius: 10px; background: var(--surface-2); align-self: flex-start; }
+[data-page="button-state"] .bs-tog {
+  position: relative; width: 40px; height: 40px; border-radius: 8px; border: 1.5px solid transparent; background: none; color: var(--text-2);
+  font: inherit; font-size: 16px; font-family: Georgia, serif; cursor: pointer;
+  transition: background-color var(--bs-dur), color var(--bs-dur), border-color var(--bs-dur), transform calc(100ms * var(--slow));
+}
+[data-page="button-state"] .bs-tog.f-b { font-weight: 800; }
+[data-page="button-state"] .bs-tog.f-i { font-style: italic; }
+[data-page="button-state"] .bs-tog.f-u { text-decoration: underline; }
+@media (hover: hover) { [data-page="button-state"] .bs-tog:hover { background: var(--surface-3); } }
+[data-page="button-state"] .bs-tog:active { transform: scale(.94); }
+[data-page="button-state"] .bs-tog[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+[data-page="button-state"] .bs-selcolor .bs-tog[aria-pressed="true"] { background: none; border-color: transparent; color: color-mix(in srgb, var(--accent) 55%, var(--text-2)); }
+[data-page="button-state"] .bs-dot { position: absolute; bottom: 4px; left: 50%; width: 4px; height: 4px; margin-left: -2px; border-radius: 50%; background: currentColor; }
+[data-page="button-state"] .bs-text { margin: 0; font-size: 16px; line-height: 1.5; transition: font-weight .15s; }
+
+/* ---------- 06 비활성 ---------- */
+[data-page="button-state"] .bs-form { gap: 10px; }
+[data-page="button-state"] .bs-field { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--text-2); }
+[data-page="button-state"] .bs-field input { height: 40px; border: 1px solid var(--line); border-radius: 8px; padding: 0 10px; font: inherit; font-size: 14px; color: var(--text); background: var(--surface); }
+[data-page="button-state"] .bs-field input:focus-visible { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 30%, transparent); }
+[data-page="button-state"] .bs-field.err input { border-color: var(--danger); }
+[data-page="button-state"] .bs-field em, [data-page="button-state"] .bs-err-line { font-style: normal; font-size: 12px; color: var(--danger); font-weight: 600; margin-top: -4px; }
+[data-page="button-state"] .bs-field em::before, [data-page="button-state"] .bs-err-line::before { content: "! "; }
+[data-page="button-state"] .bs-agree { font-size: 14px; }
+[data-page="button-state"] .bs-agree.err input { border-color: var(--danger); }
+[data-page="button-state"] .bs-why { margin: -4px 0 0; font-size: 12px; color: var(--text-2); background: var(--surface-2); border-radius: 8px; padding: 6px 9px; animation: fade calc(200ms * var(--slow)); }
+
+/* ---------- 07 로딩 ---------- */
+[data-page="button-state"] .bs-receipt { font-size: 13px; color: var(--text-3); text-align: center; }
+[data-page="button-state"] .bs-receipt b { color: var(--text); font-variant-numeric: tabular-nums; }
+[data-page="button-state"] .bs-receipt b.bad { color: var(--danger); }
+
+/* ---------- 08 성공 ---------- */
+[data-page="button-state"] .bs-cart { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; }
+[data-page="button-state"] .bs-badge { min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px; background: var(--b); color: var(--on-fill); font-size: 12px; font-weight: 700; display: inline-grid; place-items: center; font-variant-numeric: tabular-nums; }
+
+/* ---------- 09 오류 ---------- */
+[data-page="button-state"] .bs-errmsg { margin: -4px 0 0; display: flex; gap: 6px; align-items: flex-start; font-size: 12px; line-height: 1.5; color: var(--danger); animation: fade calc(200ms * var(--slow)); }
+[data-page="button-state"] .bs-errmsg .bs-ico { margin-top: 1px; }
+[data-page="button-state"] .bs-errmsg span { color: var(--text-2); }
+[data-page="button-state"] .bs-errmsg b { color: var(--danger); }
+
+@media (prefers-reduced-motion: reduce) {
+  [data-page="button-state"] .bs-pop, [data-page="button-state"] .bs-keys kbd.hit { animation: none; }
+}

@@ -1,0 +1,11 @@
+[
+ { "id": "date-quick", "num": "01", "title": "빠른 선택 칩", "en": "Quick Pick Chips", "desc": "자주 고르는 날짜를 ‘오늘 · 내일 · 이번 주말’ 칩으로 먼저 보여줘요. 달력은 그다음이에요." },
+ { "id": "date-slots", "num": "02", "title": "시간 슬롯", "en": "Time Slots", "desc": "고를 수 있는 시간을 버튼 칸으로 미리 펼쳐 둬요. 찬 자리와 지난 시간은 흐리게 보여줘요." },
+ { "id": "date-month", "num": "03", "title": "월 선택", "en": "Month Picker", "desc": "날짜까지 필요 없을 때 열두 달을 바둑판으로 보여줘요. 한 번에 한 달 단위로 골라요." },
+ { "id": "date-cal", "num": "04", "title": "캘린더", "en": "Calendar · Date Picker", "desc": "한 달을 요일 칸에 맞춰 펼쳐요. 요일과 앞뒤 날짜가 함께 보여서 ‘언제쯤’을 감으로 고를 수 있어요." },
+ { "id": "date-wheel", "num": "05", "title": "휠 피커", "en": "Wheel Picker", "desc": "숫자를 세로 바퀴처럼 굴려서 가운데 칸에 맞춰요. 엄지로 빠르게 밀기 좋아 폰에서 많이 써요." },
+ { "id": "date-range", "num": "06", "title": "기간 선택", "en": "Date Range Picker", "desc": "시작일과 종료일, 두 번 눌러 기간을 정해요. 사이 날짜가 띠로 칠해져 길이가 한눈에 보여요." },
+ { "id": "date-input", "num": "07", "title": "날짜 입력", "en": "Date Input · Masked Field", "desc": "달력 없이 숫자로 바로 쳐요. 점은 알아서 들어가고, 없는 날짜는 다 치자마자 알려줘요." },
+ { "id": "date-stay", "num": "08", "title": "체크인 · 체크아웃", "en": "Check-in / Check-out", "desc": "숙박처럼 ‘몇 밤’이 중요한 기간이에요. 고르는 칸이 두 개고, 그 사이 밤 수와 규칙을 바로 보여줘요." },
+ { "id": "date-repeat", "num": "09", "title": "반복 설정", "en": "Recurrence", "desc": "‘언제마다’를 정해요. 고른 결과를 ‘매주 월·수 오전 9시’ 같은 한 문장과 다음 날짜로 다시 읽어줘요." }
+]

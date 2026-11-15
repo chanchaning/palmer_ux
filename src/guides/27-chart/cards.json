@@ -1,0 +1,11 @@
+[
+ { "id": "chart-bar", "num": "01", "title": "막대 그래프", "en": "Bar Chart", "desc": "항목끼리 크기를 견줄 때 써요. 막대 길이가 곧 값이라 가장 정확하게 읽혀요." },
+ { "id": "chart-line", "num": "02", "title": "선 그래프", "en": "Line Chart", "desc": "시간에 따라 값이 어떻게 오르내리는지 보여줘요. 점보다 ‘흐름’을 읽는 그래프예요." },
+ { "id": "chart-donut", "num": "03", "title": "도넛 차트", "en": "Donut Chart", "desc": "전체를 100으로 두고 각 부분이 얼마나 차지하는지 보여줘요. 가운데에 핵심 숫자를 둘 수 있어요." },
+ { "id": "chart-spark", "num": "04", "title": "스파크라인", "en": "Sparkline", "desc": "축도 눈금도 없는 글자 크기만 한 선 그래프예요. 표 한 줄, 숫자 옆에 ‘흐름’만 살짝 붙여요." },
+ { "id": "chart-gauge", "num": "05", "title": "게이지", "en": "Gauge", "desc": "숫자 하나가 정해진 범위 안 어디쯤인지 계기판처럼 보여줘요. ‘좋음·나쁨’ 구간과 함께 읽어요." },
+ { "id": "chart-ring", "num": "06", "title": "진행 링", "en": "Progress Ring · Goal", "desc": "목표를 한 바퀴로 두고 지금까지 얼마나 해냈는지 채워 보여줘요. 기다림이 아니라 ‘성과’를 보여주는 링이에요." },
+ { "id": "chart-heat", "num": "07", "title": "히트맵", "en": "Heatmap", "desc": "가로·세로 두 기준이 만나는 칸을 색의 진하기로 칠해요. 많은 숫자 속에서 ‘언제 몰리는지’가 한눈에 보여요." },
+ { "id": "chart-kpi", "num": "08", "title": "KPI 카드", "en": "KPI Card · Stat Tile", "desc": "가장 중요한 숫자 하나를 크게, 그 옆에 ‘무엇과 비교해 얼마나 변했는지’를 붙인 카드예요." },
+ { "id": "chart-stack", "num": "09", "title": "누적 막대", "en": "Stacked Bar Chart", "desc": "막대 하나를 여러 칸으로 쌓아 ‘전체’와 ‘구성’을 함께 보여줘요. 금액과 100% 두 가지로 볼 수 있어요." }
+]
