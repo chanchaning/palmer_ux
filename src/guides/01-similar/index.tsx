@@ -4,7 +4,7 @@ import { ModalVsSheet, ToastVsSnackbar, TooltipVsPopover } from './cards/overlay
 import { ChipVsBadge, SpinnerVsSkeleton, StepperVsSlider } from './cards/display'
 import { ButtonVsLink, DropdownVsSelect, PlaceholderVsLabel } from './cards/form'
 import { AppBarVsTabBar, FabVsIconButton, HamburgerVsKebab } from './cards/nav'
-import { AvatarVsThumbnail, BannerVsPopup, CardVsList } from './cards/content'
+import { AvatarVsThumbnail, BannerVsPopup, CardVsList, ModalVsPopup } from './cards/content'
 
 /** GUIDE 01 — 닮았는데 이름은 달라요 */
 export default function SimilarGuide() {
@@ -28,6 +28,7 @@ export default function SimilarGuide() {
       <AvatarVsThumbnail />
       <BannerVsPopup />
       <FabVsIconButton />
+      <ModalVsPopup />
     </div>
   )
 }

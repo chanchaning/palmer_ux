@@ -1,6 +1,6 @@
-import { useRef, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { DemoPane, PairCard } from '../../../components/Card'
-import { useTimers } from '../../../components/ui'
+import { Seg, useTimers } from '../../../components/ui'
 import { IcClose, IcHeart, IcPlay } from './bits'
 import { useOutside } from './useOutside'
 
@@ -161,9 +161,9 @@ export function BannerVsPopup() {
   const openPage = () => { setPLog(<>페이지가 열리자마자 <b>팝업이 덮었어요</b></>); timers.set(() => setPopup(true), 350) }
 
   return (
-    <PairCard id="c-banner" num="17" a="배너" b="팝업" desc="페이지 안에 자리를 잡고 하던 일을 막지 않으면 배너, 위를 덮어서 닫기 전까지 아무것도 못 하게 하면 팝업."
+    <PairCard id="c-banner" num="17" a="배너" b="팝업" desc="페이지 안에 자리를 잡고 하던 일을 막지 않으면 배너, 페이지 위를 덮고 끼어들면 팝업."
       diff={[
-        ['흐름', '페이지 안에 끼어 있어요 · 계속 쓸 수 있어요', '위를 덮어요 · 닫기 전엔 못 써요'],
+        ['흐름', '페이지 안에 끼어 있어요 · 계속 쓸 수 있어요', '위를 덮어요 · 이 예시처럼 뒤를 막으면 모달 (19번 참고)'],
         ['닫기', '안 닫아도 돼요 (✕는 선택)', '꼭 닫거나 골라야 해요'],
         ['어울리는 소식', '점검 예고, 새 기능, 쿠키 안내', '지금 꼭 정해야 하는 일 (드물게)'],
       ]}>
@@ -198,6 +198,95 @@ export function BannerVsPopup() {
               <button className="btn ghost sm" tabIndex={popup ? 0 : -1} onClick={() => { setPopup(false); setPLog(<><b>나중에</b> · 이제야 페이지를 쓸 수 있어요</>) }}>나중에</button>
               <button className="btn sm orange" tabIndex={popup ? 0 : -1} onClick={() => { setPopup(false); setPLog(<><b>켜기</b> · 이제야 페이지를 쓸 수 있어요</>) }}>켜기</button>
             </div>
+          </div>
+        </div>
+      </DemoPane>
+    </PairCard>
+  )
+}
+
+/* ---------- 19 모달 vs 팝업 ----------
+ * 모달은 '성질'(뒤를 막음), 팝업은 '모양'(위에 떠서 나타남).
+ * 오른쪽 팝업은 모달리스/모달을 바꿔 띄울 수 있어서 "팝업 중 뒤를 막는 것 = 모달"을 직접 확인해요. */
+const shake = (el: HTMLElement | null) =>
+  el?.animate([{ transform: 'translate(-50%,-50%) scale(1)' }, { transform: 'translate(-50%,-50%) scale(1.04)' }, { transform: 'translate(-50%,-50%) scale(1)' }], { duration: 220 })
+
+export function ModalVsPopup() {
+  const [modal, setModal] = useState(false)
+  const [mLikes, setMLikes] = useState(3)
+  const [mLog, setMLog] = useState<ReactNode>(<>‘메모 삭제’를 눌러 보세요</>)
+  const mDialog = useRef<HTMLDivElement>(null)
+  const mFirst = useRef<HTMLButtonElement>(null)
+
+  const [kind, setKind] = useState<'free' | 'block'>('free')
+  const [pop, setPop] = useState(false)
+  const [pLikes, setPLikes] = useState(3)
+  const [pLog, setPLog] = useState<ReactNode>(<>‘쿠폰 팝업 띄우기’를 눌러 보세요</>)
+  const pBox = useRef<HTMLDivElement>(null)
+  const timers = useTimers()
+
+  const openModal = () => {
+    setModal(true)
+    setMLog(<>모달이 떴어요 · <b>뒤 화면은 잠겼어요</b> (Esc로도 닫혀요)</>)
+    timers.set(() => mFirst.current?.focus(), 50)
+  }
+  const closeModal = (msg: ReactNode) => { setModal(false); setMLog(msg) }
+  // 포커스가 어디 있든 Esc로 닫혀요 (바깥을 누르면 포커스가 body로 빠지니까요)
+  useEffect(() => {
+    if (!modal) return
+    const on = (e: KeyboardEvent) => { if (e.key === 'Escape') closeModal(<><b>Esc</b>로 닫았어요 · 뒤 화면이 다시 풀렸어요</>) }
+    document.addEventListener('keydown', on)
+    return () => document.removeEventListener('keydown', on)
+  }, [modal])
+  const openPop = () => {
+    setPop(true)
+    setPLog(kind === 'free'
+      ? <>팝업이 떴지만 <b>뒤의 ♥는 그대로 눌려요</b> · 모달리스 팝업</>
+      : <>같은 팝업인데 <b>뒤가 잠겼어요</b> · 이제는 모달이에요</>)
+  }
+  const switchKind = (k: 'free' | 'block') => {
+    setKind(k); setPop(false)
+    setPLog(k === 'free' ? <><b>모달리스</b> · 뒤를 막지 않는 팝업</> : <><b>모달</b> · 뒤를 막는 팝업 (= 모달)</>)
+  }
+
+  return (
+    <PairCard id="c-modal-popup" num="19" a="모달" b="팝업" desc="팝업은 ‘위에 떠서 나타나는 창’이라는 모양, 모달은 ‘닫기 전까지 뒤를 못 쓰게 막는’ 성질. 그래서 팝업 중에 뒤를 막는 것만 모달이에요."
+      diff={[
+        ['가리키는 것', '성질 — 뒤를 막는 창', '모양 — 위에 떠서 나타나는 창 전부'],
+        ['뒤 화면', '못 써요 · 답하거나 닫아야 해요', '막을 수도, 안 막을 수도 있어요'],
+        ['기획서에 쓸 때', '모달 · 바깥 눌러 닫기 ✕ · Esc 닫기 ○', '‘팝업’만 쓰면 막는지 안 막는지 몰라요 — 모달/모달리스를 같이 적어요'],
+      ]}>
+      <DemoPane label="모달" en="Modal Dialog" log={mLog}>
+        <div className="stage phone">
+          <div className="app-mock" inert={modal}>
+            <div className="fake-line" style={{ width: '60%' }} /><div className="fake-line" />
+            <button className="btn sm ghost sm-like" onClick={() => { setMLikes(n => n + 1); setMLog(<>♥ <b>{mLikes + 1}</b> · 모달이 없으니 눌려요</>) }}>♥ {mLikes}</button>
+            <button className="btn sm" onClick={openModal}>메모 삭제</button>
+          </div>
+          <div className={'scrim' + (modal ? ' on' : '')} onClick={() => { shake(mDialog.current); setMLog(<>바깥을 눌러도 <b>안 닫혀요</b> · 지울지 말지 먼저 답해야 해요</>) }} />
+          <div className={'dialog' + (modal ? ' on' : '')} ref={mDialog} role="alertdialog" aria-modal="true" aria-labelledby="sm-mp-t" aria-hidden={!modal}>
+            <h4 id="sm-mp-t">이 메모를 지울까요?</h4>
+            <p>지운 메모는 되돌릴 수 없어요.</p>
+            <div className="row">
+              <button ref={mFirst} className="btn ghost sm" tabIndex={modal ? 0 : -1} onClick={() => closeModal(<><b>취소</b> · 이제야 뒤 화면을 쓸 수 있어요</>)}>취소</button>
+              <button className="btn sm" tabIndex={modal ? 0 : -1} onClick={() => closeModal(<><b>삭제</b> · 답을 받고 나서야 닫혔어요</>)}>삭제</button>
+            </div>
+          </div>
+        </div>
+      </DemoPane>
+      <DemoPane side="b" label="팝업" en="Popup" log={pLog}>
+        <div className="stage phone">
+          <div className="app-mock" inert={pop && kind === 'block'}>
+            <Seg value={kind} onChange={switchKind} options={[['free', '모달리스'], ['block', '모달로 띄우기']]} />
+            <div className="fake-line" style={{ width: '60%' }} />
+            <button className="btn sm ghost sm-like" onClick={() => { setPLikes(n => n + 1); setPLog(<>♥ <b>{pLikes + 1}</b> · 팝업이 떠 있어도 눌려요</>) }}>♥ {pLikes}</button>
+            <button className="btn sm orange" onClick={openPop} disabled={pop}>쿠폰 팝업 띄우기</button>
+          </div>
+          {kind === 'block' && <div className={'scrim' + (pop ? ' on' : '')} onClick={() => { pBox.current?.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.04)' }, { transform: 'scale(1)' }], { duration: 220 }); setPLog(<>뒤의 ♥를 눌러도 <b>막혀요</b> · 모달로 띄웠으니까요</>) }} />}
+          <div className={'sm-float' + (pop ? ' on' : '') + (kind === 'block' ? ' block' : '')} ref={pBox} role="dialog" aria-modal={kind === 'block'} aria-labelledby="sm-pf-t" aria-hidden={!pop}>
+            <b id="sm-pf-t">쿠폰이 도착했어요</b>
+            <span>오늘까지 쓸 수 있는 3,000원 쿠폰</span>
+            <button className="sm-ib" aria-label="팝업 닫기" tabIndex={pop ? 0 : -1} onClick={() => { setPop(false); setPLog(<>팝업을 <b>닫았어요</b></>) }}><IcClose /></button>
           </div>
         </div>
       </DemoPane>
