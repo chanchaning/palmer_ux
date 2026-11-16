@@ -1,0 +1,11 @@
+[
+ { "id": "scroll-parallax", "num": "01", "title": "패럴랙스", "en": "Parallax", "desc": "먼 배경은 천천히, 가까운 것은 빨리 움직여요. 속도 차이만으로 평평한 화면에 깊이가 생겨요." },
+ { "id": "scroll-fadeup", "num": "02", "title": "페이드 업", "en": "Fade Up", "desc": "화면에 들어오는 순간 아래에서 살짝 떠오르며 나타나요. 가장 흔하고, 가장 쉽게 과해지는 효과예요." },
+ { "id": "scroll-sticky", "num": "03", "title": "스티키 헤더", "en": "Sticky Header", "desc": "머리글이 위에 붙어서 따라와요. 늘 붙여 둘지, 줄일지, 내릴 때는 숨길지에 따라 본문 자리가 달라져요." },
+ { "id": "scroll-horizontal", "num": "04", "title": "가로 스크롤", "en": "Horizontal Scroll", "desc": "세로로 내리는데 화면이 옆으로 흘러가요. 구간을 붙잡아 두고 스크롤을 가로 이동으로 바꿔 쓰는 방식이에요." },
+ { "id": "scroll-scalein", "num": "05", "title": "스케일 인", "en": "Scale In", "desc": "작게 들어온 사진이 가운데로 올수록 커져요. 스크롤을 따라갈지, 한 번에 재생할지에 따라 느낌이 달라요." },
+ { "id": "scroll-textreveal", "num": "06", "title": "텍스트 리빌", "en": "Text Reveal", "desc": "흐리던 문장이 내리는 만큼 한 단어씩 또렷해져요. 스크롤이 곧 읽는 속도가 돼요." },
+ { "id": "scroll-stack", "num": "07", "title": "스태커", "en": "Stacking Cards", "desc": "카드가 위에 붙은 채로 다음 카드가 그 위에 차곡차곡 쌓여요. 순서가 있는 내용을 한 장씩 넘겨 보여줘요." },
+ { "id": "scroll-progress", "num": "08", "title": "진행 바", "en": "Scroll Progress", "desc": "얼마나 읽었고 얼마나 남았는지를 막대나 고리로 보여줘요. 긴 글에서 ‘끝이 있다’는 걸 알려줘요." },
+ { "id": "scroll-infinite", "num": "09", "title": "무한 스크롤", "en": "Infinite Scroll", "desc": "바닥에 닿기 전에 다음 묶음을 불러와 이어 붙여요. 넘기는 버튼 없이 계속 내려가며 봐요." }
+]
