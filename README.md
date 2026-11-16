@@ -15,7 +15,7 @@
 | 그룹 | 가이드 |
 |---|---|
 | 컴포넌트 | 닮은꼴 컴포넌트 (18쌍) · 평점·평가 · 메뉴 아이콘 · 알림과 피드백 · 날짜·시간 선택 · 차트 · 버튼 상태 |
-| 모션 | 화면 전환 방식 · 움직임·이징 · 제스처 · 글자 모션 · 완료 표현 |
+| 모션 | 화면 전환 방식 · 움직임·이징 · 제스처 · 글자 모션 · 완료 표현 · 마이크로 인터랙션 (자석 버튼, 독 확대, 유령 제안 등 12종) |
 | 스타일 | 디자인 스타일 (플랫부터 리퀴드 글래스까지 13종) · 글자 스타일 |
 | 패턴 | 빈 화면 · 앱 화면 구성 · 페이지 레이아웃 · 로딩 패턴 · 목록 보여주기 · 권한 요청 · 검색 화면 · 첫 실행 화면 · 공유 |
 | 심리·윤리 | 심리 편향 · 다크 패턴 |
@@ -73,5 +73,6 @@ React 19 · TypeScript · Vite. 외부 UI 라이브러리 없이 CSS와 Web Anim
 
 - 서체: [Pretendard](https://github.com/orioncactus/pretendard) — SIL Open Font License 1.1 (`src/styles/fonts/LICENSE-Pretendard.txt`)
 - UX 법칙 참고: [Laws of UX](https://lawsofux.com) (Jon Yablonski)
+- 마이크로 인터랙션 참고: 다룰 항목은 [DesignBookmark Motion](https://designbookmark.com/motion), [Kokonut UI](https://kokonutui.com), [SmoothUI](https://smoothui.dev)의 목록을 보고 골랐고, 데모 코드는 모두 새로 짰어요.
 - 디자인 점검: 디자인 마감 점검에 [unslop](https://github.com/heydamir/unslop)(Damir Sokolovsky, @heydamir, CC BY 4.0)을 참고했어요.
 - 화면 속 브랜드·상품·사람 이름은 모두 예시용 가상 데이터예요.

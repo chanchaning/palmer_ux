@@ -1,0 +1,14 @@
+[
+ { "id": "micro-magnetic", "num": "01", "title": "자석 버튼", "en": "Magnetic Button", "desc": "커서가 가까이 오면 버튼이 그쪽으로 끌려오고, 멀어지면 튕기듯 제자리로 돌아가요." },
+ { "id": "micro-like", "num": "02", "title": "좋아요 터짐", "en": "Like Burst", "desc": "하트가 톡 커지면서 작은 조각이 사방으로 튀어요. 누른 보람을 0.4초 안에 돌려줘요." },
+ { "id": "micro-otp", "num": "03", "title": "인증번호 칸", "en": "OTP Code Input", "desc": "숫자를 넣으면 칸이 하나씩 차고, 틀리면 좌우로 흔들려요. 칸은 여섯 개지만 입력창은 하나예요." },
+ { "id": "micro-stepper", "num": "04", "title": "숫자 스테퍼", "en": "Number Stepper", "desc": "더하면 숫자가 아래에서 올라오고, 빼면 위에서 내려와요. 방향이 늘었는지 줄었는지를 말해 줘요." },
+ { "id": "micro-dock", "num": "05", "title": "독 확대", "en": "Dock Magnification", "desc": "커서 아래 아이콘이 가장 크게, 옆 아이콘은 조금씩 덜 커져요. 작은 아이콘을 고르기 쉽게 해 줘요." },
+ { "id": "micro-dots", "num": "06", "title": "늘어나는 페이지 점", "en": "Stretchy Pagination Dots", "desc": "현재 위치 표시가 다음 점까지 쭉 늘어났다가 줄어들어요. 어느 쪽으로 넘어갔는지 눈으로 따라갈 수 있어요." },
+ { "id": "micro-tilt", "num": "07", "title": "기울어지는 카드", "en": "Tilt Card", "desc": "커서 위치에 따라 카드가 입체로 기울고 빛이 따라 움직여요. 실물 카드를 손에 쥔 느낌을 줘요." },
+ { "id": "micro-fan", "num": "08", "title": "부채꼴 카드", "en": "Fan Cards", "desc": "겹쳐 있던 카드가 부채처럼 펼쳐져요. 좁은 자리에 여러 장을 넣고, 필요할 때만 보여줘요." },
+ { "id": "micro-thinking", "num": "09", "title": "생각 중 표시", "en": "Thinking Indicator", "desc": "AI가 답을 준비하는 동안 글자가 반짝이거나, 점이 튀거나, 지금 하는 일을 한 줄씩 알려줘요." },
+ { "id": "micro-ghost", "num": "10", "title": "유령 제안", "en": "Ghost Suggestion", "desc": "쓰고 있는 글 뒤에 이어질 말이 흐린 글자로 나타나요. Tab을 누르면 그대로 받아들여요." },
+ { "id": "micro-weight", "num": "11", "title": "굵기 물결", "en": "Weight Wave", "desc": "커서가 지나가는 자리의 글자만 굵어졌다가 돌아와요. 가변 폰트 하나로 만드는 움직임이에요." },
+ { "id": "micro-roll", "num": "12", "title": "굴러가는 링크", "en": "Roll Links", "desc": "링크에 커서를 올리면 글자가 위로 굴러 올라가고 같은 글자가 아래에서 따라와요." }
+]
