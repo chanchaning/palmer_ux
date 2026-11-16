@@ -1,0 +1,12 @@
+[
+ { "id": "hover-lift", "num": "01", "title": "떠오르는 카드", "en": "Lift", "desc": "카드가 살짝 올라오고 그림자가 넓어져요. ‘이 카드는 통째로 누를 수 있어요’를 알려주는 가장 흔한 신호예요." },
+ { "id": "hover-underline", "num": "02", "title": "밑줄 그리기", "en": "Underline Draw", "desc": "밑줄이 한쪽에서 그어지거나 형광펜처럼 채워져요. 글자 링크가 반응하는 가장 조용한 방법이에요." },
+ { "id": "hover-fill", "num": "03", "title": "버튼 채우기", "en": "Fill Sweep", "desc": "테두리만 있던 버튼에 색이 밀려 들어와요. 들어오는 방향이 버튼의 성격을 만들어요." },
+ { "id": "hover-zoom", "num": "04", "title": "사진 확대", "en": "Image Zoom", "desc": "틀은 그대로 두고 안의 사진만 조금 커져요. 틀째 키우면 옆 칸을 덮어요." },
+ { "id": "hover-caption", "num": "05", "title": "설명 올라오기", "en": "Caption Reveal", "desc": "사진 위로 제목과 설명이 올라와요. 깔끔하지만, 커서가 없는 화면에서는 영영 안 보일 수 있어요." },
+ { "id": "hover-icon", "num": "06", "title": "화살표 움직임", "en": "Icon Nudge", "desc": "줄 끝의 화살표가 가는 방향으로 살짝 밀려요. 4px짜리 움직임으로 ‘다음으로 넘어가요’를 말해요." },
+ { "id": "hover-dim", "num": "07", "title": "나머지 흐리게", "en": "Dim Others", "desc": "하나에 올리면 나머지가 물러나요. 고른 것을 키우는 대신 주변을 낮춰서 눈에 띄게 해요." },
+ { "id": "hover-spotlight", "num": "08", "title": "스포트라이트", "en": "Spotlight", "desc": "커서 주변만 은은하게 밝아지고 테두리에 빛이 따라와요. 카드 여러 장이 한 판처럼 묶여 보여요." },
+ { "id": "hover-tooltip", "num": "09", "title": "툴팁 지연", "en": "Tooltip Delay", "desc": "올리자마자 뜨면 지나가기만 해도 번쩍여요. 잠깐 머문 뒤에 띄우고, 한 번 뜬 뒤에는 옆으로 옮겨도 바로 보여줘요." },
+ { "id": "hover-card", "num": "10", "title": "미리보기 카드", "en": "Hover Card", "desc": "링크에 머물면 작은 카드가 떠서 누르기 전에 내용을 보여줘요. 커서가 카드까지 건너갈 시간을 줘야 해요." }
+]
