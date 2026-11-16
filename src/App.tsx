@@ -11,18 +11,12 @@ import { groups, guides } from './guides/registry'
 import { useSlowMotion } from './lib/motion'
 import { IconDoc, IconGrid, IconHome, IconMenu, IconSearch, IconSlow, IconTheme, IconUp } from './components/icons'
 
-/* 로고: src/assets/logo.webp(+ logo-still.png)가 있으면 이미지, 없으면 'P' 글자 */
-const logoFiles = import.meta.glob<string>('./assets/logo*.{webp,png}', { eager: true, query: '?url', import: 'default' })
+/* 로고: src/assets/logo.webp(움직이는 그림)가 있으면 이미지, 없으면 'P' 글자 */
+const logoFiles = import.meta.glob<string>('./assets/logo*.webp', { eager: true, query: '?url', import: 'default' })
 const LOGO = logoFiles['./assets/logo.webp']
-const LOGO_STILL = logoFiles['./assets/logo-still.png']
 function Logo({ size = 40 }: { size?: number }) {
   if (!LOGO) return <span className="logo" style={{ width: size, height: size }}>P</span>
-  return (
-    <picture>
-      {LOGO_STILL && <source srcSet={LOGO_STILL} media="(prefers-reduced-motion: reduce)" />}
-      <img className="logo-img" src={LOGO} alt="" width={size} height={size} style={{ width: size, height: size }} />
-    </picture>
-  )
+  return <img className="logo-img" src={LOGO} alt="" width={size} height={size} style={{ width: size, height: size }} />
 }
 
 /** 주소: #/ (홈) · #/guide-id · #/guide-id/card-id  (예전 #guide-id 도 지원) */
